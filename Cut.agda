@@ -68,19 +68,20 @@ lsubst : ∀{Γ U L A}
 cut⁺ pfΓ pf [] Values T = T
 
 cut⁺ pfΓ pf (z ∷ LA) ((id⁺ v) ∷ Values) N with (pfΓ v)
-cut⁺ pfΓ pf (.(a A ⁺) ∷ LA) (id⁺ v ∷ Values) (η⁺ N) | A , refl = 
-  subst⁺ [] (a A ⁺ ∷ []) (id⁺ v ∷ []) (cut⁺ (conssusp pfΓ) pf LA (wken-all-rfoc {[]} Values) N)  
+cut⁺ pfΓ pf (.(a A ⁺) ∷ LA) (id⁺ v ∷ Values) (η⁺ N) | A , refl =  {!!}
+--  subst⁺ [] (a A ⁺ ∷ []) (id⁺ v ∷ []) (cut⁺ (conssusp pfΓ) pf LA (wken-all-rfoc {[]} Values) N)  
 cut⁺ {U} {Γ} {Ω} pfΓ pf (.(↓ A) ∷ LA) (↓R N ∷ Values) (↓L {A} N') = 
   rsubst+ [] pfΓ pf LA (A ∷ []) (N ∷ []) Values N'
   -- rsubst+ [] pfΓ pf N (cut⁺ (conspers pfΓ) pf LA (wken-all-rfoc {[]} Values) N₁)
 cut⁺ pfΓ pf (.(A ∨ B) ∷ LA) (∨R₁ V ∷ Values) (∨L {A} {B} N₁ N₂) = cut⁺ pfΓ pf (A ∷ LA) (V ∷ Values) N₁
 cut⁺ pfΓ pf (.(A ∨ B) ∷ LA) (∨R₂ V ∷ Values) (∨L {A} {B} N₁ N₂) =  cut⁺ pfΓ pf (B ∷ LA) (V ∷ Values) N₂
 cut⁺ pfΓ pf (.⊤⁺ ∷ LA) (px ∷ Values) (⊤⁺L N) = cut⁺ pfΓ pf LA Values N
-cut⁺ pfΓ pf (A ∧⁺ B ∷ LA) (∧⁺R V₁ V₂ ∷ Values) (∧⁺L N) = cut⁺ pfΓ pf (B ∷ LA) (V₂ ∷ Values) (cut⁺ pfΓ pf ((A ∷ [])) (V₁ ∷ [])  N)
+cut⁺ pfΓ pf (A ∧⁺ B ∷ LA) (∧⁺R V₁ V₂ ∷ Values) (∧⁺L N) = 
+  cut⁺ pfΓ pf (B ∷ LA) (V₂ ∷ Values) (cut⁺ pfΓ pf ((A ∷ [])) (V₁ ∷ [])  N)
+
+
 
 -- -- Negative principle substitution
-
-
 cut⁻ pfΓ pf [] () LExp LExp' 
 cut⁻ pfΓ pf (_ ∷ LA) LL (focL () x Sp ∷ LExp) (px₁ ∷ LExp')
 
@@ -160,124 +161,6 @@ rsubst+ Γ' pfΓ pf (x ∧⁺ x₁ ∷ LA+) LA- LT (∧⁺R V₁ V₂ ∷ Values
 
 
 
---rsubst-v  Γ' pfΓ pf LA- TS Exp = {!!}
-
-
-
-
-
-
-
-
--- 
-
--- LA+ Version
---
-
-
-
-{- rsubst+ Γ' pfΓ pf [] [] LT Values (focR V) = {!!}
-rsubst+ Γ' pfΓ pf [] [] LT Values (focL pf₁ x Sp) = {!!}
-rsubst+ Γ' pfΓ pf [] [] LT Values (η⁺ N) = {!!}
-rsubst+ Γ' pfΓ pf [] [] LT Values (↓L N) = {!!}
-rsubst+ Γ' pfΓ pf [] [] LT Values ⊥L = ⊥L
-rsubst+ Γ' pfΓ pf [] [] LT Values (∨L N₁ N₂) = {!!}
-rsubst+ Γ' pfΓ pf [] [] LT Values (⊤⁺L N) = {!!}
-rsubst+ Γ' pfΓ pf [] [] LT Values (∧⁺L N) = {!!}
-rsubst+ Γ' pfΓ pf [] [] LT Values (η⁻ N) = {!!}
-rsubst+ Γ' pfΓ pf [] [] LT Values (↑R N) = {!!}
-rsubst+ Γ' pfΓ pf₁ [] [] LT Values (⊃R N) = {!!}
-rsubst+ Γ' pfΓ pf (η⁻ N) [] [] (⊃R N₁) = ⊃R (rsubst+ Γ' pfΓ pf (η⁻ N) [] [] (N₁))
-rsubst+ Γ' pfΓ pf (↑R N) [] [] (⊃R N₁) = ⊃R (rsubst+ Γ' pfΓ pf (↑R N) [] [] (N₁))
-rsubst+ Γ' pfΓ pf (⊃R N) [] [] (⊃R N₁) = ⊃R (rsubst+ Γ' pfΓ pf (⊃R N) [] [] N₁)
-rsubst+ Γ' pfΓ pf ⊤⁻R [] [] (⊃R N) = ⊃R (rsubst+ Γ' pfΓ pf ⊤⁻R [] [] N )
-rsubst+ Γ' pfΓ pf (∧⁻R N₁ N₂) [] [] (⊃R N) = ⊃R (rsubst+ Γ' pfΓ pf (∧⁻R N₁ N₂) [] [] N )
-rsubst+ Γ' pfΓ pf T [] Values ⊤⁻R = ⊤⁻R
-rsubst+ Γ' pfΓ pf T [] Values (∧⁻R N₁ N₂) = {!!}
-
---rsubst+ Γ' pfΓ pf T (x ∷ LA) (px ∷ Values) Exp = {!!}
-
-rsubst+ Γ' pfΓ pf T (.(a Q ⁺) ∷ LA) (px ∷ Values) (η⁺ {Q} N) = {!!}
-rsubst+ Γ' pfΓ pf T (.(↓ A₁) ∷ LA) (id⁺ v ∷ Values) (↓L {A₁} N) with (pfΓ (++ʳ Γ' v))
-... | proj₁ , () 
-rsubst+ Γ' pfΓ pf T (.(↓ A₁) ∷ LA) (↓R N ∷ Values) (↓L {A₁} N₁) = {!!}
-rsubst+ Γ' pfΓ pf T (.⊥⁺ ∷ LA) (id⁺ v ∷ Values) ⊥L with (pfΓ (++ʳ Γ' v))
-... | proj₁ , () 
-rsubst+ Γ' pfΓ pf T (.(A₁ ∨ B) ∷ LA) (id⁺ v ∷ Values) (∨L {A₁} {B} N₁ N₂) with (pfΓ (++ʳ Γ' v))
-... | proj₁ , () 
-rsubst+ Γ' pfΓ pf T (.(A₁ ∨ B) ∷ LA) (∨R₁ V ∷ Values) (∨L {A₁} {B} N₁ N₂) = 
-  rsubst+ Γ' pfΓ pf T (A₁ ∷ LA) (V ∷ Values) N₁
-rsubst+ Γ' pfΓ pf T (.(A₁ ∨ B) ∷ LA) (∨R₂ V ∷ Values) (∨L {A₁} {B} N₁ N₂) = 
-  rsubst+  Γ' pfΓ pf T (B ∷ LA) (V ∷ Values) N₂
-rsubst+ Γ' pfΓ pf T (.⊤⁺ ∷ LA) (px ∷ Values) (⊤⁺L N) = 
-  rsubst+ Γ' pfΓ pf T LA Values N
-rsubst+ Γ' pfΓ pf _ (A₁ ∧⁺ B₁ ∷ LA) (id⁺ v ∷ Values) (∧⁺L N) with (pfΓ (++ʳ Γ' v))
-... | proj₁ , ()
-rsubst+ Γ' pfΓ pf T (A₁ ∧⁺ B ∷ LA) (∧⁺R V₁ V₂ ∷ Values) (∧⁺L N) = 
-  rsubst+ Γ' pfΓ pf T (A₁ ∷ B ∷ LA) (V₁ ∷ V₂ ∷ Values) N 
--} 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
----
--- SIMPLE VERSION 
-
----
-
-{-- Substitution into values
-rsubst Γ' pfΓ pf M (id⁺ z) with fromctx Γ' z
-rsubst Γ' pfΓ A₂ A₁ (id⁺ z) | inj₁ ()
-rsubst Γ' pfΓ M A₁ (id⁺ z) | inj₂ y = id⁺ y
-rsubst Γ' pfΓ pf M (↓R N) = ↓R (rsubst Γ' pfΓ pf M N) 
-rsubst Γ' pfΓ pf M(∨R₁ V) = ∨R₁ (rsubst Γ' pfΓ pf M V)
-rsubst Γ' pfΓ pf M (∨R₂ V) = ∨R₂ (rsubst Γ' pfΓ pf M V)
-rsubst Γ' pfΓ pf M ⊤⁺R = ⊤⁺R
-rsubst Γ' pfΓ pf M (∧⁺R V₁ V₂) =
-  ∧⁺R (rsubst Γ' pfΓ pf M V₁) (rsubst Γ' pfΓ pf M V₂)
-
--- Substitution into terms
-rsubst Γ' pfΓ pf M (focR V) = focR (rsubst Γ' pfΓ pf M V) 
-rsubst Γ' pfΓ pf M (focL pf' x' Sp) with fromctx Γ' x'
-rsubst Γ' pfΓ pf M (focL {A} pf' x' Sp) | inj₁ refl =  
-   cut⁻ pfΓ (pf' , pf) (A ∷ []) refl (M ∷ []) ((rsubst Γ' pfΓ pf M Sp) ∷ []) 
-rsubst Γ' pfΓ pf M (focL pf' x' Sp) | inj₂ y = focL pf' y (rsubst Γ' pfΓ pf M Sp) 
-rsubst Γ' pfΓ pf M (η⁺ N) = η⁺ (rsubst (_ ∷ Γ') (conssusp pfΓ) pf (wken M) N)
-rsubst Γ' pfΓ pf M (↓L N) = ↓L (rsubst (_ ∷ Γ') (conspers pfΓ) pf (wken M) N)
-rsubst Γ' pfΓ pf M ⊥L = ⊥L
-rsubst Γ' pfΓ pf M (∨L N₁ N₂) =
-  ∨L (rsubst Γ' pfΓ pf M N₁) (rsubst Γ' pfΓ pf M N₂)
-rsubst Γ' pfΓ pf M (⊤⁺L N) = ⊤⁺L (rsubst Γ' pfΓ pf M N)
-rsubst Γ' pfΓ pf M (∧⁺L N) = ∧⁺L (rsubst Γ' pfΓ pf M N)
-rsubst Γ' pfΓ pf M (η⁻ N) = η⁻ (rsubst Γ' pfΓ pf M N)
-rsubst Γ' pfΓ pf M (↑R N) = ↑R (rsubst Γ' pfΓ pf M N)
-rsubst Γ' pfΓ pf M (⊃R N) = ⊃R (rsubst Γ' pfΓ pf M N)
-rsubst Γ' pfΓ pf M ⊤⁻R = ⊤⁻R
-rsubst Γ' pfΓ pf M (∧⁻R N₁ N₂) =
-  ∧⁻R (rsubst Γ' pfΓ pf M N₁) (rsubst Γ' pfΓ pf M N₂)
-
--- Substitution into spines
-rsubst Γ' pfΓ pf M id⁻ = id⁻
-rsubst Γ' pfΓ pf M (↑L  N) = ↑L (rsubst Γ' pfΓ pf M N)
-rsubst Γ' pfΓ pf M (⊃L V Sp) =  ⊃L (rsubst Γ' pfΓ tt M V) (rsubst Γ' pfΓ pf M Sp)
-rsubst Γ' pfΓ pf M (∧⁻L₁ Sp) = ∧⁻L₁ (rsubst Γ' pfΓ pf M Sp)
-rsubst Γ' pfΓ pf M (∧⁻L₂ Sp) = ∧⁻L₂ (rsubst Γ' pfΓ pf M Sp)
---}
 
 
 
