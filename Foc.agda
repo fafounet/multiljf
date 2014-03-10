@@ -40,9 +40,6 @@ data Type : Polarity → Set where
   ⊤⁻ : Type ⁻
   _∧⁻_ : (A B : Type ⁻) → Type ⁻
 
---_⊆_ : ∀{A} → List A → List A → Set
---_⊆_ = LIST.SET.Sub
-
 
 
 -- Judgmental infrastructure
@@ -299,11 +296,23 @@ wken = wk (λ {x} → there)
 wken-list :  ∀{Γ' Γ Form} → Exp Γ Form → Exp (Γ' ++ Γ) Form
 wken-list {Γ'} Ex = wk (λ x₁ →  ++ʳ Γ' x₁) Ex
 
+any-middle :  ∀{x y Γ} (Γ' : Ctx) → Any (_≡_ x) (Γ' ++ Γ) → Any (_≡_ x) (Γ' ++ y ∷ Γ)
+any-middle [] (here px) = there (here px)
+any-middle [] (there A) = there (there A)
+any-middle (x₁ ∷ Γ') (here px) = here px
+any-middle (x₁ ∷ Γ') (there A) = there (any-middle Γ' A)
 
-postulate wken-middle : ∀{Γ Form x } → (Γ' : Ctx) →  Exp (Γ' ++ Γ) Form → Exp (Γ' ++ x ∷ Γ) Form
--- wken-middle Γ' Ex = wk (λ x₁ → {!!}) Ex 
+any-middle-list :  ∀{x Γ} (Γ' : Ctx) (L : Ctx) → Any (_≡_ x) (Γ' ++ Γ) → Any (_≡_ x) (Γ' ++ L ++ Γ)
+any-middle-list Γ' [] A = A
+any-middle-list [] L A =  ++ʳ L A
+any-middle-list (x₁ ∷ Γ') (x₂ ∷ L) (here refl) = here refl
+any-middle-list (x₁ ∷ Γ') (x₂ ∷ L) (there A) = there (any-middle-list  Γ' (x₂ ∷ L) A) 
 
-postulate wk-middle : ∀{Γ Form} → (Γ' : Ctx) → (L : Ctx) → Exp (Γ' ++ Γ) Form → Exp (Γ' ++ L ++ Γ) Form
+wken-middle : ∀{Γ Form x } → (Γ' : Ctx) →  Exp (Γ' ++ Γ) Form → Exp (Γ' ++ x ∷ Γ) Form
+wken-middle Γ' Ex = wk (λ x₁ → any-middle Γ' x₁) Ex 
+
+wken-middle-list : ∀{Γ Form} → (Γ' : Ctx) → (L : Ctx) → Exp (Γ' ++ Γ) Form → Exp (Γ' ++ L ++ Γ) Form
+wken-middle-list Γ' L E = wk (λ x₁ → any-middle-list Γ' L x₁) E
 
 
 
