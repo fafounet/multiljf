@@ -51,22 +51,16 @@ mrsubst  : ∀{Γ Form} (Γ' : Ctx)
 mrsubst Γ' pfΓ pf [] Ts Exp = Exp
 mrsubst {Γ} Γ' pfΓ pf (x ∷ LA) (px ∷ Ts) Exp = 
   mrsubst Γ' pfΓ pf LA Ts 
-    (rsubst  { Data.List.map Pers LA ++ Γ} Γ' (concconcpers Γ' LA pfΓ) pf {!!} Exp)
+    (rsubst Γ' (concconcpers Γ' LA pfΓ) pf (wken-middle-list Γ' (Data.List.map Pers LA) px) Exp)
 
-  {-
---rsubst : ∀{Γ Form A} (Γ' : Ctx)
---  → suspnormalΓ (Γ' ++ Γ)
---  → suspnormalF Form
---  → Term (Γ' ++ Γ) [] (Inv A)
---  → Exp (Γ' ++ (Pers A) ∷ Γ) Form
---  → Exp (Γ' ++ Γ) Form 
-
-lsubst : ∀{Γ U L A} 
+mlsubst : ∀{Γ U L N} 
   → suspnormalΓ Γ
   → suspstable U
-  → Exp Γ (Left L (True A))
-  → Term Γ [ A ] U 
+  → (LA : List (Type ⁺)) 
+  → (length LA ≡ suc N)
+  → All (\x → Exp Γ (Left L (True x))) LA
+  → All (\x → Term Γ [ x ] U) LA
   → Exp Γ (Left L U)
 
-
--}
+mlsubst pfΓ pf [] () _ _ 
+mlsubst pfΓ pf (x ∷ LA) refl (px ∷ E) (px₁ ∷ T) = lsubst pfΓ pf px px₁
