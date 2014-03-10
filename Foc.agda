@@ -10,7 +10,10 @@ open import Data.Sum
 open import Data.Vec hiding (_∈_;[_];_++_)
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.List.Any
+open import Data.List.Any.Properties
 open import Data.List.All
+-- open import Function.Related
+open import Function.Inverse hiding (sym)
 open import Level
 open Membership-≡
 
@@ -86,6 +89,12 @@ hsusp-inj refl = refl
 suspnormalΓ : Ctx → Set
 suspnormalΓ Γ = ∀{A} → HSusp A Membership-≡.∈ Γ → ∃ λ Q → A ≡ (a Q ⁺)
 
+postulate suspnormalsplitleft : ∀{Γ' Γ} → suspnormalΓ (Γ' ++ Γ) → suspnormalΓ Γ'
+postulate suspnormalsplitright : ∀{Γ' Γ} → suspnormalΓ (Γ' ++ Γ) → suspnormalΓ Γ
+
+postulate suspnormalconc : ∀{Γ Γ'} → suspnormalΓ Γ → suspnormalΓ Γ' → suspnormalΓ (Γ ++ Γ')
+
+
 conssusp : ∀{Γ Q} → suspnormalΓ Γ → suspnormalΓ ((HSusp (a Q ⁺)) ∷ Γ)
 conssusp pfΓ (here px) = , hsusp-inj px
 conssusp pfΓ (there A₁) = pfΓ A₁
@@ -93,6 +102,16 @@ conssusp pfΓ (there A₁) = pfΓ A₁
 conspers : ∀{Γ A} → suspnormalΓ Γ → suspnormalΓ ((Pers A) ∷ Γ)
 conspers pfΓ (here ())
 conspers pfΓ  (there B) = pfΓ B
+
+concpers : ∀{Γ} → (LA : List (Type ⁻)) → suspnormalΓ Γ → suspnormalΓ (Data.List.map Pers LA ++ Γ)
+concpers [] pfΓ = pfΓ
+concpers (x ∷ LA) pfΓ = conspers (concpers LA pfΓ)
+
+concconcpers : ∀{Γ} (Γ' : Ctx) (LA : List (Type ⁻))
+  → suspnormalΓ (Γ' ++ Γ) 
+  →  suspnormalΓ (Γ' ++ Data.List.map Pers LA ++ Γ)
+concconcpers {Γ} Γ' LA pfΓ = 
+  suspnormalconc (suspnormalsplitleft {Γ'} {Γ} pfΓ) (concpers LA (suspnormalsplitright {Γ'} {Γ} pfΓ))
 
 
 
@@ -207,6 +226,7 @@ data Exp Γ where
   id⁻ : ∀{A}
     → Spine Γ A (Susp A)
   ↑L : ∀{A U}
+    (pf : stable U)
     (N : Term Γ [ A ] U)
     → Spine Γ (↑ A) U
   ⊃L : ∀{A B U}
@@ -267,7 +287,7 @@ wk θ ⊤⁻R = ⊤⁻R
 wk θ (∧⁻R N₁ N₂) = ∧⁻R (wk θ N₁) (wk θ N₂)
 
 wk θ id⁻ = id⁻
-wk θ (↑L N) = ↑L (wk θ N)
+wk θ (↑L pf N) = ↑L pf (wk θ N)
 wk θ (⊃L V Sp) = ⊃L (wk θ V) (wk θ Sp)
 wk θ (∧⁻L₁ Sp) = ∧⁻L₁ (wk θ Sp)
 wk θ (∧⁻L₂ Sp) = ∧⁻L₂ (wk θ Sp)
@@ -276,6 +296,10 @@ wk θ (∧⁻L₂ Sp) = ∧⁻L₂ (wk θ Sp)
 wken : ∀{Γ A Form} → Exp Γ Form → Exp (A ∷ Γ) Form
 wken = wk (λ {x} → there)
 
+wk-middle : ∀{Γ Form} → (Γ' : Ctx) → (L : Ctx) → Exp (Γ' ++ Γ) Form → Exp (Γ' ++ L ++ Γ) Form
+wk-middle [] [] Exp = Exp
+wk-middle [] (x ∷ L) Exp = wken (wk (\z → ++ʳ L z) Exp)
+wk-middle (x ∷ Γ') L Exp = {!!} 
 
 wken-all-rfoc : ∀{Γ' Γ xs B} 
   → All (λ A → Exp (Γ' ++ Γ) (Rfoc A)) xs
@@ -324,7 +348,49 @@ no-hsusp-in-pers (x ∷ LAi) (here ())
 no-hsusp-in-pers (x ∷ LAi) (there H) = no-hsusp-in-pers LAi H
 
 
-subst⁺ :
+
+
+subst⁺ : ∀{Γ A Form} (Γ' : Ctx)
+  → Value (Γ' ++ Γ) A
+  → Exp (Γ' ++ HSusp A ∷ Γ) Form
+  → Exp (Γ' ++ Γ) Form
+
+subst⁺ Γ' V (id⁺ x) with fromctx Γ' x
+subst⁺ Γ' V (id⁺ x) | inj₁ refl = V
+subst⁺ Γ' V (id⁺ x) | inj₂ y = id⁺ y
+subst⁺ Γ' V (↓R N) = ↓R (subst⁺ Γ' V N)
+subst⁺ Γ' V (∨R₁ V') = ∨R₁ (subst⁺ Γ' V V')
+subst⁺ Γ' V (∨R₂ V') = ∨R₂ (subst⁺ Γ' V V')
+subst⁺ Γ' V ⊤⁺R = ⊤⁺R
+subst⁺ Γ' V (∧⁺R V₁ V₂) = ∧⁺R (subst⁺ Γ' V V₁) (subst⁺ Γ' V V₂)
+
+subst⁺ Γ' V (focR V') = focR (subst⁺ Γ' V V')
+subst⁺ Γ' V (focL pf x Sp) with fromctx Γ' x
+... | inj₁ ()
+... | inj₂ y = focL pf y (subst⁺ Γ' V Sp)
+subst⁺ Γ' V (η⁺ N) = η⁺ (subst⁺ (_ ∷ Γ') (wken V) N)
+subst⁺ Γ' V (η⁻ N) = η⁻ (subst⁺ Γ' V N)
+subst⁺ Γ' V (↓L N) = ↓L (subst⁺ (_ ∷ Γ') (wken V) N)
+subst⁺ Γ' V (↑R N) = ↑R (subst⁺ Γ' V N)
+subst⁺ Γ' V ⊥L = ⊥L
+subst⁺ Γ' V (∨L N₁ N₂) = ∨L (subst⁺ Γ' V N₁) (subst⁺ Γ' V N₂)
+subst⁺ Γ' V (⊤⁺L N) = ⊤⁺L (subst⁺ Γ' V N)
+subst⁺ Γ' V (∧⁺L N) = ∧⁺L (subst⁺ Γ' V N)
+subst⁺ Γ' V (⊃R N) = ⊃R (subst⁺ Γ' V N)
+subst⁺ Γ' V ⊤⁻R = ⊤⁻R
+subst⁺ Γ' V (∧⁻R N₁ N₂) = ∧⁻R (subst⁺ Γ' V N₁) (subst⁺ Γ' V N₂)
+
+subst⁺ Γ' V id⁻ = id⁻
+subst⁺ Γ' V (↑L pf N) = ↑L pf (subst⁺ Γ' V N)
+subst⁺ Γ' V (⊃L V' Sp) = ⊃L (subst⁺ Γ' V V') (subst⁺ Γ' V Sp)
+subst⁺ Γ' V (∧⁻L₁ Sp) = ∧⁻L₁ (subst⁺ Γ' V Sp)
+subst⁺ Γ' V (∧⁻L₂ Sp) = ∧⁻L₂ (subst⁺ Γ' V Sp)
+
+
+
+
+
+gsubst⁺ :
   ∀{Γ Form}
   → (Γ' : Ctx)  
   → (LAi : List (Type ⁺))
@@ -332,59 +398,59 @@ subst⁺ :
   → Exp (Γ' ++ Data.List.map (\x → HSusp x) (LAi) ++ Γ) Form 
   → Exp (Γ' ++ Γ) Form
   
-subst⁺ Γ' [] PA (id⁺ v) = id⁺ v
-subst⁺ {Γ} Γ' (x ∷ LAi) (px ∷ PA) (id⁺ {A} v)
+gsubst⁺ Γ' [] PA (id⁺ v) = id⁺ v
+gsubst⁺ {Γ} Γ' (x ∷ LAi) (px ∷ PA) (id⁺ {A} v)
  with  fromctxGen Γ' (Data.List.map (\x → HSusp x) (x ∷ LAi)) v
 ... | inj₁ (here px₁) = subst (λ z → Exp (Γ' ++ Γ) (Rfoc z)) (sym (hsusp-inj px₁)) px   
 ... | inj₁ (there L) = extra Γ Γ' A LAi L PA
 ... | inj₂ R = id⁺ R
 
-subst⁺ Γ' LAi PA (↓R {A} N) = ↓R (subst⁺ Γ' LAi PA N)
-subst⁺ Γ' LAi PA (∨R₁ {A} {B} V) = ∨R₁ (subst⁺ Γ' LAi PA V)
-subst⁺ Γ' LAi PA (∨R₂ {A} {B} V) = ∨R₂ (subst⁺ Γ' LAi PA V)
-subst⁺ Γ' LAi PA ⊤⁺R = ⊤⁺R
-subst⁺ Γ' LAi PA (∧⁺R {A} {B} V₁ V₂) = ∧⁺R (subst⁺ Γ' LAi PA V₁) (subst⁺ Γ' LAi PA V₂)
-subst⁺ Γ' LAi PA (focR {A} V) = focR (subst⁺ Γ' LAi PA V)
+gsubst⁺ Γ' LAi PA (↓R {A} N) = ↓R (gsubst⁺ Γ' LAi PA N)
+gsubst⁺ Γ' LAi PA (∨R₁ {A} {B} V) = ∨R₁ (gsubst⁺ Γ' LAi PA V)
+gsubst⁺ Γ' LAi PA (∨R₂ {A} {B} V) = ∨R₂ (gsubst⁺ Γ' LAi PA V)
+gsubst⁺ Γ' LAi PA ⊤⁺R = ⊤⁺R
+gsubst⁺ Γ' LAi PA (∧⁺R {A} {B} V₁ V₂) = ∧⁺R (gsubst⁺ Γ' LAi PA V₁) (gsubst⁺ Γ' LAi PA V₂)
+gsubst⁺ Γ' LAi PA (focR {A} V) = focR (gsubst⁺ Γ' LAi PA V)
 -- focL
-subst⁺ Γ' LAi PA (focL {A} {U} pf x Sp) 
+gsubst⁺ Γ' LAi PA (focL {A} {U} pf x Sp) 
    with  fromctxGen Γ' (Data.List.map (\x → HSusp x) LAi) x 
-subst⁺ Γ' [] PA (focL pf x Sp) | inj₁ L = focL pf x Sp
-subst⁺ Γ' (x ∷ LAi) (px₁ ∷ PA) (focL pf x₁ Sp) | inj₁ (here ())
-subst⁺ Γ' (x ∷ LAi) (px ∷ PA) (focL pf x₁ Sp) | inj₁ (there L) = ⊥-elim (no-pers-in-hsusp LAi L) 
-subst⁺ Γ' [] PA (focL pf x Sp) | inj₂ R = focL pf R Sp
-subst⁺ Γ' (x ∷ LAi) (px ∷ PA) (focL pf x₁ Sp) | inj₂ R = focL pf R (subst⁺ Γ' (x ∷ LAi) (px ∷ PA) Sp)
+gsubst⁺ Γ' [] PA (focL pf x Sp) | inj₁ L = focL pf x Sp
+gsubst⁺ Γ' (x ∷ LAi) (px₁ ∷ PA) (focL pf x₁ Sp) | inj₁ (here ())
+gsubst⁺ Γ' (x ∷ LAi) (px ∷ PA) (focL pf x₁ Sp) | inj₁ (there L) = ⊥-elim (no-pers-in-hsusp LAi L) 
+gsubst⁺ Γ' [] PA (focL pf x Sp) | inj₂ R = focL pf R Sp
+gsubst⁺ Γ' (x ∷ LAi) (px ∷ PA) (focL pf x₁ Sp) | inj₂ R = focL pf R (gsubst⁺ Γ' (x ∷ LAi) (px ∷ PA) Sp)
 -- end focL
-subst⁺ Γ' .[] [] (η⁺ N) = η⁺ N
-subst⁺ {Γ} Γ' .(x ∷ xs) (_∷_ {x} {xs} px PA) (η⁺ {Q} N) = 
-  η⁺ (subst⁺ (_ ∷ Γ') (x ∷ xs)  (wken-all-rfoc {Γ'} (px ∷ PA)) N )
+gsubst⁺ Γ' .[] [] (η⁺ N) = η⁺ N
+gsubst⁺ {Γ} Γ' .(x ∷ xs) (_∷_ {x} {xs} px PA) (η⁺ {Q} N) = 
+  η⁺ (gsubst⁺ (_ ∷ Γ') (x ∷ xs)  (wken-all-rfoc {Γ'} (px ∷ PA)) N )
 
-subst⁺ Γ' .[] [] (↓L N) = ↓L N
-subst⁺ {Γ} Γ' .(x ∷ xs) (_∷_ {x} {xs} px PA) (↓L {A} N) = 
-  ↓L (subst⁺ (_ ∷ Γ') (x ∷ xs) (wken-all-rfoc {Γ'} (px ∷ PA)) N)
+gsubst⁺ Γ' .[] [] (↓L N) = ↓L N
+gsubst⁺ {Γ} Γ' .(x ∷ xs) (_∷_ {x} {xs} px PA) (↓L {A} N) = 
+  ↓L (gsubst⁺ (_ ∷ Γ') (x ∷ xs) (wken-all-rfoc {Γ'} (px ∷ PA)) N)
 
-subst⁺ Γ' LAi PA (⊥L {U} {Ω}) = ⊥L
-subst⁺ Γ' LAi PA (∨L {A} {B} {Ω} {U} N₁ N₂) = 
-  ∨L (subst⁺ Γ' LAi PA N₁)
-     (subst⁺ Γ' LAi PA N₂)
-subst⁺ Γ' LAi PA (⊤⁺L {U} {Ω} N) = ⊤⁺L (subst⁺  Γ' LAi PA N)
-subst⁺ Γ' LAi PA (∧⁺L {U} {Ω} {A} {B} N) = 
-  ∧⁺L (subst⁺ Γ' LAi PA N)
-subst⁺ Γ' LAi PA (η⁻ {Q} N) = 
-  η⁻ (subst⁺ Γ' LAi PA N)
-subst⁺ Γ' LAi PA (↑R {A} N) = 
-  ↑R (subst⁺ Γ' LAi PA N)
-subst⁺ Γ' LAi PA (⊃R {A} {B} N) = 
-  ⊃R (subst⁺ Γ' LAi PA N)
-subst⁺ Γ' LAi PA ⊤⁻R = ⊤⁻R
-subst⁺ Γ' LAi PA (∧⁻R {A} {B} N₁ N₂) = 
-  ∧⁻R (subst⁺ Γ' LAi PA N₁)
-      (subst⁺ Γ' LAi PA N₂)
-subst⁺ Γ' LAi PA (id⁻ {A}) = id⁻
-subst⁺ Γ' LAi PA (↑L {A} {U} N) = 
-  ↑L (subst⁺ Γ' LAi PA N)
-subst⁺ Γ' LAi PA (⊃L V Sp) = ⊃L (subst⁺ Γ' LAi PA V) (subst⁺ Γ' LAi PA Sp)
-subst⁺ Γ' LAi PA (∧⁻L₁ Sp) = ∧⁻L₁ (subst⁺ Γ' LAi PA Sp)
-subst⁺ Γ' LAi PA (∧⁻L₂ Sp) = ∧⁻L₂ (subst⁺ Γ' LAi PA Sp)
+gsubst⁺ Γ' LAi PA (⊥L {U} {Ω}) = ⊥L
+gsubst⁺ Γ' LAi PA (∨L {A} {B} {Ω} {U} N₁ N₂) = 
+  ∨L (gsubst⁺ Γ' LAi PA N₁)
+     (gsubst⁺ Γ' LAi PA N₂)
+gsubst⁺ Γ' LAi PA (⊤⁺L {U} {Ω} N) = ⊤⁺L (gsubst⁺  Γ' LAi PA N)
+gsubst⁺ Γ' LAi PA (∧⁺L {U} {Ω} {A} {B} N) = 
+  ∧⁺L (gsubst⁺ Γ' LAi PA N)
+gsubst⁺ Γ' LAi PA (η⁻ {Q} N) = 
+  η⁻ (gsubst⁺ Γ' LAi PA N)
+gsubst⁺ Γ' LAi PA (↑R {A} N) = 
+  ↑R (gsubst⁺ Γ' LAi PA N)
+gsubst⁺ Γ' LAi PA (⊃R {A} {B} N) = 
+  ⊃R (gsubst⁺ Γ' LAi PA N)
+gsubst⁺ Γ' LAi PA ⊤⁻R = ⊤⁻R
+gsubst⁺ Γ' LAi PA (∧⁻R {A} {B} N₁ N₂) = 
+  ∧⁻R (gsubst⁺ Γ' LAi PA N₁)
+      (gsubst⁺ Γ' LAi PA N₂)
+gsubst⁺ Γ' LAi PA (id⁻ {A}) = id⁻
+gsubst⁺ Γ' LAi PA (↑L {A} {U} pf N) = 
+  ↑L pf (gsubst⁺ Γ' LAi PA N)
+gsubst⁺ Γ' LAi PA (⊃L V Sp) = ⊃L (gsubst⁺ Γ' LAi PA V) (gsubst⁺ Γ' LAi PA Sp)
+gsubst⁺ Γ' LAi PA (∧⁻L₁ Sp) = ∧⁻L₁ (gsubst⁺ Γ' LAi PA Sp)
+gsubst⁺ Γ' LAi PA (∧⁻L₂ Sp) = ∧⁻L₂ (gsubst⁺ Γ' LAi PA Sp)
 
 
 subst⁻ : ∀{Γ A L U}
@@ -402,7 +468,7 @@ subst⁻ pf (⊤⁺L N) Sp = ⊤⁺L (subst⁻ pf N Sp)
 subst⁻ pf (∧⁺L N) Sp = ∧⁺L (subst⁻ pf N Sp)
 
 subst⁻ pf id⁻ Sp = Sp
-subst⁻ pf (↑L N) Sp = ↑L (subst⁻ pf N Sp)
+subst⁻ pf (↑L _ N) Sp = ↑L pf (subst⁻ pf N Sp)
 subst⁻ pf (⊃L V Sp) Sp' = ⊃L V (subst⁻ pf Sp Sp')
 subst⁻ pf (∧⁻L₁ Sp) Sp' = ∧⁻L₁ (subst⁻ pf Sp Sp')
 subst⁻ pf (∧⁻L₂ Sp) Sp' = ∧⁻L₂ (subst⁻ pf Sp Sp')
