@@ -296,10 +296,16 @@ wk θ (∧⁻L₂ Sp) = ∧⁻L₂ (wk θ Sp)
 wken : ∀{Γ A Form} → Exp Γ Form → Exp (A ∷ Γ) Form
 wken = wk (λ {x} → there)
 
-wk-middle : ∀{Γ Form} → (Γ' : Ctx) → (L : Ctx) → Exp (Γ' ++ Γ) Form → Exp (Γ' ++ L ++ Γ) Form
-wk-middle [] [] Exp = Exp
-wk-middle [] (x ∷ L) Exp = wken (wk (\z → ++ʳ L z) Exp)
-wk-middle (x ∷ Γ') L Exp = {!!} 
+wken-list :  ∀{Γ' Γ Form} → Exp Γ Form → Exp (Γ' ++ Γ) Form
+wken-list {Γ'} Ex = wk (λ x₁ →  ++ʳ Γ' x₁) Ex
+
+
+postulate wken-middle : ∀{Γ Form x } → (Γ' : Ctx) →  Exp (Γ' ++ Γ) Form → Exp (Γ' ++ x ∷ Γ) Form
+-- wken-middle Γ' Ex = wk (λ x₁ → {!!}) Ex 
+
+postulate wk-middle : ∀{Γ Form} → (Γ' : Ctx) → (L : Ctx) → Exp (Γ' ++ Γ) Form → Exp (Γ' ++ L ++ Γ) Form
+
+
 
 wken-all-rfoc : ∀{Γ' Γ xs B} 
   → All (λ A → Exp (Γ' ++ Γ) (Rfoc A)) xs
