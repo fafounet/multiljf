@@ -136,7 +136,7 @@ fromctxGen (x ∷ L) L' (there In) with fromctxGen L L' In
 
 data SeqForm : Set where
   Rfoc : (A : Type ⁺) → SeqForm
-  Left : (L : List (Type ⁺) ⊎ List (Type ⁻)) (U : Conc) → SeqForm 
+  Left : (List (Type ⁻) × List (Type ⁺)) → (U : Conc) → SeqForm 
 
 suspnormalF : SeqForm → Set
 suspnormalF (Rfoc A) = ⊤
@@ -146,12 +146,12 @@ data Exp (Γ : Ctx) : SeqForm → Set
 
 Value : (Γ : Ctx) → Type ⁺ → Set
 Value Γ A = Exp Γ (Rfoc A)
-
+  
 Term : (Γ : Ctx) → List (Type ⁺) → Conc → Set
-Term Γ Ω U = Exp Γ (Left (inj₁ Ω) U)
+Term Γ Ω U = Exp Γ (Left ([] , Ω) U)
 
-Spine : (Γ : Ctx) (L : List (Type ⁻)) (U : Conc) → Set
-Spine Γ L U = Exp Γ (Left (inj₂ L) U)
+Spine : (Γ : Ctx) (L- : List (Type ⁻)) (L+ : List (Type ⁺)) (U : Conc) → Set
+Spine Γ L- L+ U = Exp Γ (Left (L- , L+) U)
 
 data Exp Γ where
 
@@ -181,7 +181,7 @@ data Exp Γ where
   focL : ∀{L U} 
     (pf : stable U)
     (In : (Data.List.map (Pers) L) ⊆  Γ)
-    (Sp : Spine Γ L U)
+    (Sp : Spine Γ L [] U)
     → Term Γ [] U
   η⁺ : ∀{Q Ω U}
     (N : Term (HSusp (a Q ⁺) ∷ Γ) Ω U)
@@ -217,23 +217,29 @@ data Exp Γ where
     → Term Γ [] (Inv (A ∧⁻ B))
 
   -- Spines
-  id⁻ : ∀{A L}
-    (x : A ∈ L)
-    → Spine Γ L (Susp A)
-  ↑L : ∀{LA U}
+  id⁻ : ∀{A}
+    → Spine Γ [ A ] [] (Susp A)
+
+  ↑L-cons : ∀{x L- L+ U}
     (pf : stable U)
-    (N : Term Γ LA U)
-    → Spine Γ (Data.List.map (\x → ↑ x) LA) U
-  ⊃L : ∀{A B L U}
+    → (N : Spine Γ (↑ x ∷ L-) L+ U)
+    → Spine Γ L- (x ∷ L+) U 
+
+  ↑L-nil : ∀{L+ U}
+    (pf : stable U)
+    → (N : Term Γ L+ U)
+    → Spine Γ [] L+ U 
+  
+  ⊃L : ∀{A B L- L+ U}
     (V : Value Γ A)
-    (Sp : Spine Γ (B ∷ L) U) 
-    → Spine Γ (A ⊃ B ∷ L) U
-  ∧⁻L₁ : ∀{A B L U}
-    (Sp : Spine Γ (A ∷ L) U)
-    → Spine Γ (A ∧⁻ B ∷ L) U
-  ∧⁻L₂ : ∀{A B L U}
-    (Sp : Spine Γ (B ∷ L) U)
-    → Spine Γ (A ∧⁻ B ∷ L) U
+    (Sp : Spine Γ (B ∷ L-) L+ U) 
+    → Spine Γ (A ⊃ B ∷ L-) L+ U
+  ∧⁻L₁ : ∀{A B L- L+ U}
+    (Sp : Spine Γ (A ∷ L-) L+ U)
+    → Spine Γ (A ∧⁻ B ∷ L-) L+ U
+  ∧⁻L₂ : ∀{A B L- L+ U}
+    (Sp : Spine Γ (B ∷ L-) L+ U)
+    → Spine Γ (A ∧⁻ B ∷ L-) L+ U
 
 -- Weakening
 
@@ -281,8 +287,9 @@ wk θ (⊃R N) = ⊃R (wk θ N)
 wk θ ⊤⁻R = ⊤⁻R
 wk θ (∧⁻R N₁ N₂) = ∧⁻R (wk θ N₁) (wk θ N₂)
 
-wk θ (id⁻ In)  = id⁻ In 
-wk θ (↑L pf N) = ↑L pf (wk θ N)
+wk θ id⁻  = id⁻
+wk θ (↑L-nil pf N) = ↑L-nil pf (wk θ N)
+wk θ (↑L-cons pf N) = ↑L-cons pf (wk θ N) 
 wk θ (⊃L V Sp) = ⊃L (wk θ V) (wk θ Sp)
 wk θ (∧⁻L₁ Sp) = ∧⁻L₁ (wk θ Sp)
 wk θ (∧⁻L₂ Sp) = ∧⁻L₂ (wk θ Sp)
@@ -322,8 +329,8 @@ wken-all-rfoc (px ∷ All) = Data.List.All.map (\x → wken x) (px ∷ All)
 
 
 wken-all-inv : ∀{Γ' Γ Ω xs B} 
-  → All (λ A → Exp (Γ' ++ Γ) (Left (inj₁ Ω) (Inv A))) xs
-  → All (λ A → Exp (B ∷ (Γ' ++ Γ)) (Left (inj₁ Ω) (Inv A))) xs
+  → All (λ A → Exp (Γ' ++ Γ) (Left ([] , Ω) (Inv A))) xs
+  → All (λ A → Exp (B ∷ (Γ' ++ Γ)) (Left ([] , Ω) (Inv A))) xs
 wken-all-inv [] = []
 wken-all-inv (px ∷ All) = Data.List.All.map (\x → wken x) (px ∷ All) 
 
@@ -337,6 +344,9 @@ cntr : ∀{A Form} → (Γ : Ctx) → A ∈ Γ → Exp (A ∷ Γ) Form → Exp �
 cntr Γ In Exp = wk (sub-cntr Γ In) Exp
 
 postulate exch-cons : ∀{Γ Γ' LA C x} → Term (x ∷ Γ ++ Γ') LA C → Term (Γ ++ x ∷ Γ') LA C
+
+
+
 
 -- Focal substitution
 
@@ -400,8 +410,9 @@ subst⁺ Γ' V (⊃R N) = ⊃R (subst⁺ Γ' V N)
 subst⁺ Γ' V ⊤⁻R = ⊤⁻R
 subst⁺ Γ' V (∧⁻R N₁ N₂) = ∧⁻R (subst⁺ Γ' V N₁) (subst⁺ Γ' V N₂)
 
-subst⁺ Γ' V (id⁻ In) = id⁻ In 
-subst⁺ Γ' V (↑L pf N) = ↑L pf (subst⁺ Γ' V N)
+subst⁺ Γ' V id⁻ = id⁻
+subst⁺ Γ' V (↑L-nil pf N) = ↑L-nil pf (subst⁺ Γ' V N)
+subst⁺ Γ' V (↑L-cons pf N) = ↑L-cons pf (subst⁺ Γ' V N) 
 subst⁺ Γ' V (⊃L V' Sp) = ⊃L (subst⁺ Γ' V V') (subst⁺ Γ' V Sp)
 subst⁺ Γ' V (∧⁻L₁ Sp) = ∧⁻L₁ (subst⁺ Γ' V Sp)
 subst⁺ Γ' V (∧⁻L₂ Sp) = ∧⁻L₂ (subst⁺ Γ' V Sp)
@@ -473,27 +484,60 @@ gsubst⁺ Γ' LAi PA (∧⁻L₁ Sp) = ∧⁻L₁ (gsubst⁺ Γ' LAi PA Sp)
 gsubst⁺ Γ' LAi PA (∧⁻L₂ Sp) = ∧⁻L₂ (gsubst⁺ Γ' LAi PA Sp)
 -}
 
-subst⁻ : ∀{Γ L U N}
+
+
+{- 
+flat : {A B : Set} -> List (List A  × List B) -> List A × List B
+flat [] = [] , []
+flat ((proj₁ , proj₂) ∷ L)  with flat L
+... | l , r = proj₁ ++ l , proj₂ ++ r
+
+subst⁻ : ∀{Γ U N}
   → stable U
-  → (LA : List (Type ⁻))
-  → length LA ≡ suc N
-  →  All (\x → Exp Γ (Left L (Susp x))) LA
-  → Spine Γ LA U
+  → (LA- : List (Type ⁻))
+  → length LA- ≡ suc N
+  → (L-+ : List (List (Type ⁻) × List (Type ⁺)))
+  → (length L-+ ≡ suc N)
+  → All (\x → Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (Data.List.zip L-+ LA-)
+  → Spine Γ LA- [] U
+  → Exp Γ (Left (flat L-+) U)
+
+subst⁻ pf [] LLA L-+ LL-+ Exps Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA [] LL-+ Exps Sp = {!!}
+
+subst⁻ pf (x ∷ LA) LLA (.([] , []) ∷ L-+) refl (focL {L₁} pf₁ In Sp ∷ Exps) Sp₁ = 
+  {!(subst⁻ pf (x ∷ LA) ? ((L₁ , []) ∷ L-+) refl (Sp ∷ Exps) Sp₁)!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (η⁺ N ∷ Exps) Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (↓L N ∷ Exps) Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (⊥L ∷ Exps) Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (∨L N₁ N₂ ∷ Exps) Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (⊤⁺L N ∷ Exps) Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (∧⁺L N ∷ Exps) Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (id⁻ x₁ ∷ Exps) Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (↑L-cons pf₁ N ∷ Exps) Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (↑L-nil pf₁ N ∷ Exps) Sp = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (⊃L V Sp ∷ Exps) Sp₁ = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (∧⁻L₁ Sp ∷ Exps) Sp₁ = {!!}
+subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (∧⁻L₂ Sp ∷ Exps) Sp₁ = {!!}
+-}
+
+subst⁻ : ∀{Γ A L U}
+  → stable U
+  → Exp Γ (Left L (Susp A))
+  → Spine Γ [ A ] [] U
   → Exp Γ (Left L U)
 
---subst⁻ pf [] () Exps Sp
---subst⁻ pf (x ∷ LA) LL Exps Sp = {!!}
-subst⁻ pf [] ()  Exps Sp
-subst⁻ pf (x ∷ LA) Length (focL pf₁ In Sp ∷ Exps) Sp₁ = subst⁻ pf (x ∷ LA) refl (focL pf₁ In Sp ∷ Exps) Sp₁
-subst⁻ pf (x ∷ LA) Length (η⁺ N₁ ∷ Exps) Sp = subst⁻ pf (x ∷ LA) refl (η⁺ N₁ ∷ Exps) Sp
-subst⁻ pf (x ∷ LA) Length (↓L N₁ ∷ Exps) Sp = subst⁻ pf (x ∷ LA) refl (↓L N₁ ∷ Exps) Sp
-subst⁻ pf (x ∷ LA) Length (⊥L ∷ Exps) Sp = ⊥L
-subst⁻ pf (x ∷ LA) Length (∨L N₁ N₂ ∷ Exps) Sp = subst⁻ pf (x ∷ LA) refl (∨L N₁ N₂ ∷ Exps) Sp
-subst⁻ pf (x ∷ LA) Length (⊤⁺L N₁ ∷ Exps) Sp = subst⁻ pf (x ∷ LA) refl (⊤⁺L N₁ ∷ Exps) Sp
-subst⁻ pf (x ∷ LA) Length (∧⁺L N₁ ∷ Exps) Sp = subst⁻ pf (x ∷ LA) refl (∧⁺L N₁ ∷ Exps) Sp
-subst⁻ pf (x ∷ LA) Length (id⁻ x₁ ∷ Exps) Sp = subst⁻ pf (x ∷ LA) refl (id⁻ x₁ ∷ Exps) Sp
-subst⁻ pf (x ∷ LA) Length (↑L pf₁ N₁ ∷ Exps) Sp = subst⁻ pf (x ∷ LA) refl (↑L tt N₁ ∷ Exps) Sp
-subst⁻ pf (x ∷ LA) Length (⊃L V Sp ∷ Exps) Sp₁ = subst⁻ pf (x ∷ LA) refl (⊃L V Sp ∷ Exps) Sp₁
-subst⁻ pf (x ∷ LA) Length (∧⁻L₁ Sp ∷ Exps) Sp₁ = subst⁻ pf (x ∷ LA) refl (∧⁻L₁ Sp ∷ Exps) Sp₁
-subst⁻ pf (x ∷ LA) Length (∧⁻L₂ Sp ∷ Exps) Sp₁ = subst⁻ pf (x ∷ LA) refl (∧⁻L₂ Sp ∷ Exps) Sp₁
+subst⁻ pf (focL _ x Sp) Sp' = focL pf x (subst⁻ pf Sp Sp')
+subst⁻ pf (η⁺ N) Sp = η⁺ (subst⁻ pf N (wken Sp))
+subst⁻ pf (↓L N) Sp = ↓L (subst⁻ pf N (wken Sp))
+subst⁻ pf ⊥L Sp = ⊥L
+subst⁻ pf (∨L N₁ N₂) Sp = ∨L (subst⁻ pf N₁ Sp) (subst⁻ pf N₂ Sp)
+subst⁻ pf (⊤⁺L N) Sp = ⊤⁺L (subst⁻ pf N Sp)
+subst⁻ pf (∧⁺L N) Sp = ∧⁺L (subst⁻ pf N Sp)
 
+subst⁻ pf id⁻ Sp = Sp
+subst⁻ pf (↑L-cons _ N) Sp = ↑L-cons pf (subst⁻ pf N Sp) 
+subst⁻ pf (↑L-nil _ N) Sp = ↑L-nil pf (subst⁻ pf N Sp)
+subst⁻ pf (⊃L V Sp) Sp' = ⊃L V (subst⁻ pf Sp Sp')
+subst⁻ pf (∧⁻L₁ Sp) Sp' = ∧⁻L₁ (subst⁻ pf Sp Sp')
+subst⁻ pf (∧⁻L₂ Sp) Sp' = ∧⁻L₂ (subst⁻ pf Sp Sp')
