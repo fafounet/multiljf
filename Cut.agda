@@ -25,17 +25,17 @@ cut⁺ : ∀{A U Γ Ω}
 cut⁻ : ∀{U Γ A}
   → suspnormalΓ Γ
   → suspstable U
-  → (LA : List (Type ⁻))
+  → (LA1 : List (Type ⁻))
+  → (LA2 : List (Type ⁻))
   → Term Γ [] (Inv A)
-  → Spine Γ (A ∷ LA) [] U
-  → Spine Γ LA [] U
+  → Spine Γ (LA1 ++ A ∷ LA2) [] U
+  → Spine Γ (LA1 ++ LA2) [] U
 
-rsubst : ∀{Γ Form} (Γ' : Ctx)
+rsubst : ∀{Γ Form A} (Γ' : Ctx)
   → suspnormalΓ (Γ' ++ Γ)
   → suspnormalF Form
-  → (LA : (List (Type ⁻)))
-  → All (\x → Term (Γ' ++ Γ) [] (Inv x)) LA
-  → Exp (Γ' ++ (Data.List.map (Pers) LA) ++ Γ) Form
+  → Term (Γ' ++ Γ) [] (Inv A)
+  → Exp (Γ' ++ (Pers A) ∷ Γ) Form
   → Exp (Γ' ++ Γ) Form
 
 lsubst : ∀{Γ U L A}
@@ -76,50 +76,60 @@ postulate
 postulate 
   subseteq-notin : ∀{L Γ' Γ A} → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ → A ∉ L → Data.List.map Pers L ⊆ Γ' ++ Γ
 
-
+postulate 
+  subseteq-cplx :  ∀{L Γ' Γ A} → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ
+                 → A ∈ L
+                 → ∃ λ L1 
+                 → ∃ λ L2
+                 → (L ≡ (L1 ++ A ∷ L2)) -- × ((L1 ⊆ (Γ' ++ Γ)) × (L2 ⊆ Γ' ++ Γ))
+postulate
+  subseteq-equiv :  ∀{L L1 L2 A Γ Γ'} 
+                    → L ≡ L1 ++ A ∷ L2
+                    → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ
+                    → Data.List.map Pers (L1 ++ L2) ⊆ Γ' ++ Γ
 
 -- Substitution into values
-rsubst Γ' pfΓ pf LA M (id⁺ z) with fromctxGen Γ' (Data.List.map Pers LA) z
-rsubst Γ' pfΓ pf LA M (id⁺ z) | inj₁ x = ⊥-elim (no-hsusp-in-pers LA x)
-rsubst Γ' pfΓ pf LA M (id⁺ z) | inj₂ y = id⁺ y
-rsubst Γ' pfΓ pf LA M (↓R N) = ↓R (rsubst Γ' pfΓ pf LA M N)
-rsubst Γ' pfΓ pf LA M (∨R₁ V) = ∨R₁ (rsubst Γ' pfΓ pf LA M V)
-rsubst Γ' pfΓ pf LA M (∨R₂ V) = ∨R₂ (rsubst Γ' pfΓ pf LA M V)
-rsubst Γ' pfΓ pf LA M ⊤⁺R = ⊤⁺R
-rsubst Γ' pfΓ pf LA M (∧⁺R V₁ V₂) =
-  ∧⁺R (rsubst Γ' pfΓ pf LA M V₁) (rsubst Γ' pfΓ pf LA M V₂)
+rsubst Γ' pfΓ pf M (id⁺ z) with fromctx Γ' z
+rsubst Γ' pfΓ pf M (id⁺ z) | inj₁ ()
+rsubst Γ' pfΓ pf M (id⁺ z) | inj₂ y = id⁺ y
+rsubst Γ' pfΓ pf M (↓R N) = ↓R (rsubst Γ' pfΓ pf M N)
+rsubst Γ' pfΓ pf M (∨R₁ V) = ∨R₁ (rsubst Γ' pfΓ pf M V)
+rsubst Γ' pfΓ pf M (∨R₂ V) = ∨R₂ (rsubst Γ' pfΓ pf M V)
+rsubst Γ' pfΓ pf M ⊤⁺R = ⊤⁺R
+rsubst Γ' pfΓ pf M (∧⁺R V₁ V₂) =
+  ∧⁺R (rsubst Γ' pfΓ pf M V₁) (rsubst Γ' pfΓ pf M V₂)
 
 -- Substitution into terms
-rsubst Γ' pfΓ pf LA M (focR V) = focR (rsubst Γ' pfΓ pf LA M V)
-rsubst Γ' pfΓ pf LA M (focL {L} pf' x' Sp) = {!!}
---... | inj₁ x = cut⁻ pfΓ (pf' , pf) L {!!} (rsubst Γ' pfΓ pf LA M Sp)
---... | inj₂ y = focL pf' (subseteq-notin {L} {Γ'} x' y) (rsubst Γ' pfΓ pf LA M  Sp)
---rsubst Γ' pfΓ pf LA M (focL pf' x' Sp) with fromctx Γ' x'
---... | inj₁ refl = cut⁻ pfΓ (pf' , pf) M (rsubst Γ' pfΓ pf LA M Sp)
---... | inj₂ x = focL pf' x (rsubst Γ' pfΓ pf LA M Sp)
-rsubst Γ' pfΓ pf LA M (η⁺ N) = {!!} --η⁺ (rsubst (_ ∷ Γ') (conssusp pfΓ) pf LA (wken M) N)
-rsubst Γ' pfΓ pf LA M (↓L N) = {!!} --↓L (rsubst (_ ∷ Γ') (conspers pfΓ) pf LA (wken M) N)
-rsubst Γ' pfΓ pf LA M ⊥L = ⊥L
-rsubst Γ' pfΓ pf LA M (∨L N₁ N₂) =
-  ∨L (rsubst Γ' pfΓ pf LA M N₁) (rsubst Γ' pfΓ pf LA M N₂)
-rsubst Γ' pfΓ pf LA M (⊤⁺L N) = ⊤⁺L (rsubst Γ' pfΓ pf LA M N)
-rsubst Γ' pfΓ pf LA M (∧⁺L N) = ∧⁺L (rsubst Γ' pfΓ pf LA M N)
-rsubst Γ' pfΓ pf LA M (η⁻ N) = η⁻ (rsubst Γ' pfΓ pf LA M N)
-rsubst Γ' pfΓ pf LA M (↑R N) = ↑R (rsubst Γ' pfΓ pf LA M N)
-rsubst Γ' pfΓ pf LA M (⊃R N) = ⊃R (rsubst Γ' pfΓ pf LA M N)
-rsubst Γ' pfΓ pf LA M ⊤⁻R = ⊤⁻R
-rsubst Γ' pfΓ pf LA M (∧⁻R N₁ N₂) =
-  ∧⁻R (rsubst Γ' pfΓ pf LA M N₁) (rsubst Γ' pfΓ pf LA M N₂)
+rsubst Γ' pfΓ pf M (focR V) = focR (rsubst Γ' pfΓ pf M V)
+rsubst Γ' pfΓ pf M (focL {L} pf' x' Sp) with subseteq-in  {L} {Γ'} x' 
+... | inj₂ y =  focL pf' (subseteq-notin {L} {Γ'} x' y) (rsubst Γ' pfΓ pf M Sp)
+... | inj₁ x with (subseteq-cplx {Γ' = Γ'} x' x)
+rsubst Γ' pfΓ pf M (focL pf' x' Sp) | inj₁ x | L1 , L2 , refl = 
+  focL pf' (subseteq-equiv {L1 = L1} {L2 = L2} {Γ' = Γ'} refl x') 
+           (cut⁻ pfΓ (pf' , pf) L1 L2 M (rsubst Γ' pfΓ pf M Sp))
+rsubst Γ' pfΓ pf M (η⁺ N) = η⁺ (rsubst (_ ∷ Γ') (conssusp pfΓ) pf (wken M) N) 
+rsubst Γ' pfΓ pf M (↓L N) = ↓L (rsubst (_ ∷ Γ') (conspers pfΓ) pf (wken M) N) 
+rsubst Γ' pfΓ pf M ⊥L = ⊥L
+rsubst Γ' pfΓ pf M (∨L N₁ N₂) =
+  ∨L (rsubst Γ' pfΓ pf M N₁) (rsubst Γ' pfΓ pf M N₂)
+rsubst Γ' pfΓ pf M (⊤⁺L N) = ⊤⁺L (rsubst Γ' pfΓ pf M N)
+rsubst Γ' pfΓ pf M (∧⁺L N) = ∧⁺L (rsubst Γ' pfΓ pf M N)
+rsubst Γ' pfΓ pf M (η⁻ N) = η⁻ (rsubst Γ' pfΓ pf M N)
+rsubst Γ' pfΓ pf M (↑R N) = ↑R (rsubst Γ' pfΓ pf M N)
+rsubst Γ' pfΓ pf M (⊃R N) = ⊃R (rsubst Γ' pfΓ pf M N)
+rsubst Γ' pfΓ pf M ⊤⁻R = ⊤⁻R
+rsubst Γ' pfΓ pf M (∧⁻R N₁ N₂) =
+  ∧⁻R (rsubst Γ' pfΓ pf M N₁) (rsubst Γ' pfΓ pf M N₂)
 
 -- Substitution into spines
-rsubst Γ' pfΓ pf LA M id⁻ = id⁻
-rsubst Γ' pfΓ pf LA M (↑L-cons pf' N) = ↑L-cons pf' (rsubst Γ' pfΓ pf LA M N)
-rsubst Γ' pfΓ pf LA M (↑L-nil pf' N) = ↑L-nil pf' (rsubst Γ' pfΓ pf LA M N)
+rsubst Γ' pfΓ pf M id⁻ = id⁻
+rsubst Γ' pfΓ pf M (↑L-cons pf' N) = ↑L-cons pf' (rsubst Γ' pfΓ pf M N)
+rsubst Γ' pfΓ pf M (↑L-nil pf' N) = ↑L-nil pf' (rsubst Γ' pfΓ pf M N)
 
-rsubst Γ' pfΓ pf LA M (⊃L V Sp) =
-  ⊃L (rsubst Γ' pfΓ tt LA M V) (rsubst Γ' pfΓ pf LA M Sp)
-rsubst Γ' pfΓ pf LA M (∧⁻L₁ Sp) = ∧⁻L₁ (rsubst Γ' pfΓ pf LA M Sp)
-rsubst Γ' pfΓ pf LA M (∧⁻L₂ Sp) = ∧⁻L₂ (rsubst Γ' pfΓ pf LA M Sp)
+rsubst Γ' pfΓ pf M (⊃L V Sp) =
+  ⊃L (rsubst Γ' pfΓ tt M V) (rsubst Γ' pfΓ pf M Sp)
+rsubst Γ' pfΓ pf M (∧⁻L₁ Sp) = ∧⁻L₁ (rsubst Γ' pfΓ pf M Sp)
+rsubst Γ' pfΓ pf M (∧⁻L₂ Sp) = ∧⁻L₂ (rsubst Γ' pfΓ pf M Sp)
 
 -- Substitution out of terms
 lsubst pfΓ pf (focR V) N = cut⁺ pfΓ (proj₂ pf) V N
