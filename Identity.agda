@@ -1,16 +1,11 @@
 open import Foc
 
---open import Data.String hiding (_++_)
 open import Data.List
 open import Data.Unit
 open import Data.Nat
---open import Data.Empty
---open import Data.Product
---open import Data.Sum
 open import Relation.Binary.PropositionalEquality renaming ([_] to Nil)
 open import Data.List.Any
 open import Data.List.Any.Properties
---open import Data.List.All -}
 open Membership-≡
 
 module Identity where
@@ -48,13 +43,14 @@ expand⁻ {A ∧⁻ A₁} N =
 
 
 
-postulate in-sub : ∀{A A₁ Γ} → Pers (A ∧⁻ A₁) ∈ Γ → Pers (A ∧⁻ A₁ ) ∷ [] ⊆ Γ
+postulate in-sub : ∀{b} {B : Set b} {Γ} {X : B} → X ∈ Γ → X ∷ [] ⊆ Γ
+postulate in-sub-there : ∀{b} {B : Set b} {Γ} {X : B} {Y} → X ∈ Γ → X ∷ [] ⊆ (Y ∷ Γ)
 
-whynot : (Γ : Ctx) → (A : Type ⁻) → (Pers A ∈ Γ) → Term Γ [] (Inv A)
+pers-in-term : (Γ : Ctx) → (A : Type ⁻) → (Pers A ∈ Γ) → Term Γ [] (Inv A)
 
-whynot Γ (a Q .⁻) In = {!!}
-whynot Γ (↑ A) In = {!!}
-whynot Γ (A ⊃ A₁) In = {!!}
-whynot Γ ⊤⁻ In = ⊤⁻R
-whynot Γ (A ∧⁻ A₁) In = ∧⁻R (expand⁻ (focL tt (in-sub {!!}) (∧⁻L₁ id⁻))) {!!} 
+pers-in-term Γ (a Q .⁻) In = expand⁻ (focL tt (in-sub In) id⁻)
+pers-in-term Γ (↑ A) In = ↑R (focL tt ((in-sub In)) (↑L-cons tt (↑L-nil tt (expand⁺ (focR (id⁺ (here refl)))) ) ))
+pers-in-term Γ (A₁ ⊃ A₂) In = ⊃R (expand⁺ (expand⁻ (focL tt (in-sub-there In) (⊃L (id⁺ (here refl)) id⁻) )))
+pers-in-term Γ ⊤⁻ In = ⊤⁻R
+pers-in-term Γ (A ∧⁻ A₁) In = ∧⁻R (expand⁻ (focL tt (in-sub In) (∧⁻L₁ id⁻))) ((expand⁻ (focL tt (in-sub In) (∧⁻L₂ id⁻)))) 
 
