@@ -222,8 +222,8 @@ data Exp Γ where
 
   ↑L-cons : ∀{x L- L+ U}
     (pf : stable U)
-    → (N : Spine Γ (↑ x ∷ L-) L+ U)
-    → Spine Γ L- (x ∷ L+) U 
+    → (N : Spine Γ L-  (x ∷ L+) U)
+    → Spine Γ  (↑ x ∷ L-) L+ U 
 
   ↑L-nil : ∀{L+ U}
     (pf : stable U)
