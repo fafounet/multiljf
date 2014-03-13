@@ -541,3 +541,7 @@ subst⁻ pf (↑L-nil _ N) Sp = ↑L-nil pf (subst⁻ pf N Sp)
 subst⁻ pf (⊃L V Sp) Sp' = ⊃L V (subst⁻ pf Sp Sp')
 subst⁻ pf (∧⁻L₁ Sp) Sp' = ∧⁻L₁ (subst⁻ pf Sp Sp')
 subst⁻ pf (∧⁻L₂ Sp) Sp' = ∧⁻L₂ (subst⁻ pf Sp Sp')
+
+
+
+

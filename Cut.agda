@@ -58,8 +58,15 @@ cut⁺ pfΓ pf (∧⁺R V₁ V₂) (∧⁺L N) = cut⁺ pfΓ pf V₂ (cut⁺ pf�
 cut⁺ pfΓ pf V (↑L-nil _ Z) = cut⁺ pfΓ pf V Z
 
 -- Negative principle substitution
-cut⁻ = {!!}
-{- cut⁻ pfΓ pf (focL () x Sp') Sp
+cut⁻ pfΓ pf LA1 LA2 (focL () In Sp) Sp₁
+cut⁻ pfΓ pf LA1 LA2 (η⁻ (focL pf₁ In Sp)) Sp₁ = {!!}
+cut⁻ pfΓ pf LA1 LA2 (η⁻ (↑L-nil pf₁ N)) Sp = {!!}
+cut⁻ pfΓ pf LA1 LA2 (↑R N) Sp = {!!}
+cut⁻ pfΓ pf LA1 LA2 (⊃R N) Sp = {!!}
+cut⁻ pfΓ pf LA1 LA2 ⊤⁻R Sp = {!!}
+cut⁻ pfΓ pf LA1 LA2 (∧⁻R N₁ N₂) Sp = {!!}
+cut⁻ pfΓ pf LA1 LA2 (↑L-nil pf₁ N) Sp = {!!}
+{- 
 cut⁻ pfΓ pf (η⁻ N) id⁻ = N
 cut⁻ pfΓ (_ , ()) N (id⁻ {↑ A})
 cut⁻ pfΓ (_ , ()) N (id⁻ {A ⊃ B})
