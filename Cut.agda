@@ -59,13 +59,20 @@ cut⁺ pfΓ pf (∧⁺R V₁ V₂) (∧⁺L N) = cut⁺ pfΓ pf V₂ (cut⁺ pf�
 cut⁺ pfΓ pf V (↑L-nil _ Z) = cut⁺ pfΓ pf V Z
 
 -- Negative principle substitution
-cut⁻ pfΓ pf LA Ts Sp = {!!}
+cut⁻ pfΓ pf [] Ts Sp = Sp
+cut⁻ pfΓ (proj₁ , tt) (a Q .⁻ ∷ .[]) (focL () In Sp ∷ Ts) id⁻
+cut⁻ pfΓ (proj₁ , tt) (a Q .⁻ ∷ .[]) (η⁻ N ∷ Ts) id⁻ = N
+cut⁻ pfΓ (proj₁ , tt) (a Q .⁻ ∷ .[]) (↑L-nil () N ∷ Ts) id⁻
+cut⁻ pfΓ (proj₁ , ()) (↑ x ∷ .[]) Ts id⁻
+cut⁻ pfΓ (proj₁ , ()) (⊤⁻ ∷ .[]) Ts id⁻
+cut⁻ pfΓ pf (↑ x ∷ xs) (focL () In Sp ∷ Ts) (↑L-cons pf₂ N)
+cut⁻ pfΓ pf (↑ A ∷ xs) (↑R N ∷ Ts) (↑L-cons pf₁ N₁) = {!!} 
+cut⁻ pfΓ pf (↑ x ∷ xs) (↑L-nil () N ∷ Ts) (↑L-cons pf₂ N₁)
+cut⁻ pfΓ pf (x ⊃ x₁ ∷ LA) Ts Sp = {!!}
+cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ .[]) Ts id⁻ = {!!}
+cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ LA) Ts (∧⁻L₁ Sp) = {!!}
+cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ LA) Ts (∧⁻L₂ Sp) = {!!}
 {- 
-cut⁻ pfΓ pf (η⁻ N) id⁻ = N
-cut⁻ pfΓ (_ , ()) N (id⁻ {↑ A})
-cut⁻ pfΓ (_ , ()) N (id⁻ {A ⊃ B})
-cut⁻ pfΓ (_ , ()) N (id⁻ {⊤⁻})
-cut⁻ pfΓ (_ , ()) N (id⁻ {A ∧⁻ B})
 cut⁻ pfΓ pf (↑R N) (↑L _ M) = lsubst pfΓ pf N M
 cut⁻ pfΓ pf (⊃R N) (⊃L V Sp) = cut⁻ pfΓ pf (cut⁺ pfΓ tt V N) Sp
 cut⁻ pfΓ pf (∧⁻R N₁ N₂) (∧⁻L₁ Sp) = cut⁻ pfΓ pf N₁ Sp
@@ -110,7 +117,7 @@ create :  ∀{Γ Γ' A}
   → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ 
   → Term (Γ' ++ Γ) [] (Inv A)
   → All (λ x₁ → Term (Γ' ++ Γ) [] (Inv x₁)) L
-create [] Sub T = {!!}
+create []  Sub T = []
 create {Γ} {Γ'} {A} (x ∷ L) Sub T with (pff {Γ = Γ} {Γ' = Γ'} Sub)
 create {Γ} {Γ'} (A ∷ L) Sub T | inj₁ refl = T ∷ (create {Γ} {Γ'} L (subseteq-drop-cons Sub) T)
 ... | inj₂ Neq = 
@@ -132,14 +139,8 @@ rsubst Γ' pfΓ pf M (∧⁺R V₁ V₂) =
 -- Substitution into terms
 rsubst Γ' pfΓ pf M (focR V) = focR (rsubst Γ' pfΓ pf M V)
 rsubst Γ' pfΓ pf M (focL {L} pf' x' Sp) with subseteq-in  {L} {Γ'} x' 
-... | inj₁ x = cut⁻ pfΓ (pf' , pf) L {!!} (rsubst Γ' pfΓ pf M Sp)
+... | inj₁ x = cut⁻ pfΓ (pf' , pf) L (create {Γ' = Γ'} L x' M) (rsubst Γ' pfΓ pf M Sp)
 ... | inj₂ y =  focL pf' (subseteq-notin {L} {Γ'} x' y) (rsubst Γ' pfΓ pf M Sp)
-
-
-{-with (subseteq-cplx {Γ' = Γ'} x' x)
-rsubst Γ' pfΓ pf M (focL pf' x' Sp) | inj₁ x | L1 , L2 , refl = 
-  focL pf' (subseteq-equiv {L1 = L1} {L2 = L2} {Γ' = Γ'} refl x') 
-           (cut⁻ pfΓ (pf' , pf)  LA L2 M (rsubst Γ' pfΓ pf M Sp)) -}
 rsubst Γ' pfΓ pf M (η⁺ N) = η⁺ (rsubst (_ ∷ Γ') (conssusp pfΓ) pf (wken M) N) 
 rsubst Γ' pfΓ pf M (↓L N) = ↓L (rsubst (_ ∷ Γ') (conspers pfΓ) pf (wken M) N) 
 rsubst Γ' pfΓ pf M ⊥L = ⊥L
@@ -164,6 +165,8 @@ rsubst Γ' pfΓ pf M (⊃L V Sp) =
 rsubst Γ' pfΓ pf M (∧⁻L₁ Sp) = ∧⁻L₁ (rsubst Γ' pfΓ pf M Sp)
 rsubst Γ' pfΓ pf M (∧⁻L₂ Sp) = ∧⁻L₂ (rsubst Γ' pfΓ pf M Sp)
 
+
+
 -- Substitution out of terms
 lsubst pfΓ pf (focR V) N = cut⁺ pfΓ (proj₂ pf) V N
 lsubst pfΓ pf (focL pf' x Sp) N = focL (proj₁ pf) x (lsubst pfΓ pf Sp N)
@@ -173,6 +176,8 @@ lsubst pfΓ pf ⊥L M = ⊥L
 lsubst pfΓ pf (∨L M₁ M₂) N = ∨L (lsubst pfΓ pf M₁ N) (lsubst pfΓ pf M₂ N)
 lsubst pfΓ pf (⊤⁺L M) N = ⊤⁺L (lsubst pfΓ pf M N)
 lsubst pfΓ pf (∧⁺L M) N = ∧⁺L (lsubst pfΓ pf M N)
+
+
 
 -- Substitution of of spines
 lsubst pfΓ pf (↑L-cons _ M) N = ↑L-cons (proj₁ pf) (lsubst pfΓ pf M N)
