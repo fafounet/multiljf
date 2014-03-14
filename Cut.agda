@@ -1,4 +1,6 @@
 open import Foc
+open import Identity
+
 
 open import Data.String hiding (_++_)
 open import Data.List
@@ -22,14 +24,13 @@ cut⁺ : ∀{A U Γ Ω}
   → Term Γ (A ∷ Ω) U
   → Term Γ Ω U
 
-cut⁻ : ∀{U Γ A}
+cut⁻ : ∀{U Γ}
   → suspnormalΓ Γ
   → suspstable U
-  → (LA1 : List (Type ⁻))
-  → (LA2 : List (Type ⁻))
-  → Term Γ [] (Inv A)
-  → Spine Γ (LA1 ++ A ∷ LA2) [] U
-  → Spine Γ (LA1 ++ LA2) [] U
+  → (LA : List (Type ⁻))
+  → All (\x → Term Γ [] (Inv x)) LA 
+  → Spine Γ LA [] U
+  → Term Γ [] U
 
 rsubst : ∀{Γ Form A} (Γ' : Ctx)
   → suspnormalΓ (Γ' ++ Γ)
@@ -58,14 +59,7 @@ cut⁺ pfΓ pf (∧⁺R V₁ V₂) (∧⁺L N) = cut⁺ pfΓ pf V₂ (cut⁺ pf�
 cut⁺ pfΓ pf V (↑L-nil _ Z) = cut⁺ pfΓ pf V Z
 
 -- Negative principle substitution
-cut⁻ pfΓ pf LA1 LA2 (focL () In Sp) Sp₁
-cut⁻ pfΓ pf LA1 LA2 (η⁻ (focL pf₁ In Sp)) Sp₁ = {!!}
-cut⁻ pfΓ pf LA1 LA2 (η⁻ (↑L-nil pf₁ N)) Sp = {!!}
-cut⁻ pfΓ pf LA1 LA2 (↑R N) Sp = {!!}
-cut⁻ pfΓ pf LA1 LA2 (⊃R N) Sp = {!!}
-cut⁻ pfΓ pf LA1 LA2 ⊤⁻R Sp = {!!}
-cut⁻ pfΓ pf LA1 LA2 (∧⁻R N₁ N₂) Sp = {!!}
-cut⁻ pfΓ pf LA1 LA2 (↑L-nil pf₁ N) Sp = {!!}
+cut⁻ pfΓ pf LA Ts Sp = {!!}
 {- 
 cut⁻ pfΓ pf (η⁻ N) id⁻ = N
 cut⁻ pfΓ (_ , ()) N (id⁻ {↑ A})
@@ -95,6 +89,35 @@ postulate
                     → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ
                     → Data.List.map Pers (L1 ++ L2) ⊆ Γ' ++ Γ
 
+subseteq-drop-cons : ∀{b} {B : Set b} {X : B} {Y L} → (X ∷ Y) ⊆ L → Y ⊆ L
+subseteq-drop-cons = λ x x₂ → x (there x₂)
+
+
+postulate 
+  subseteq-cons-notin : ∀{x L Γ' Γ A}
+    → Pers x ∷ Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ 
+    → x ≢ A 
+    → Pers x ∈ (Γ' ++ Γ)
+
+
+postulate 
+  pff : ∀{x L A Γ Γ'} → (Pers x ∷ L)  ⊆ (Γ' ++ Pers A ∷ Γ)  → (x ≡ A) ⊎ (x ≢ A)
+
+
+
+create :  ∀{Γ Γ' A} 
+  → (L : List (Type ⁻)) 
+  → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ 
+  → Term (Γ' ++ Γ) [] (Inv A)
+  → All (λ x₁ → Term (Γ' ++ Γ) [] (Inv x₁)) L
+create [] Sub T = {!!}
+create {Γ} {Γ'} {A} (x ∷ L) Sub T with (pff {Γ = Γ} {Γ' = Γ'} Sub)
+create {Γ} {Γ'} (A ∷ L) Sub T | inj₁ refl = T ∷ (create {Γ} {Γ'} L (subseteq-drop-cons Sub) T)
+... | inj₂ Neq = 
+  (pers-in-term (Γ' ++ Γ) x (subseteq-cons-notin {Γ' = Γ'} Sub Neq)) ∷ 
+    (create {Γ} {Γ'} L (subseteq-drop-cons Sub) T)
+
+
 -- Substitution into values
 rsubst Γ' pfΓ pf M (id⁺ z) with fromctx Γ' z
 rsubst Γ' pfΓ pf M (id⁺ z) | inj₁ ()
@@ -109,11 +132,14 @@ rsubst Γ' pfΓ pf M (∧⁺R V₁ V₂) =
 -- Substitution into terms
 rsubst Γ' pfΓ pf M (focR V) = focR (rsubst Γ' pfΓ pf M V)
 rsubst Γ' pfΓ pf M (focL {L} pf' x' Sp) with subseteq-in  {L} {Γ'} x' 
+... | inj₁ x = cut⁻ pfΓ (pf' , pf) L {!!} (rsubst Γ' pfΓ pf M Sp)
 ... | inj₂ y =  focL pf' (subseteq-notin {L} {Γ'} x' y) (rsubst Γ' pfΓ pf M Sp)
-... | inj₁ x with (subseteq-cplx {Γ' = Γ'} x' x)
+
+
+{-with (subseteq-cplx {Γ' = Γ'} x' x)
 rsubst Γ' pfΓ pf M (focL pf' x' Sp) | inj₁ x | L1 , L2 , refl = 
   focL pf' (subseteq-equiv {L1 = L1} {L2 = L2} {Γ' = Γ'} refl x') 
-           (cut⁻ pfΓ (pf' , pf) L1 L2 M (rsubst Γ' pfΓ pf M Sp))
+           (cut⁻ pfΓ (pf' , pf)  LA L2 M (rsubst Γ' pfΓ pf M Sp)) -}
 rsubst Γ' pfΓ pf M (η⁺ N) = η⁺ (rsubst (_ ∷ Γ') (conssusp pfΓ) pf (wken M) N) 
 rsubst Γ' pfΓ pf M (↓L N) = ↓L (rsubst (_ ∷ Γ') (conspers pfΓ) pf (wken M) N) 
 rsubst Γ' pfΓ pf M ⊥L = ⊥L
