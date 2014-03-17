@@ -17,7 +17,7 @@ open Membership-≡
 
 module Cut where
 
-{-# NO_TERMINATION_CHECK #-}
+-- {-# NO_TERMINATION_CHECK #-}
 cut⁺ : ∀{A U Γ Ω}
     → suspnormalΓ Γ
     → suspnormal U
@@ -41,6 +41,7 @@ rsubst : ∀{Γ Form A} (Γ' : Ctx)
     → Exp (Γ' ++ (Pers A) ∷ Γ) Form
     → Exp (Γ' ++ Γ) Form
 
+{-
 postulate 
   lsubst : ∀{Γ U L A} 
     → suspnormalΓ Γ
@@ -48,6 +49,7 @@ postulate
     → Exp Γ (Left L (True A))
     → Term Γ [ A ] U
     → Exp Γ (Left L U)
+-}
 
 lsubst' : ∀{Γ U L- L+ L'+ A} 
     → suspnormalΓ Γ
@@ -60,8 +62,8 @@ lsubst' : ∀{Γ U L- L+ L'+ A}
 -- Positive principal substitution
 cut⁺ pfΓ pf (id⁺ x) N with pfΓ x
 cut⁺ pfΓ pf (id⁺ x) (η⁺ N) | _ , refl = subst⁺ [] (id⁺ x) N
-cut⁺ pfΓ pf (id⁺ x) (↑L-nil Y Z)  | _ , refl = cut⁺ pfΓ pf (id⁺ x) Z
-cut⁺ pfΓ pf (↓R M) (↓L N) = rsubst [] pfΓ pf M N 
+cut⁺ pfΓ pf (id⁺ x) (↑L-nil Y Z)  | _ , refl = cut⁺ pfΓ pf (id⁺ x) Z -- Formula =, part =, derivation <
+cut⁺ pfΓ pf (↓R M) (↓L N) = rsubst [] pfΓ pf M N -- Formula <
 cut⁺ pfΓ pf (∨R₁ V) (∨L N₁ N₂) = cut⁺ pfΓ pf V N₁
 cut⁺ pfΓ pf (∨R₂ V) (∨L N₁ N₂) = cut⁺ pfΓ pf V N₂
 cut⁺ pfΓ pf ⊤⁺R (⊤⁺L N) = N
@@ -75,23 +77,26 @@ cut⁻ pfΓ pf (a Q .⁻ ∷ .[]) .[] (focL () In Sp ∷ Ts) id⁻
 cut⁻ pfΓ pf (a Q .⁻ ∷ .[]) .[] (η⁻ N ∷ Ts) id⁻ = N
 cut⁻ pfΓ pf (a Q .⁻ ∷ .[]) .[] (↑L-nil () N ∷ Ts) id⁻
 cut⁻ pfΓ (proj₁ , ()) (↑ x ∷ .[]) .[] Ts id⁻
-cut⁻ pfΓ pf (↑ x ∷ xs) LA+ (focL () In Sp ∷ Ts) (↑L-cons pf₂ N)
-cut⁻ pfΓ pf (↑ x ∷ xs) LA+ (↑R N ∷ Ts) (↑L-cons pf₁ N₁) = 
-  lsubst' pfΓ (pf₁ , proj₂ pf)  N (cut⁻ pfΓ pf xs (x ∷ LA+) Ts N₁)
-cut⁻ pfΓ pf (↑ x ∷ xs) LA+ (↑L-nil () N ∷ Ts) (↑L-cons pf₂ N₁) 
-cut⁻ pfΓ (proj₁ , ()) (x ⊃ x₁ ∷ .[]) .[] Ts id⁻
-cut⁻ pfΓ pf (x ⊃ x₁ ∷ xs) LA+ (focL () In Sp ∷ Ts) _
-cut⁻ pfΓ pf (x ⊃ x₁ ∷ xs) LA+ (⊃R N ∷ Ts) (⊃L V Sp) = 
-  cut⁻ pfΓ pf (x₁ ∷ xs) LA+ ((cut⁺ pfΓ tt V N) ∷ Ts) Sp
-cut⁻ pfΓ pf (x ⊃ x₁ ∷ xs) LA+ (↑L-nil () N ∷ Ts) (⊃L V Sp)
 cut⁻ pfΓ (proj₁ , ()) (⊤⁻ ∷ .[]) .[] Ts id⁻ 
 cut⁻ pfΓ (proj₁ , ()) (x ∧⁻ x₁ ∷ .[]) .[] Ts id⁻
-cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (focL () In Sp ∷ Ts) (∧⁻L₁ Sp₁)
+cut⁻ pfΓ (proj₁ , ()) (x ⊃ x₁ ∷ .[]) .[] Ts id⁻
+
+cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (focL () In Sp ∷ Ts) _
+cut⁻ pfΓ pf (↑ x ∷ xs) LA+ (focL () In Sp ∷ Ts) _ 
+cut⁻ pfΓ pf (x ⊃ x₁ ∷ xs) LA+ (focL () In Sp ∷ Ts) _
+cut⁻ pfΓ pf (x ⊃ x₁ ∷ xs) LA+ (↑L-nil () N ∷ Ts) _
+cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (↑L-nil () N ∷ Ts) _
+cut⁻ pfΓ pf (↑ x ∷ xs) LA+ (↑L-nil () N ∷ Ts) (↑L-cons pf₂ N₁) 
+
+
+cut⁻ pfΓ pf (↑ x ∷ xs) LA+ (↑R N ∷ Ts) (↑L-cons pf₁ N₁) = 
+  lsubst' pfΓ (pf₁ , proj₂ pf)  N (cut⁻ pfΓ pf xs (x ∷ LA+) Ts N₁)
+
+cut⁻ pfΓ pf (x ⊃ x₁ ∷ xs) LA+ (⊃R N ∷ Ts) (⊃L V Sp) = 
+  cut⁻ pfΓ pf (x₁ ∷ xs) LA+ ((cut⁺ pfΓ tt V N) ∷ Ts) Sp
 cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (∧⁻R N₁ N₂ ∷ Ts) (∧⁻L₁ Sp) = cut⁻ pfΓ pf (x ∷ xs) LA+ (N₁ ∷ Ts) Sp
-cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (↑L-nil () N ∷ Ts) (∧⁻L₁ Sp) 
-cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (focL () In Sp ∷ Ts) (∧⁻L₂ Sp₁)
 cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (∧⁻R N₁ N₂ ∷ Ts) (∧⁻L₂ Sp) = cut⁻ pfΓ pf (x₁ ∷ xs) LA+ (N₂ ∷ Ts) Sp
-cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (↑L-nil () N ∷ Ts) (∧⁻L₂ Sp)
+
 
 
 
@@ -113,8 +118,10 @@ postulate
                     → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ
                     → Data.List.map Pers (L1 ++ L2) ⊆ Γ' ++ Γ
 
+
 subseteq-drop-cons : ∀{b} {B : Set b} {X : B} {Y L} → (X ∷ Y) ⊆ L → Y ⊆ L
 subseteq-drop-cons = λ x x₂ → x (there x₂)
+
 
 
 postulate 
