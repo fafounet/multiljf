@@ -37,7 +37,17 @@ data Type : Polarity → Set where
   ⊤⁻ : Type ⁻
   _∧⁻_ : (A B : Type ⁻) → Type ⁻
 
-
+size-formula : ∀{p} → (Type p) → ℕ 
+size-formula (a Q ⁼) = 1
+size-formula (↓ x) = 1 + size-formula x
+size-formula ⊥⁺ = 1
+size-formula (x ∨ x₁) = 1 + size-formula x + size-formula x₁
+size-formula ⊤⁺ = 1
+size-formula (x ∧⁺ x₁) = 1 + size-formula x + size-formula x₁
+size-formula (↑ x) = 1 + size-formula x
+size-formula (x ⊃ x₁) = 1 + size-formula x + size-formula x₁
+size-formula ⊤⁻ = 1
+size-formula (x ∧⁻ x₁) = 1 + size-formula x + size-formula x₁
 
 -- Judgmental infrastructure
 
@@ -72,6 +82,8 @@ data Hyp : Set where
   Pers : (A : Type ⁻) → Hyp
 
 Ctx = List Hyp
+
+
 
 
 hsusp-inj : ∀{x y} → HSusp x ≡ HSusp y → x ≡ y
@@ -144,6 +156,7 @@ suspnormalF (Left L U) = suspnormal U
 
 data Exp (Γ : Ctx) : SeqForm → Set
 
+
 Value : (Γ : Ctx) → Type ⁺ → Set
 Value Γ A = Exp Γ (Rfoc A)
   
@@ -152,6 +165,25 @@ Term Γ Ω U = Exp Γ (Left ([] , Ω) U)
 
 Spine : (Γ : Ctx) (L- : List (Type ⁻)) (L+ : List (Type ⁺)) (U : Conc) → Set
 Spine Γ L- L+ U = Exp Γ (Left (L- , L+) U)
+
+-- Loading mode for the left multifocused 
+data Exp-l (Γ : Ctx) : SeqForm → Set
+
+Spine-l : (Γ : Ctx) (L- : List (Type ⁻)) (U : Conc) → Set
+Spine-l Γ L- U = Exp-l Γ (Left (L- , []) U)
+
+
+data Exp-l Γ where
+
+  focL-step : ∀{A L U} 
+    (pf : stable U)
+    (In : Pers A ∈  Γ)
+    (Sp : Spine-l Γ (A ∷ L) U)
+    → Spine-l Γ L U
+  focL-end : ∀{L U}
+    (pf : stable U)
+    (Sp : Spine Γ L [] U)
+    → Spine-l Γ L U
 
 data Exp Γ where
 
@@ -178,11 +210,11 @@ data Exp Γ where
   focR : ∀{A} 
     (V : Value Γ A)
     → Term Γ [] (True A)
-  focL : ∀{L U} 
+  focL-init : ∀{U}
     (pf : stable U)
-    (In : (Data.List.map (Pers) L) ⊆  Γ)
-    (Sp : Spine Γ L [] U)
+    (Sp : Spine-l Γ [] U)
     → Term Γ [] U
+ 
   η⁺ : ∀{Q Ω U}
     (N : Term (HSusp (a Q ⁺) ∷ Γ) Ω U)
     → Term Γ (a Q ⁺ ∷ Ω) U
@@ -217,8 +249,8 @@ data Exp Γ where
     → Term Γ [] (Inv (A ∧⁻ B))
 
   -- Spines
-  id⁻ : ∀{A}
-    → Spine Γ [ A ] [] (Susp A)
+  id⁻ : ∀{X : Type ⁻}
+    → Spine Γ [ X ] [] (Susp X)
 
   ↑L-cons : ∀{x L- L+ U}
     (pf : stable U)
@@ -266,6 +298,11 @@ sub-cntr xs In (there x∷xs) = x∷xs
 
 wk : ∀{Γ Γ' Form} → Γ ⊆ Γ' → Exp Γ Form → Exp Γ' Form
 
+wk-l : ∀{Γ Γ' Form} → Γ ⊆ Γ' → Exp-l Γ Form → Exp-l Γ' Form
+
+wk-l θ (focL-step pf In Sp) = focL-step pf (θ In) (wk-l θ Sp)
+wk-l θ (focL-end pf Sp) = focL-end pf (wk θ Sp) 
+
 wk θ (id⁺ v) = id⁺ (θ v)
 wk θ (↓R N) = ↓R (wk θ N)
 wk θ (∨R₁ V) = ∨R₁ (wk θ V)
@@ -274,7 +311,7 @@ wk θ ⊤⁺R = ⊤⁺R
 wk θ (∧⁺R V₁ V₂) = ∧⁺R (wk θ V₁) (wk θ V₂)
 
 wk θ (focR V) = focR (wk θ V)
-wk θ (focL pf In Sp) = focL pf (λ x₁ → θ (In x₁)) (wk θ Sp)
+wk θ (focL-init pf Sp ) = focL-init pf (wk-l θ Sp) 
 wk θ (η⁺ N) = η⁺ (wk (sub-cons-congr θ) N)
 wk θ (η⁻ N) = η⁻ (wk θ N)
 wk θ (↓L N) = ↓L (wk (sub-cons-congr θ) N)
@@ -382,10 +419,20 @@ simp-any-pers-susp (x₁ ∷ Γ') X (here refl) = here refl
 simp-any-pers-susp (x₁ ∷ Γ') X (there Y) = there (simp-any-pers-susp Γ' X Y)
 
 
+subst⁺-l : ∀{Γ A Form} (Γ' : Ctx)
+  → Value (Γ' ++ Γ) A
+  → Exp-l (Γ' ++ HSusp A ∷ Γ) Form
+  → Exp-l (Γ' ++ Γ) Form
+
 subst⁺ : ∀{Γ A Form} (Γ' : Ctx)
   → Value (Γ' ++ Γ) A
   → Exp (Γ' ++ HSusp A ∷ Γ) Form
   → Exp (Γ' ++ Γ) Form
+
+subst⁺-l Γ' V (focL-step pf In Sp) with fromctx Γ' In
+... |  inj₁ ()
+... |  inj₂ y = focL-step pf y (subst⁺-l Γ' V Sp) 
+subst⁺-l Γ' V (focL-end pf Sp) = focL-end pf (subst⁺ Γ' V Sp) 
 
 subst⁺ Γ' V (id⁺ x) with fromctx Γ' x
 subst⁺ Γ' V (id⁺ x) | inj₁ refl = V
@@ -397,7 +444,7 @@ subst⁺ Γ' V ⊤⁺R = ⊤⁺R
 subst⁺ Γ' V (∧⁺R V₁ V₂) = ∧⁺R (subst⁺ Γ' V V₁) (subst⁺ Γ' V V₂)
 
 subst⁺ Γ' V (focR V') = focR (subst⁺ Γ' V V')
-subst⁺ Γ' V (focL pf In Sp)  = focL pf (λ x₁ → simp-any-pers-susp Γ' x₁ (In x₁)) (subst⁺ Γ' V Sp) 
+subst⁺ Γ' V (focL-init pf Sp)  = focL-init pf (subst⁺-l Γ' V Sp) 
 subst⁺ Γ' V (η⁺ N) = η⁺ (subst⁺ (_ ∷ Γ') (wken V) N)
 subst⁺ Γ' V (η⁻ N) = η⁻ (subst⁺ Γ' V N)
 subst⁺ Γ' V (↓L N) = ↓L (subst⁺ (_ ∷ Γ') (wken V) N)
@@ -527,7 +574,16 @@ subst⁻ : ∀{Γ A L U}
   → Spine Γ [ A ] [] U
   → Exp Γ (Left L U)
 
-subst⁻ pf (focL _ x Sp) Sp' = focL pf x (subst⁻ pf Sp Sp')
+subst⁻-l : ∀{Γ A L U}
+  → stable U
+  → Exp-l Γ (Left L (Susp A))
+  → Spine Γ [ A ] [] U
+  → Exp-l Γ (Left L U)
+
+subst⁻-l {L = proj₁ , .[]} pf (focL-step pf₁ In Sp) Sp₁ = focL-step pf In (subst⁻-l pf Sp Sp₁)
+subst⁻-l {L = proj₁ , .[]} pf (focL-end pf₁ Sp) Sp₁ =  focL-end pf (subst⁻ pf Sp Sp₁) 
+
+subst⁻ pf (focL-init pf' Sp) Sp' = focL-init pf (subst⁻-l pf Sp Sp')
 subst⁻ pf (η⁺ N) Sp = η⁺ (subst⁻ pf N (wken Sp))
 subst⁻ pf (↓L N) Sp = ↓L (subst⁻ pf N (wken Sp))
 subst⁻ pf ⊥L Sp = ⊥L
@@ -543,5 +599,12 @@ subst⁻ pf (∧⁻L₁ Sp) Sp' = ∧⁻L₁ (subst⁻ pf Sp Sp')
 subst⁻ pf (∧⁻L₂ Sp) Sp' = ∧⁻L₂ (subst⁻ pf Sp Sp')
 
 
+
+cons-equiv : ∀{b} {B : Set b} {x : B} (L L' : List B) → (L ≡ L') → _≡_ {A = List B} (x ∷ L) (x ∷ L')
+cons-equiv L .L refl = refl
+
+concat-nil : ∀{b} {B : Set b} (L : List B) → (L ++ []) ≡ L
+concat-nil [] = refl
+concat-nil (x ∷ L) = cons-equiv (L ++ []) L (concat-nil L)
 
 
