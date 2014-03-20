@@ -21,8 +21,7 @@ expand⁺ : ∀{A Γ Ω U} → Term (HSusp A ∷ Γ) Ω U → Term Γ (A ∷ Ω)
 expand⁻ : ∀{A Γ} → Term Γ [] (Susp A) → Term Γ [] (Inv A)
 
 expand⁺ {a Q .⁺} N = η⁺ N
-expand⁺ {↓ A} {Γ} N = 
-  ↓L (subst⁺ [] (↓R (expand⁻ (focL tt (subseteq-cons Γ) id⁻))) (wkex N))
+expand⁺ {↓ A} {Γ} N = ↓L (subst⁺ [] (↓R (expand⁻ (focL-init tt (focL-step tt (here refl) (focL-end tt id⁻))))) (wkex N)) 
 expand⁺ {⊥⁺} N = ⊥L
 expand⁺ {A ∨ A₁} N = 
   ∨L (expand⁺ (subst⁺ [] (∨R₁ (id⁺ (here refl))) (wkex N))) 
@@ -48,9 +47,17 @@ postulate in-sub-there : ∀{b} {B : Set b} {Γ} {X : B} {Y} → X ∈ Γ → X 
 
 pers-in-term : (Γ : Ctx) → (A : Type ⁻) → (Pers A ∈ Γ) → Term Γ [] (Inv A)
 
-pers-in-term Γ (a Q .⁻) In = expand⁻ (focL tt (in-sub In) id⁻)
-pers-in-term Γ (↑ A) In = ↑R (focL tt ((in-sub In)) (↑L-cons tt (↑L-nil tt (expand⁺ (focR (id⁺ (here refl)))) ) ))
-pers-in-term Γ (A₁ ⊃ A₂) In = ⊃R (expand⁺ (expand⁻ (focL tt (in-sub-there In) (⊃L (id⁺ (here refl)) id⁻) )))
+pers-in-term Γ (a Q .⁻) In = expand⁻ (focL-init tt (focL-step tt In (focL-end tt id⁻))) 
+pers-in-term Γ (↑ A) In = 
+  ↑R  (focL-init tt (focL-step tt In (focL-end tt 
+                    (↑L-cons tt (↑L-nil tt (expand⁺ (focR (id⁺ (here refl)))))))))
+pers-in-term Γ (A₁ ⊃ A₂) In =  
+  ⊃R (expand⁺ (expand⁻ (
+     focL-init tt (focL-step tt (there In) (focL-end tt (
+               ⊃L (id⁺ (here refl)) id⁻)))))) 
 pers-in-term Γ ⊤⁻ In = ⊤⁻R
-pers-in-term Γ (A ∧⁻ A₁) In = ∧⁻R (expand⁻ (focL tt (in-sub In) (∧⁻L₁ id⁻))) ((expand⁻ (focL tt (in-sub In) (∧⁻L₂ id⁻)))) 
+pers-in-term Γ (A ∧⁻ A₁) In =  
+  ∧⁻R 
+    (expand⁻ (focL-init tt (focL-step tt In (focL-end tt (∧⁻L₁ id⁻)))))
+    (expand⁻ (focL-init tt (focL-step tt In (focL-end tt (∧⁻L₂ id⁻))))) 
 
