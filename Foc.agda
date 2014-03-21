@@ -273,6 +273,10 @@ data Exp Γ where
     (Sp : Spine Γ (B ∷ L-) L+ U)
     → Spine Γ (A ∧⁻ B ∷ L-) L+ U
 
+postulate
+  load-adm : ∀{Γ L U} → (Data.List.map Pers L ⊆ Γ) → Spine Γ [] [] U → Spine Γ L [] U
+
+
 -- Weakening
 
 sub-cons-congr : ∀{a} {A : Set a} {x : A} {xs ys : List A}
@@ -380,6 +384,67 @@ wkex2 {Γ} {A} {B} {Form} = wk (sub-cons-congr (sub-wkex {ys = Γ}))
 cntr : ∀{A Form} → (Γ : Ctx) → A ∈ Γ → Exp (A ∷ Γ) Form → Exp Γ Form
 cntr Γ In Exp = wk (sub-cntr Γ In) Exp
 
+
+{- The following is not true:
+
+spine-cntr : ∀{Γ A L U} 
+  → (L' : List (Type ⁻)) 
+  → Exp Γ (Left (L' ++ A ∷ L , []) U) 
+  → Pers A ∈ Γ 
+  → Exp Γ (Left (L' ++ L , []) U) 
+
+For instance if L' = ⊥, L = []
+
+However one could say that either the inversion phase ends with a ⊥L 
+or the lemma above is true
+
+Don't forget that the current inversion phase cannot end with a initial negative
+rule.
+
+True ??:
+spine-cntr : ∀{Γ A L U} 
+  → (L' : List (Type ⁻)) 
+  → Exp Γ (Left (L' ++ A ∷ L , []) U) 
+  → Pers A ∈ Γ 
+  → ⊥ ∈ (L' ++ L) ⊎ Exp Γ (Left (L' ++ L , []) U) 
+
+There should be another inversion phase above since this one cannot end.
+This means that we don't have to focus now on A since we can do it later.
+
+
+Remember that
+
+Γ ; [L |] |- U
+
+does not imply that L ⊂ Γ (even if ⊥ ∉ Γ)
+
+Think for instance of 
+----------------
+ ; [A |] |- <A>
+---------------
+; [A /\ B |] |- <A> 
+
+
+-}
+
+
+postulate 
+  in-or-not : ∀{b} {B : Set b} (L : List B) (X : B) → X ∈ L ⊎ X ∉ L
+
+end-inv : ∀{Γ X Y U} 
+  → (L : List (Type ⁻)) 
+  → Exp Γ (Left (X ∷ Y ∷ L , []) U) 
+  → ↑ ⊥⁺ ∈ L ⊎ 
+      (∃ λ L+ → Exp Γ (Left ([] , L+) U)) 
+end-inv L Exp with (in-or-not L (↑ ⊥⁺))
+end-inv L Exp | inj₁ x = inj₁ x
+end-inv L (↑L-cons pf N) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ⊥L)
+end-inv L (⊃L V Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ⊥L)
+end-inv L (∧⁻L₁ Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ⊥L)
+end-inv L (∧⁻L₂ Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ⊥L)
+
+
+
 postulate exch-cons : ∀{Γ Γ' LA C x} → Term (x ∷ Γ ++ Γ') LA C → Term (Γ ++ x ∷ Γ') LA C
 
 
@@ -468,105 +533,6 @@ subst⁺ Γ' V (∧⁻L₂ Sp) = ∧⁻L₂ (subst⁺ Γ' V Sp)
 
 
 
-{- gsubst⁺ :
-  ∀{Γ Form}
-  → (Γ' : Ctx)  
-  → (LAi : List (Type ⁺))
-  → All (\x → Value (Γ' ++ Γ) x) LAi
-  → Exp (Γ' ++ Data.List.map (\x → HSusp x) (LAi) ++ Γ) Form 
-  → Exp (Γ' ++ Γ) Form
-  
-gsubst⁺ Γ' [] PA (id⁺ v) = id⁺ v
-gsubst⁺ {Γ} Γ' (x ∷ LAi) (px ∷ PA) (id⁺ {A} v)
- with  fromctxGen Γ' (Data.List.map (\x → HSusp x) (x ∷ LAi)) v
-... | inj₁ (here px₁) = subst (λ z → Exp (Γ' ++ Γ) (Rfoc z)) (sym (hsusp-inj px₁)) px   
-... | inj₁ (there L) = extra Γ Γ' A LAi L PA
-... | inj₂ R = id⁺ R
-
-gsubst⁺ Γ' LAi PA (↓R {A} N) = ↓R (gsubst⁺ Γ' LAi PA N)
-gsubst⁺ Γ' LAi PA (∨R₁ {A} {B} V) = ∨R₁ (gsubst⁺ Γ' LAi PA V)
-gsubst⁺ Γ' LAi PA (∨R₂ {A} {B} V) = ∨R₂ (gsubst⁺ Γ' LAi PA V)
-gsubst⁺ Γ' LAi PA ⊤⁺R = ⊤⁺R
-gsubst⁺ Γ' LAi PA (∧⁺R {A} {B} V₁ V₂) = ∧⁺R (gsubst⁺ Γ' LAi PA V₁) (gsubst⁺ Γ' LAi PA V₂)
-gsubst⁺ Γ' LAi PA (focR {A} V) = focR (gsubst⁺ Γ' LAi PA V)
--- focL
-gsubst⁺ Γ' LAi PA (focL {A} {U} pf x Sp) = focL pf {!!} {!!}
---   with  fromctxGen Γ' (Data.List.map (\x → HSusp x) LAi) x 
---gsubst⁺ Γ' [] PA (focL pf x Sp) | inj₁ L = focL pf x Sp
---gsubst⁺ Γ' (x ∷ LAi) (px₁ ∷ PA) (focL pf x₁ Sp) | inj₁ (here ())
---gsubst⁺ Γ' (x ∷ LAi) (px ∷ PA) (focL pf x₁ Sp) | inj₁ (there L) = ⊥-elim (no-pers-in-hsusp LAi L) 
---gsubst⁺ Γ' [] PA (focL pf x Sp) | inj₂ R = focL pf R Sp
---gsubst⁺ Γ' (x ∷ LAi) (px ∷ PA) (focL pf x₁ Sp) | inj₂ R = focL pf R (gsubst⁺ Γ' (x ∷ LAi) (px ∷ PA) Sp)
--- end focL
-gsubst⁺ Γ' .[] [] (η⁺ N) = η⁺ N
-gsubst⁺ {Γ} Γ' .(x ∷ xs) (_∷_ {x} {xs} px PA) (η⁺ {Q} N) = 
-  η⁺ (gsubst⁺ (_ ∷ Γ') (x ∷ xs)  (wken-all-rfoc {Γ'} (px ∷ PA)) N )
-
-gsubst⁺ Γ' .[] [] (↓L N) = ↓L N
-gsubst⁺ {Γ} Γ' .(x ∷ xs) (_∷_ {x} {xs} px PA) (↓L {A} N) = 
-  ↓L (gsubst⁺ (_ ∷ Γ') (x ∷ xs) (wken-all-rfoc {Γ'} (px ∷ PA)) N)
-
-gsubst⁺ Γ' LAi PA (⊥L {U} {Ω}) = ⊥L
-gsubst⁺ Γ' LAi PA (∨L {A} {B} {Ω} {U} N₁ N₂) = 
-  ∨L (gsubst⁺ Γ' LAi PA N₁)
-     (gsubst⁺ Γ' LAi PA N₂)
-gsubst⁺ Γ' LAi PA (⊤⁺L {U} {Ω} N) = ⊤⁺L (gsubst⁺  Γ' LAi PA N)
-gsubst⁺ Γ' LAi PA (∧⁺L {U} {Ω} {A} {B} N) = 
-  ∧⁺L (gsubst⁺ Γ' LAi PA N)
-gsubst⁺ Γ' LAi PA (η⁻ {Q} N) = 
-  η⁻ (gsubst⁺ Γ' LAi PA N)
-gsubst⁺ Γ' LAi PA (↑R {A} N) = 
-  ↑R (gsubst⁺ Γ' LAi PA N)
-gsubst⁺ Γ' LAi PA (⊃R {A} {B} N) = 
-  ⊃R (gsubst⁺ Γ' LAi PA N)
-gsubst⁺ Γ' LAi PA ⊤⁻R = ⊤⁻R
-gsubst⁺ Γ' LAi PA (∧⁻R {A} {B} N₁ N₂) = 
-  ∧⁻R (gsubst⁺ Γ' LAi PA N₁)
-      (gsubst⁺ Γ' LAi PA N₂)
-gsubst⁺ Γ' LAi PA (id⁻ {A} In) = {!!} --id⁻
-gsubst⁺ Γ' LAi PA (↑L {A} {U} pf N) = 
-  ↑L pf (gsubst⁺ Γ' LAi PA N)
-gsubst⁺ Γ' LAi PA (⊃L V Sp) = ⊃L (gsubst⁺ Γ' LAi PA V) (gsubst⁺ Γ' LAi PA Sp)
-gsubst⁺ Γ' LAi PA (∧⁻L₁ Sp) = ∧⁻L₁ (gsubst⁺ Γ' LAi PA Sp)
-gsubst⁺ Γ' LAi PA (∧⁻L₂ Sp) = ∧⁻L₂ (gsubst⁺ Γ' LAi PA Sp)
--}
-
-
-
-{- 
-flat : {A B : Set} -> List (List A  × List B) -> List A × List B
-flat [] = [] , []
-flat ((proj₁ , proj₂) ∷ L)  with flat L
-... | l , r = proj₁ ++ l , proj₂ ++ r
-
-subst⁻ : ∀{Γ U N}
-  → stable U
-  → (LA- : List (Type ⁻))
-  → length LA- ≡ suc N
-  → (L-+ : List (List (Type ⁻) × List (Type ⁺)))
-  → (length L-+ ≡ suc N)
-  → All (\x → Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (Data.List.zip L-+ LA-)
-  → Spine Γ LA- [] U
-  → Exp Γ (Left (flat L-+) U)
-
-subst⁻ pf [] LLA L-+ LL-+ Exps Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA [] LL-+ Exps Sp = {!!}
-
-subst⁻ pf (x ∷ LA) LLA (.([] , []) ∷ L-+) refl (focL {L₁} pf₁ In Sp ∷ Exps) Sp₁ = 
-  {!(subst⁻ pf (x ∷ LA) ? ((L₁ , []) ∷ L-+) refl (Sp ∷ Exps) Sp₁)!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (η⁺ N ∷ Exps) Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (↓L N ∷ Exps) Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (⊥L ∷ Exps) Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (∨L N₁ N₂ ∷ Exps) Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (⊤⁺L N ∷ Exps) Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (∧⁺L N ∷ Exps) Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (id⁻ x₁ ∷ Exps) Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (↑L-cons pf₁ N ∷ Exps) Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (↑L-nil pf₁ N ∷ Exps) Sp = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (⊃L V Sp ∷ Exps) Sp₁ = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (∧⁻L₁ Sp ∷ Exps) Sp₁ = {!!}
-subst⁻ pf (x ∷ LA) LLA (._ ∷ L-+) refl (∧⁻L₂ Sp ∷ Exps) Sp₁ = {!!}
--}
 
 subst⁻ : ∀{Γ A L U}
   → stable U
@@ -598,13 +564,61 @@ subst⁻ pf (⊃L V Sp) Sp' = ⊃L V (subst⁻ pf Sp Sp')
 subst⁻ pf (∧⁻L₁ Sp) Sp' = ∧⁻L₁ (subst⁻ pf Sp Sp')
 subst⁻ pf (∧⁻L₂ Sp) Sp' = ∧⁻L₂ (subst⁻ pf Sp Sp')
 
-
-
 cons-equiv : ∀{b} {B : Set b} {x : B} (L L' : List B) → (L ≡ L') → _≡_ {A = List B} (x ∷ L) (x ∷ L')
 cons-equiv L .L refl = refl
 
 concat-nil : ∀{b} {B : Set b} (L : List B) → (L ++ []) ≡ L
 concat-nil [] = refl
 concat-nil (x ∷ L) = cons-equiv (L ++ []) L (concat-nil L)
+
+
+loading-done : ∀{Γ U}
+  → (L : List (Type ⁻))
+  → Spine-l Γ L U  
+  → ∃ λ L' → Spine Γ (L' ++ L) [] U
+
+loading-done [] (focL-step pf In Sp) = [] , focL-init pf (focL-step pf In Sp)
+loading-done [] (focL-end pf Sp) = [] , Sp
+loading-done (x ∷ L) (focL-step {A = A} pf In Sp) with loading-done (A ∷ x ∷ L) Sp
+... | L' , Sp' = L' , {!!}
+loading-done (x ∷ L) (focL-end pf Sp) = [] , Sp
+
+subst⁻' : ∀{Γ A L- L+  U}
+  → stable U
+  → (L+' : List (Type ⁺))
+  → Spine Γ L- L+ (Susp A)
+  → Spine Γ [ A ] L+' U
+  → Spine Γ L- (L+ ++ L+') U
+
+subst⁻'-l : ∀{Γ A L- U}
+  → stable U
+  → (L+ : List (Type ⁺))
+  → Spine-l Γ L-  (Susp A)
+  → Spine Γ [ A ] L+ U
+  → Spine Γ L- L+ U
+
+--unload : Spine-l Γ (A ∷ L-) U → Pers A ∈ Γ → Spine-l 
+{- Is it possible to remove those -l version???? -}
+
+
+subst⁻'-l pf [] (focL-step pf₁ In Sp) Sp2 = {!!}
+subst⁻'-l pf [] (focL-end pf₁ Sp) Sp2 = {!!}
+subst⁻'-l pf (x ∷ L+) Sp1 Sp2 = {!!}
+
+subst⁻' {L+ = L+} pf [] Sp1 Sp2 rewrite concat-nil L+ = subst⁻ pf Sp1 Sp2
+subst⁻' pf (x ∷ L+') (focL-init pf₁ Sp) Sp2 = subst⁻'-l pf (x ∷ L+') Sp Sp2 
+subst⁻' pf (x ∷ L+') (η⁺ N) Sp2 = η⁺ (subst⁻' pf (x ∷ L+') N (wken Sp2))
+subst⁻' pf (x ∷ L+') (↓L N) Sp2 = {!!}
+subst⁻' pf (x ∷ L+') ⊥L Sp2 = ⊥L
+subst⁻' pf (x ∷ L+') (∨L N₁ N₂) Sp2 = {!!}
+subst⁻' pf (x ∷ L+') (⊤⁺L N) Sp2 = ⊤⁺L (subst⁻' pf (x ∷ L+') N Sp2)
+subst⁻' pf (x ∷ L+') (∧⁺L N) Sp2 = {!!}
+subst⁻' pf (x ∷ L+') id⁻ Sp2 = Sp2
+subst⁻' pf (x ∷ L+') (↑L-cons pf₁ N) Sp2 = ↑L-cons pf (subst⁻' pf (x ∷ L+') N Sp2) 
+subst⁻' pf (x ∷ L+') (↑L-nil pf₁ N) Sp2 = ↑L-nil pf (subst⁻' pf (x ∷ L+') N Sp2)
+subst⁻' pf (x ∷ L+') (⊃L V Sp) Sp2 = ⊃L V (subst⁻' pf (x ∷ L+') Sp Sp2) 
+subst⁻' pf (x ∷ L+') (∧⁻L₁ Sp) Sp2 = ∧⁻L₁ (subst⁻' pf (x ∷ L+') Sp Sp2)
+subst⁻' pf (x ∷ L+') (∧⁻L₂ Sp) Sp2 = ∧⁻L₂ (subst⁻' pf (x ∷ L+') Sp Sp2)
+
 
 

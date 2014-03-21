@@ -17,6 +17,45 @@ open Membership-≡
 
 module Cut where
 
+
+
+
+
+{- WRONG!
+  Take A = ↑ ⊥ 
+-}
+wiik : ∀{Γ A L- L+ U} 
+     → suspnormalΓ Γ
+     → suspstable U
+     → Spine Γ (A ∷ L-) L+ U 
+     → (Pers A) ∈ Γ 
+     → Spine Γ L- L+ U
+
+postulate
+  enough-conj-l : ∀{Γ A B L} → Exp (Pers A ∷ Γ) L → Pers (A ∧⁻ B) ∈ Γ → Exp Γ L
+
+postulate
+  enough-conj-r : ∀{Γ A B L} → Exp (Pers B ∷ Γ) L → Pers (A ∧⁻ B) ∈ Γ → Exp Γ L
+
+postulate
+  susp-conj-l : ∀{A B Γ} → suspnormalΓ Γ → Pers (A ∧⁻ B) ∈ Γ →  suspnormalΓ (Pers A ∷ Γ)
+
+postulate
+  susp-conj-r : ∀{A B Γ} → suspnormalΓ Γ → Pers (A ∧⁻ B) ∈ Γ →  suspnormalΓ (Pers B ∷ Γ)
+
+--wiik pfΓ st (focL-step pf In Sp) In₁ = focL-step pf In₁ (wiik pfΓ st Sp In)
+--wiik pfΓ st (focL-end pf Sp) In = wiik pfΓ st Sp In
+wiik pfΓ st id⁻ In = focL-init tt (focL-step tt In (focL-end tt id⁻)) 
+wiik pfΓ st (↑L-cons pf N) In = {!wii!} 
+     -- focL-step pf In (↑L-cons pf N)
+wiik pfΓ st (⊃L V Sp) In = {!!} -- focL-step (proj₁ st) In (⊃L V Sp)
+wiik {L- = L-} pfΓ st (∧⁻L₁ Sp) In = enough-conj-l (wiik (susp-conj-l pfΓ In) st (wken Sp) (here refl)) In 
+         --cut⁻ pfΓ st L- 
+                    --((expand⁻ (focL-init tt (focL-step tt In (focL-end tt (∧⁻L₁ id⁻)))))) Sp
+wiik {L- = L-} pfΓ st (∧⁻L₂ Sp) In =  enough-conj-r (wiik (susp-conj-r pfΓ In) st (wken Sp) (here refl)) In  
+     --cut⁻ pfΓ st L- 
+--((expand⁻ (focL-init tt (focL-step tt In (focL-end tt (∧⁻L₂ id⁻)))))) Sp
+
 -- {-# NO_TERMINATION_CHECK #-}
 cut⁺ : ∀{A U Γ Ω}
     → suspnormalΓ Γ
@@ -25,14 +64,13 @@ cut⁺ : ∀{A U Γ Ω}
     → Term Γ (A ∷ Ω) U
     → Term Γ Ω U
 
-cut⁻ : ∀{U Γ}
+cut⁻ : ∀{U Γ A}
     → suspnormalΓ Γ
     → suspstable U
     → (LA- : List (Type ⁻))
-    → (LA+ : List (Type ⁺))
-    → All (\x → Term Γ [] (Inv x)) LA-
-    → Spine Γ LA- LA+ U
-    → Term Γ LA+ U
+    → Term Γ [] (Inv A)
+    → Spine Γ (A ∷ LA-) [] U
+    → Spine Γ LA- [] U
 
 rsubst : ∀{Γ Form A} (Γ' : Ctx)
     → suspnormalΓ (Γ' ++ Γ)
@@ -59,6 +97,29 @@ lsubst' : ∀{Γ U L- L+ L'+ A}
     → Spine Γ L- (L+ ++ L'+) U
 
 
+
+gsubst⁻ : ∀{Γ A L1 L+ U}
+  → stable U
+  → (L2 : List (Type ⁻))
+  → (L2' : List (Type ⁻))
+  → Spine Γ L1 L+ (Susp A)
+  → Spine Γ (L2 ++ A ∷ L2')  [] U
+  → Spine Γ (L1 ++ L2 ++ L2') L+ U
+
+
+
+gsubst⁻ {L1 = L1} pf [] [] Exp Sp rewrite concat-nil L1 = subst⁻ pf Exp Sp  
+--gsubst⁻ pf [] (x ∷ L2') Exp (focL-step pf₁ In Sp) = {!wiik ? ? (gsubst⁻ ? ? ? ? ?) ?!}
+--gsubst⁻ pf [] (x ∷ L2') Exp (focL-end pf₁ Sp) = {!!}
+gsubst⁻ pf [] (x ∷ L2') Exp (↑L-cons pf₁ N) = {!!}
+gsubst⁻ pf [] (x ∷ L2') Exp (⊃L V Sp) = {!!}
+gsubst⁻ pf [] (x ∷ L2') Exp (∧⁻L₁ Sp) = {!!}
+gsubst⁻ pf [] (x ∷ L2') Exp (∧⁻L₂ Sp) = {!!}
+gsubst⁻ pf (x ∷ L2) L2' Exp Sp = {!!}
+
+
+
+
 -- Positive principal substitution
 cut⁺ pfΓ pf (id⁺ x) N with pfΓ x
 cut⁺ pfΓ pf (id⁺ x) (η⁺ N) | _ , refl = subst⁺ [] (id⁺ x) N
@@ -72,8 +133,9 @@ cut⁺ pfΓ pf V (↑L-nil _ Z) = cut⁺ pfΓ pf V Z
 
 
 -- Negative principle substitution
+{- 
 cut⁻ pfΓ pf [] LA+ Ts Sp = Sp
-cut⁻ pfΓ pf (a Q .⁻ ∷ .[]) .[] (focL () In Sp ∷ Ts) id⁻
+--cut⁻ pfΓ pf (a Q .⁻ ∷ .[]) .[] (focL-init () In Sp ∷ Ts) id⁻
 cut⁻ pfΓ pf (a Q .⁻ ∷ .[]) .[] (η⁻ N ∷ Ts) id⁻ = N
 cut⁻ pfΓ pf (a Q .⁻ ∷ .[]) .[] (↑L-nil () N ∷ Ts) id⁻
 cut⁻ pfΓ (proj₁ , ()) (↑ x ∷ .[]) .[] Ts id⁻
@@ -97,6 +159,9 @@ cut⁻ pfΓ pf (x ⊃ x₁ ∷ xs) LA+ (⊃R N ∷ Ts) (⊃L V Sp) =
 cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (∧⁻R N₁ N₂ ∷ Ts) (∧⁻L₁ Sp) = cut⁻ pfΓ pf (x ∷ xs) LA+ (N₁ ∷ Ts) Sp
 cut⁻ pfΓ pf (x ∧⁻ x₁ ∷ xs) LA+ (∧⁻R N₁ N₂ ∷ Ts) (∧⁻L₂ Sp) = cut⁻ pfΓ pf (x₁ ∷ xs) LA+ (N₂ ∷ Ts) Sp
 
+-}
+
+cut⁻ pfΓ pf _ _ _  = {!!}
 
 
 
@@ -135,25 +200,27 @@ postulate
   pff : ∀{x L A Γ Γ'} → (Pers x ∷ L)  ⊆ (Γ' ++ Pers A ∷ Γ)  → (x ≡ A) ⊎ (x ≢ A)
 
 
-create-simp : ∀{Γ}
-    → (L : List (Type ⁻))
-    → Data.List.map Pers L ⊆ Γ
-    →  All (λ x → Term Γ [] (Inv x)) L
-create-simp [] In = []
-create-simp {Γ} (x ∷ L) In = pers-in-term Γ x (In (here refl))  ∷ (create-simp L (subseteq-drop-cons In))  
+postulate 
+  create-simp : ∀{Γ}
+              → (L : List (Type ⁻))
+              → Data.List.map Pers L ⊆ Γ
+              →  All (λ x → Term Γ [] (Inv x)) L
+--create-simp [] In = []
+--create-simp {Γ} (x ∷ L) In = pers-in-term Γ x (In (here refl))  ∷ (create-simp L (subseteq-drop-cons In))  
 
 
-create :  ∀{Γ Γ' A} 
-          → (L : List (Type ⁻)) 
-          → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ 
-          → Term (Γ' ++ Γ) [] (Inv A)
-          → All (λ x₁ → Term (Γ' ++ Γ) [] (Inv x₁)) L
-create []  Sub T = []
-create {Γ} {Γ'} {A} (x ∷ L) Sub T with (pff {Γ = Γ} {Γ' = Γ'} Sub)
-create {Γ} {Γ'} (A ∷ L) Sub T | inj₁ refl = T ∷ (create {Γ} {Γ'} L (subseteq-drop-cons Sub) T)
-... | inj₂ Neq = 
-  (pers-in-term (Γ' ++ Γ) x (subseteq-cons-notin {Γ' = Γ'} Sub Neq)) ∷ 
-    (create {Γ} {Γ'} L (subseteq-drop-cons Sub) T)
+postulate 
+  create :  ∀{Γ Γ' A} 
+            → (L : List (Type ⁻)) 
+            → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ 
+            → Term (Γ' ++ Γ) [] (Inv A)
+            → All (λ x₁ → Term (Γ' ++ Γ) [] (Inv x₁)) L
+--create []  Sub T = []
+--create {Γ} {Γ'} {A} (x ∷ L) Sub T with (pff {Γ = Γ} {Γ' = Γ'} Sub)
+--create {Γ} {Γ'} (A ∷ L) Sub T | inj₁ refl = T ∷ (create {Γ} {Γ'} L (subseteq-drop-cons Sub) T)
+--... | inj₂ Neq = 
+--  (pers-in-term (Γ' ++ Γ) x (subseteq-cons-notin {Γ' = Γ'} Sub Neq)) ∷ 
+--    (create {Γ} {Γ'} L (subseteq-drop-cons Sub) T)
 
 
 
@@ -172,9 +239,11 @@ rsubst Γ' pfΓ pf M (∧⁺R V₁ V₂) =
 
 -- Substitution into terms
 rsubst Γ' pfΓ pf M (focR V) = focR (rsubst Γ' pfΓ pf M V)
-rsubst Γ' pfΓ pf M (focL {L} pf' x' Sp) with subseteq-in  {L} {Γ'} x' 
-... | inj₁ x = cut⁻ pfΓ (pf' , pf) L [] (create {Γ' = Γ'} L x' M) (rsubst Γ' pfΓ pf M Sp)
-... | inj₂ y =  focL pf' (subseteq-notin {L} {Γ'} x' y) (rsubst Γ' pfΓ pf M Sp)
+rsubst Γ' pfΓ pf M (focL-init pf'  Sp) = {!!} --focL-init pf' (rsubst Γ' pfΓ pf M Sp)
+--rsubst Γ' pfΓ pf M (focL-step pf' In Sp) with fromctx Γ' In
+--rsubst Γ' pfΓ pf M (focL-step {L = L} pf' In Sp) | inj₁ refl = cut⁻ pfΓ (pf' , pf) L M  (rsubst Γ' pfΓ pf M Sp)
+--rsubst Γ' pfΓ pf M (focL-step pf' In Sp) | inj₂ y = focL-step pf' y (rsubst Γ' pfΓ pf M Sp) 
+--rsubst Γ' pfΓ pf M (focL-end pf'  Sp) = focL-end pf' (rsubst Γ' pfΓ pf M Sp )
 rsubst Γ' pfΓ pf M (η⁺ N) = η⁺ (rsubst (_ ∷ Γ') (conssusp pfΓ) pf (wken M) N) 
 rsubst Γ' pfΓ pf M (↓L N) = ↓L (rsubst (_ ∷ Γ') (conspers pfΓ) pf (wken M) N) 
 rsubst Γ' pfΓ pf M ⊥L = ⊥L
@@ -202,8 +271,10 @@ rsubst Γ' pfΓ pf M (∧⁻L₂ Sp) = ∧⁻L₂ (rsubst Γ' pfΓ pf M Sp)
 
 
 lsubst' pfΓ pf (focR V) T = cut⁺ pfΓ (proj₂ pf) V T
-lsubst' {Γ} {U} {[]} {[]} {L'+} pfΓ pf (focL {L} pf₁ In Sp) T = 
-  cut⁻ pfΓ pf L L'+ (create-simp L In) (lsubst' pfΓ pf Sp T)
+lsubst' {Γ} {U} {[]} {[]} {L'+} pfΓ pf (focL-init pf' Sp) T = {!!} -- lsubst' pfΓ pf Sp T
+--lsubst' pfΓ pf (focL-step pf' In Sp) T = 
+--  {!lsubst' pfΓ pf Sp T!} -- cut⁻ pfΓ pf L L'+ (create-simp L In) (lsubst' pfΓ pf Sp T)
+--lsubst' pfΓ pf (focL-end pf' Sp) T = {!!}
 
 lsubst' pfΓ pf (η⁺ N) T = η⁺ (lsubst' (conssusp pfΓ) pf N (wken T))
 lsubst' pfΓ pf (↓L N) T = ↓L (lsubst' (conspers pfΓ) pf N ((wken  T))) 
