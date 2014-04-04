@@ -165,27 +165,6 @@ cut⁻ pfΓ pf _ _ _  = {!!}
 
 
 
-postulate 
-  subseteq-in : ∀{L Γ' Γ A} → Data.List.map Pers L ⊆ (Γ' ++ Pers A ∷ Γ) → A ∈ L ⊎ A ∉ L
-
-postulate 
-  subseteq-notin : ∀{L Γ' Γ A} → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ → A ∉ L → Data.List.map Pers L ⊆ Γ' ++ Γ
-
-postulate 
-  subseteq-cplx :  ∀{L Γ' Γ A} → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ
-                 → A ∈ L
-                 → ∃ λ L1 
-                 → ∃ λ L2
-                 → (L ≡ (L1 ++ A ∷ L2)) -- × ((L1 ⊆ (Γ' ++ Γ)) × (L2 ⊆ Γ' ++ Γ))
-postulate
-  subseteq-equiv :  ∀{L L1 L2 A Γ Γ'} 
-                    → L ≡ L1 ++ A ∷ L2
-                    → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ
-                    → Data.List.map Pers (L1 ++ L2) ⊆ Γ' ++ Γ
-
-
-subseteq-drop-cons : ∀{b} {B : Set b} {X : B} {Y L} → (X ∷ Y) ⊆ L → Y ⊆ L
-subseteq-drop-cons = λ x x₂ → x (there x₂)
 
 
 
