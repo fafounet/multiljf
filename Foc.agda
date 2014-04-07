@@ -1,7 +1,7 @@
 open import Data.String hiding (_++_)
 open import Data.List
 open import Data.Unit
-open import Data.Nat
+open import Data.Nat  hiding (_≤′_; module _≤′_; _<′_; _≥′_; _>′_)
 open import Data.Empty
 open import Data.Product
 open import Data.Sum
@@ -308,6 +308,24 @@ height (⊃L V Sp) = 1 + height Sp
 height (∧⁻L₁ Sp) = 1 + height Sp
 height (∧⁻L₂ Sp) = 1 + height Sp
 
+infix 4 _>′_
+
+data _>′_ : (m : ℕ) → ℕ → Set where
+  >′-refl : ∀ {m n} (m≡n : m ≡ n) → suc m >′ n
+  >′-step : ∀ {m n} (m≤′n : m >′ n) → suc m >′ n
+
+
+suc->′-suc : ∀{m n} → m >′ n → suc m >′ suc n
+suc->′-suc (>′-refl refl) = >′-refl refl
+suc->′-suc (>′-step Ineq) =  >′-step (suc->′-suc Ineq)
+
+postulate 
+  height-neq-zero : ∀{Γ S} → ∀{E} → height {Γ} {S} E >′ zero
+
+postulate 
+  heightl-neq-zero : ∀{Γ S} → ∀{E} → height-l {Γ} {S} E >′ zero
+
+
 
 postulate
   load-adm : ∀{Γ L U} → (Data.List.map Pers L ⊆ Γ) → Spine Γ [] [] U → Spine Γ L [] U
@@ -581,26 +599,26 @@ postulate
 postulate 
   in-sing-sub : ∀{b} {B : Set b} {L : List B} {A : B} → (A ∈ L) → (A ∷ []) ⊆ L
 
-loading-done : ∀{Γ L U H}
-  → (s : Spine-l Γ L U)
-  → height-l s ≡ H
-  → ∃ λ L' → ∃ λ H' → (Data.List.map Pers L') ⊆ Γ ×
-    Σ (Spine Γ (L' ++ L) [] U)  (\s' → height s' ≡ (H ∸ suc H'))
-
 postulate
   sub-in-append : ∀{Γ X A C} → X ∷ Data.List.map Pers C ⊆ Γ → Pers A ∈ Γ → X ∷ Data.List.map Pers (C ++ A ∷ []) ⊆ Γ
 
-loading-done {L = L} (focL-step {A = A}  pf In Sp) H  with loading-done Sp refl
-loading-done {L = L} (focL-step {A = A} pf In Sp) refl | [] , zero , Sub , Sp' , Eq = 
-  (A ∷ []) , (suc zero , (in-sing-sub In , (Sp' , Eq)))
-loading-done {L = L} (focL-step {A = A} pf In Sp) refl | [] , suc H' , Sub , Sp' , Eq = 
-  (A ∷ []) , (suc (suc H') , (in-sing-sub In , (Sp' , Eq))) 
-loading-done {L = L} (focL-step {A = A} pf In Sp) refl | x ∷ C , H' , Sub , Sp' , Eq 
+
+
+
+
+loading-done : ∀{Γ L U}
+  → (s : Spine-l Γ L U)
+  → ∃ λ L' →  (Data.List.map Pers L') ⊆ Γ ×
+    Σ (Spine Γ (L' ++ L) [] U)  (\s' → height-l s >′ height s')
+
+
+loading-done {L = L} (focL-step {A = A} pf In Sp)  with loading-done Sp 
+loading-done {L = L} (focL-step {A = A} pf In Sp) | [] , Sub , Sp' , IEq = 
+  (A ∷ []) , (in-sing-sub In , (Sp' , >′-step IEq))
+loading-done {L = L} (focL-step {A = A} pf In Sp) | x ∷ C , Sub , Sp' , IEq 
   rewrite cons-nil-cons-concat {x = x} {C = C} {A = A} {L = L}  = 
-             x ∷ C ++ A ∷ [] , (suc H' , (sub-in-append Sub In , (Sp' , Eq))) 
--- with cons-nil-concat {A = A} L' L
---... | Z rewrite Z  = L' ++ A ∷ [] , Sp' , map-concat-subset L' (sub-concat In' In)
-loading-done (focL-end pf Sp) refl = [] , zero , (λ {x} → λ ()) , Sp , refl 
+     x ∷ C ++ A ∷ [] , (sub-in-append Sub In , (Sp' , >′-step IEq))
+loading-done {Γ} (focL-end pf Sp) = [] , (λ {x} → λ ()) ,  Sp , >′-refl refl 
 
 
 
@@ -652,6 +670,15 @@ concat-nil : ∀{b} {B : Set b} (L : List B) → (L ++ []) ≡ L
 concat-nil [] = refl
 concat-nil (x ∷ L) = cons-equiv (L ++ []) L (concat-nil L)
 
+
+
+subst⁻-help : ∀{Γ A L U z}
+  → stable U
+  → (e : Exp Γ (Left L (Susp A)))
+  → (z >′ height e)
+  → Spine Γ [ A ] [] U
+  → Exp Γ (Left L U)
+
 subst⁻ : ∀{Γ A L U z}
   → stable U
   → (e : Exp Γ (Left L (Susp A)))
@@ -659,21 +686,34 @@ subst⁻ : ∀{Γ A L U z}
   → Spine Γ [ A ] [] U
   → Exp Γ (Left L U)
 
-subst⁻  pf (focL-init pf' Sp) H Sp' = {!!} --with loading-done Sp
---subst⁻ pf (focL-init pf' Sp) H Sp' | L' , (Exp , Sub) rewrite concat-nil L' = 
---  unload-all L' pf (subst⁻ pf Exp {!!} Sp') Sub 
+subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-refl m≡n) Sp = subst⁻ pf Exp m≡n Sp
+subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-step Ineq) Sp = subst⁻-help pf Exp Ineq Sp
+
+
+
+subst⁻  {Γ} {A} {z = z} pf (focL-init pf' Sp) H Sp' with loading-done Sp
+... | L'  , Sub , Exp , Ieq rewrite concat-nil L'  = unload-all 
+    L' 
+    pf 
+    (subst⁻-help {z = z} 
+                 pf 
+                 Exp 
+                 (subst (\x → x  >′ height Exp) (sym H) (>′-step Ieq))
+                 Sp'
+    ) 
+    Sub 
 subst⁻ {L = .[] , ._} pf (↓L N) H Sp = {!!}
 subst⁻ pf (η⁺ N) Sp = {!!}
-subst⁻ {L = .[] , ._} pf ⊥L H Sp = {!!}
+subst⁻ {L = .[] , ._} pf ⊥L H Sp = ⊥L
 subst⁻ {L = .[] , ._} pf (∨L N₁ N₂) H Sp = {!!}
 subst⁻ {L = .[] , ._} pf (⊤⁺L N) H Sp = {!!}
 subst⁻ {L = .[] , ._} pf (∧⁺L N) H Sp = {!!}
 subst⁻ {L = ._ , .[]} pf id⁻ H Sp = {!!}
 subst⁻ {L = ._ , proj₂} pf (↑L-cons pf₁ N) H Sp = {!!}
 subst⁻ {L = .[] , proj₂} pf (↑L-nil pf₁ N) H Sp = {!!}
-subst⁻ {L = ._ , proj₂} pf (⊃L V Sp) H Sp₁ = {!!}
-subst⁻ {L = ._ , proj₂} pf (∧⁻L₁ Sp) H Sp₁ = {!!}
-subst⁻ {L = ._ , proj₂} pf (∧⁻L₂ Sp) H Sp₁ = {!!}
+subst⁻ {L = ._ , proj₂} pf (⊃L V Sp) H Sp' = {!!}
+subst⁻ {L = ._ , proj₂} pf (∧⁻L₁ Sp) H Sp' = {!!}
+subst⁻ {L = ._ , proj₂} pf (∧⁻L₂ Sp) H Sp' = ∧⁻L₂ (subst⁻ pf Sp refl Sp') -- ∧⁻L₂ (subst⁻ {z = {!!}} pf Sp {!!} Sp') --∧⁻L₂ (subst⁻ pf Sp {!!} Sp') 
 
 {-subst⁻ pf (focL-init pf' Sp) Sp' with loading-done Sp 
 ... | L' , (Exp , Sub) rewrite concat-nil L' = unload-all L' pf (subst⁻ pf Exp Sp') Sub
