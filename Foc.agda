@@ -282,26 +282,26 @@ height-l : ∀{Γ S} → Exp-l Γ S → ℕ
 height-l (focL-step pf In Sp) = 1 + height-l Sp
 height-l (focL-end pf Sp) = 1 + height Sp
 
-height (id⁺ v) = 0
+height (id⁺ v) = 1
 height (↓R N) = 1 + height N
 height (∨R₁ V) = 1 + height V
 height (∨R₂ V) = 1 + height V
-height ⊤⁺R = 0
-height (∧⁺R V₁ V₂) = _⊔_ (height V₁) (height V₂)
+height ⊤⁺R = 1
+height (∧⁺R V₁ V₂) = 1 + _⊔_ (height V₁) (height V₂)
 height (focR V) = 1 + height V
 height (focL-init pf Sp) = 1 + height-l Sp
 height (η⁺ N) = 1 + height N
 height (↓L N) = 1 + height N
-height ⊥L = 0
-height (∨L N₁ N₂) = _⊔_ (height N₁) (height N₂)
+height ⊥L = 1
+height (∨L N₁ N₂) = 1 + _⊔_ (height N₁) (height N₂)
 height (⊤⁺L N) = 1 + height N
 height (∧⁺L N) = 1 + height N
 height (η⁻ N) = 1 + height N
 height (↑R N) = 1 + height N
 height (⊃R N) = 1 + height N
-height ⊤⁻R = 0
-height (∧⁻R N₁ N₂) = _⊔_ (height N₁) (height N₂)
-height id⁻ = 0
+height ⊤⁻R = 1
+height (∧⁻R N₁ N₂) = 1 + _⊔_ (height N₁) (height N₂)
+height id⁻ = 1
 height (↑L-cons pf N) = 1 + height N
 height (↑L-nil pf N) = 1 + height N
 height (⊃L V Sp) = 1 + height Sp
@@ -325,7 +325,14 @@ postulate
 postulate 
   heightl-neq-zero : ∀{Γ S} → ∀{E} → height-l {Γ} {S} E >′ zero
 
+zero-eq-gt-absurd : ∀{x} → x ≡ zero → x >′ zero → ⊥
+zero-eq-gt-absurd {zero} Eq ()
+zero-eq-gt-absurd {suc x'} () (>′-refl m≡n)
+zero-eq-gt-absurd {suc x'} () (>′-step Ineq)
 
+
+zero-height-absurd : ∀{Γ S e} → height {Γ} {S} e ≡ zero → ⊥ 
+zero-height-absurd {e = e} Eq = zero-eq-gt-absurd Eq  (height-neq-zero {E  = e})
 
 postulate
   load-adm : ∀{Γ L U} → (Data.List.map Pers L ⊆ Γ) → Spine Γ [] [] U → Spine Γ L [] U
@@ -691,6 +698,16 @@ subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-step Ineq) Sp = subst⁻-help
 
 
 
+postulate suc-max-left  : ∀{a b c} → suc c ≡ suc (a ⊔ b) →  suc c >′ a
+postulate suc-max-right  : ∀{a b c} → suc c ≡ suc (a ⊔ b) →  suc c >′ b
+
+
+
+
+suc-inj : ∀{x x' : ℕ} → suc x ≡ suc x' → x ≡ x'
+suc-inj refl = refl
+
+subst⁻  {z = zero} pf _ H Sp' = ⊥-elim (zero-height-absurd (sym H))
 subst⁻  {Γ} {A} {z = z} pf (focL-init pf' Sp) H Sp' with loading-done Sp
 ... | L'  , Sub , Exp , Ieq rewrite concat-nil L'  = unload-all 
     L' 
@@ -702,34 +719,24 @@ subst⁻  {Γ} {A} {z = z} pf (focL-init pf' Sp) H Sp' with loading-done Sp
                  Sp'
     ) 
     Sub 
-subst⁻ {L = .[] , ._} pf (↓L N) H Sp = {!!}
-subst⁻ pf (η⁺ N) Sp = {!!}
-subst⁻ {L = .[] , ._} pf ⊥L H Sp = ⊥L
-subst⁻ {L = .[] , ._} pf (∨L N₁ N₂) H Sp = {!!}
-subst⁻ {L = .[] , ._} pf (⊤⁺L N) H Sp = {!!}
-subst⁻ {L = .[] , ._} pf (∧⁺L N) H Sp = {!!}
-subst⁻ {L = ._ , .[]} pf id⁻ H Sp = {!!}
-subst⁻ {L = ._ , proj₂} pf (↑L-cons pf₁ N) H Sp = {!!}
-subst⁻ {L = .[] , proj₂} pf (↑L-nil pf₁ N) H Sp = {!!}
-subst⁻ {L = ._ , proj₂} pf (⊃L V Sp) H Sp' = {!!}
-subst⁻ {L = ._ , proj₂} pf (∧⁻L₁ Sp) H Sp' = {!!}
-subst⁻ {L = ._ , proj₂} pf (∧⁻L₂ Sp) H Sp' = ∧⁻L₂ (subst⁻ pf Sp refl Sp') -- ∧⁻L₂ (subst⁻ {z = {!!}} pf Sp {!!} Sp') --∧⁻L₂ (subst⁻ pf Sp {!!} Sp') 
+subst⁻ {L = .[] , ._} {z = suc z'} pf (↓L N) H Sp = ↓L (subst⁻ pf N ((suc-inj H)) (wken Sp))
+subst⁻ {z = suc z'} pf (η⁺ N) H Sp = η⁺ (subst⁻ pf N (suc-inj H) (wken Sp))
+subst⁻ {L = .[] , ._} {z = suc z'} pf ⊥L H Sp = ⊥L
+subst⁻ {L = .[] , ._} {z = suc z'} pf (∨L N₁ N₂) H Sp = 
+  ∨L 
+    (subst⁻-help {z = suc z'} pf N₁ (suc-max-left H) Sp) 
+    (subst⁻-help {z = suc z'} pf N₂ (suc-max-right {a = height N₁} H) Sp)  
+subst⁻ {L = .[] , ._} {z = suc z'} pf (⊤⁺L N) H Sp = ⊤⁺L (subst⁻ pf N (suc-inj H) Sp)
+subst⁻ {L = .[] , ._} {z = suc z'} pf (∧⁺L N) H Sp = ∧⁺L (subst⁻ pf N (suc-inj H) Sp)
+subst⁻ {L = ._ , .[]} {z = suc z'} pf id⁻ H Sp = Sp
+subst⁻ {L = ._ , proj₂} {z = suc z'} pf (↑L-cons pf₁ N) H Sp = ↑L-cons pf (subst⁻ pf N (suc-inj H) Sp) 
+subst⁻ {L = .[] , proj₂} {z = suc z'} pf (↑L-nil pf₁ N) H Sp = ↑L-nil pf (subst⁻ pf N (suc-inj H) Sp)
+subst⁻ {L = ._ , proj₂} {z = suc z'} pf (⊃L V Sp) H Sp' = ⊃L V (subst⁻ pf Sp (suc-inj H) Sp')
+subst⁻ {L = ._ , proj₂} {z = suc z'} pf (∧⁻L₁ Sp) H Sp' =  ∧⁻L₁ (subst⁻ pf Sp (suc-inj H) Sp') 
+subst⁻  {L = ._ , proj₂} {z = suc z'} pf (∧⁻L₂ Sp) H Sp' = ∧⁻L₂ (subst⁻ pf Sp (suc-inj H) Sp') 
 
-{-subst⁻ pf (focL-init pf' Sp) Sp' with loading-done Sp 
-... | L' , (Exp , Sub) rewrite concat-nil L' = unload-all L' pf (subst⁻ pf Exp Sp') Sub
-subst⁻ pf (η⁺ N) Sp = η⁺ (subst⁻ pf N (wken Sp))
-subst⁻ pf (↓L N) Sp = ↓L (subst⁻ pf N (wken Sp))
-subst⁻ pf ⊥L Sp = ⊥L
-subst⁻ pf (∨L N₁ N₂) Sp = ∨L (subst⁻ pf N₁ Sp) (subst⁻ pf N₂ Sp)
-subst⁻ pf (⊤⁺L N) Sp = ⊤⁺L (subst⁻ pf N Sp)
-subst⁻ pf (∧⁺L N) Sp = ∧⁺L (subst⁻ pf N Sp)
 
-subst⁻ pf id⁻ Sp = Sp
-subst⁻ pf (↑L-cons _ N) Sp = ↑L-cons pf (subst⁻ pf N Sp) 
-subst⁻ pf (↑L-nil _ N) Sp = ↑L-nil pf (subst⁻ pf N Sp)
-subst⁻ pf (⊃L V Sp) Sp' = ⊃L V (subst⁻ pf Sp Sp')
-subst⁻ pf (∧⁻L₁ Sp) Sp' = ∧⁻L₁ (subst⁻ pf Sp Sp')
-subst⁻ pf (∧⁻L₂ Sp) Sp' = ∧⁻L₂ (subst⁻ pf Sp Sp')-}
+
 
 
 
@@ -747,40 +754,5 @@ subst-' pf Sp1 (⊃L V Sp) = {!!}
 subst-' pf Sp1 (∧⁻L₁ Sp) = {!!}
 subst-' pf Sp1 (∧⁻L₂ Sp) = {!!}
 
-{-substT : ∀{Γ A L- U}
-  → stable U
-  → (L+ : List (Type ⁺))
-  → Spine-l Γ L-  (Susp A)
-  → Spine Γ [ A ] L+ U
-  → Spine Γ L- L+ U
--}
-
-{- Is it possible to remove those -l version???? -}
-
-
-{-
-substT pf .[] Spl id⁻ = {!!}
-substT pf L+ Spl (↑L-cons pf₁ N) = {!!}
-substT pf L+ Spl (⊃L V Sp) = {!!}
-substT pf L+ (focL-step pf₁ In Sp) (∧⁻L₁ Sp₁) = {!!}
-substT pf L+ (focL-end pf₁ Sp) (∧⁻L₁ Sp₁) = {!!}
-substT pf L+ Spl (∧⁻L₂ Sp) = {!!}
-
-subst⁻' {L+ = L+} pf [] Sp1 Sp2 rewrite concat-nil L+ = subst⁻ pf Sp1 Sp2
-subst⁻' pf (x ∷ L+') (focL-init pf₁ Sp) Sp2 with loading-done Sp
-subst⁻' pf (x ∷ L+') (focL-init pf₁ Sp) Sp2 | L' , Exp = {!subst⁻' pf ? Exp Sp2!}
-subst⁻' pf (x ∷ L+') (η⁺ N) Sp2 = η⁺ (subst⁻' pf (x ∷ L+') N (wken Sp2))
-subst⁻' pf (x ∷ L+') (↓L N) Sp2 = {!!}
-subst⁻' pf (x ∷ L+') ⊥L Sp2 = ⊥L
-subst⁻' pf (x ∷ L+') (∨L N₁ N₂) Sp2 = {!!}
-subst⁻' pf (x ∷ L+') (⊤⁺L N) Sp2 = ⊤⁺L (subst⁻' pf (x ∷ L+') N Sp2)
-subst⁻' pf (x ∷ L+') (∧⁺L N) Sp2 = {!!}
-subst⁻' pf (x ∷ L+') id⁻ Sp2 = Sp2
-subst⁻' pf (x ∷ L+') (↑L-cons pf₁ N) Sp2 = ↑L-cons pf (subst⁻' pf (x ∷ L+') N Sp2) 
-subst⁻' pf (x ∷ L+') (↑L-nil pf₁ N) Sp2 = ↑L-nil pf (subst⁻' pf (x ∷ L+') N Sp2)
-subst⁻' pf (x ∷ L+') (⊃L V Sp) Sp2 = ⊃L V (subst⁻' pf (x ∷ L+') Sp Sp2) 
-subst⁻' pf (x ∷ L+') (∧⁻L₁ Sp) Sp2 = ∧⁻L₁ (subst⁻' pf (x ∷ L+') Sp Sp2)
-subst⁻' pf (x ∷ L+') (∧⁻L₂ Sp) Sp2 = ∧⁻L₂ (subst⁻' pf (x ∷ L+') Sp Sp2)
--}
 
 
