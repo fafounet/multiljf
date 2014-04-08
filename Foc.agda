@@ -696,16 +696,41 @@ subst⁻ : ∀{Γ A L U z}
 subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-refl m≡n) Sp = subst⁻ pf Exp m≡n Sp
 subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-step Ineq) Sp = subst⁻-help pf Exp Ineq Sp
 
-
-
-postulate suc-max-left  : ∀{a b c} → suc c ≡ suc (a ⊔ b) →  suc c >′ a
-postulate suc-max-right  : ∀{a b c} → suc c ≡ suc (a ⊔ b) →  suc c >′ b
-
-
-
-
 suc-inj : ∀{x x' : ℕ} → suc x ≡ suc x' → x ≡ x'
 suc-inj refl = refl
+
+suc-gt-zero : (b : ℕ) → suc b >′ zero
+suc-gt-zero zero = >′-refl refl
+suc-gt-zero (suc b) = >′-step (suc-gt-zero b)
+
+max-left : ∀{x y z} → z ≡ (x ⊔ y) →  suc z >′ x
+max-left {zero} {zero} refl = >′-refl refl
+max-left {suc x} {zero} refl = >′-refl refl
+max-left {zero} {suc y} refl = suc-gt-zero (suc y)
+max-left {suc x} {suc y} {zero} ()
+max-left {suc x} {suc y} {suc z} Eq = suc->′-suc (max-left (suc-inj Eq))
+
+
+suc-max-left  : ∀{x y z} → suc z ≡ suc (x ⊔ y) →  suc z >′ x
+suc-max-left {x} {y} {z} Eq = max-left (suc-inj Eq)
+
+
+max-right : ∀{x y z} → z ≡ (x ⊔ y) →  suc z >′ y
+max-right {zero} {zero} Eq = >′-refl Eq
+max-right {zero} {suc y} Eq = >′-refl Eq
+max-right {suc x} {zero} {z} Eq = suc-gt-zero z
+max-right {suc x} {suc y} {zero} ()
+max-right {suc x} {suc y} {suc z} Eq = suc->′-suc (max-right {x = x} (suc-inj Eq))
+
+
+
+suc-max-right  : ∀{x y z} → suc z ≡ suc (x ⊔ y) →  suc z >′ y
+suc-max-right {x} {y} {z} Eq = max-right {x = x} (suc-inj Eq)
+
+
+
+
+
 
 subst⁻  {z = zero} pf _ H Sp' = ⊥-elim (zero-height-absurd (sym H))
 subst⁻  {Γ} {A} {z = z} pf (focL-init pf' Sp) H Sp' with loading-done Sp
@@ -725,7 +750,7 @@ subst⁻ {L = .[] , ._} {z = suc z'} pf ⊥L H Sp = ⊥L
 subst⁻ {L = .[] , ._} {z = suc z'} pf (∨L N₁ N₂) H Sp = 
   ∨L 
     (subst⁻-help {z = suc z'} pf N₁ (suc-max-left H) Sp) 
-    (subst⁻-help {z = suc z'} pf N₂ (suc-max-right {a = height N₁} H) Sp)  
+    (subst⁻-help {z = suc z'} pf N₂ (suc-max-right {x = height N₁} H) Sp)  
 subst⁻ {L = .[] , ._} {z = suc z'} pf (⊤⁺L N) H Sp = ⊤⁺L (subst⁻ pf N (suc-inj H) Sp)
 subst⁻ {L = .[] , ._} {z = suc z'} pf (∧⁺L N) H Sp = ∧⁺L (subst⁻ pf N (suc-inj H) Sp)
 subst⁻ {L = ._ , .[]} {z = suc z'} pf id⁻ H Sp = Sp
