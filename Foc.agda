@@ -14,6 +14,7 @@ open import Function.Inverse hiding (sym)
 open Membership-≡
 
 open import Subset
+open import NatExtra
 
 module Foc where
 
@@ -55,8 +56,6 @@ data Conc : Set where
   Inv  : (A : Type ⁻) → Conc
   True : (A : Type ⁺) → Conc
   Susp : (A : Type ⁻) → Conc
-
-
 
 
 
@@ -307,16 +306,7 @@ height (⊃L V Sp) = 1 + height Sp
 height (∧⁻L₁ Sp) = 1 + height Sp
 height (∧⁻L₂ Sp) = 1 + height Sp
 
-infix 4 _>′_
 
-data _>′_ : (m : ℕ) → ℕ → Set where
-  >′-refl : ∀ {m n} (m≡n : m ≡ n) → suc m >′ n
-  >′-step : ∀ {m n} (m≤′n : m >′ n) → suc m >′ n
-
-
-suc->′-suc : ∀{m n} → m >′ n → suc m >′ suc n
-suc->′-suc (>′-refl refl) = >′-refl refl
-suc->′-suc (>′-step Ineq) =  >′-step (suc->′-suc Ineq)
 
 postulate 
   height-neq-zero : ∀{Γ S} → ∀{E} → height {Γ} {S} E >′ zero
@@ -656,38 +646,6 @@ subst⁻ : ∀{Γ A L U z}
 
 subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-refl m≡n) Sp = subst⁻ pf Exp m≡n Sp
 subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-step Ineq) Sp = subst⁻-help pf Exp Ineq Sp
-
-suc-inj : ∀{x x' : ℕ} → suc x ≡ suc x' → x ≡ x'
-suc-inj refl = refl
-
-suc-gt-zero : (b : ℕ) → suc b >′ zero
-suc-gt-zero zero = >′-refl refl
-suc-gt-zero (suc b) = >′-step (suc-gt-zero b)
-
-max-left : ∀{x y z} → z ≡ (x ⊔ y) →  suc z >′ x
-max-left {zero} {zero} refl = >′-refl refl
-max-left {suc x} {zero} refl = >′-refl refl
-max-left {zero} {suc y} refl = suc-gt-zero (suc y)
-max-left {suc x} {suc y} {zero} ()
-max-left {suc x} {suc y} {suc z} Eq = suc->′-suc (max-left (suc-inj Eq))
-
-
-suc-max-left  : ∀{x y z} → suc z ≡ suc (x ⊔ y) →  suc z >′ x
-suc-max-left {x} {y} {z} Eq = max-left (suc-inj Eq)
-
-
-max-right : ∀{x y z} → z ≡ (x ⊔ y) →  suc z >′ y
-max-right {zero} {zero} Eq = >′-refl Eq
-max-right {zero} {suc y} Eq = >′-refl Eq
-max-right {suc x} {zero} {z} Eq = suc-gt-zero z
-max-right {suc x} {suc y} {zero} ()
-max-right {suc x} {suc y} {suc z} Eq = suc->′-suc (max-right {x = x} (suc-inj Eq))
-
-
-
-suc-max-right  : ∀{x y z} → suc z ≡ suc (x ⊔ y) →  suc z >′ y
-suc-max-right {x} {y} {z} Eq = max-right {x = x} (suc-inj Eq)
-
 
 
 
