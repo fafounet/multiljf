@@ -302,7 +302,7 @@ height (∧⁻R N₁ N₂) = 1 + _⊔_ (height N₁) (height N₂)
 height id⁻ = 1
 height (↑L-cons pf N) = 1 + height N
 height (↑L-nil pf N) = 1 + height N
-height (⊃L V Sp) = 1 + height Sp
+height (⊃L V Sp) = 1 + _⊔_  (height V) (height Sp)
 height (∧⁻L₁ Sp) = 1 + height Sp
 height (∧⁻L₂ Sp) = 1 + height Sp
 
@@ -510,6 +510,13 @@ simp-any-pers-susp [] X (there Y) = Y
 simp-any-pers-susp (x₁ ∷ Γ') X (here refl) = here refl
 simp-any-pers-susp (x₁ ∷ Γ') X (there Y) = there (simp-any-pers-susp Γ' X Y)
 
+postulate 
+  pers-hsusp-subset : 
+    ∀{L' Γ Γ' A} 
+    → (Data.List.map Pers L') ⊆ (Γ' ++ HSusp A ∷ Γ) 
+    → Data.List.map Pers L' ⊆ Γ' ++ Γ
+
+
 
 postulate
   cons-nil-cons-concat : ∀{b} {B : Set b} {x : B} {C : List B} {A : B} {L : List B} 
@@ -528,6 +535,16 @@ postulate
                  → ∃ λ L1 
                  → ∃ λ L2
                  → (L ≡ (L1 ++ A ∷ L2)) -- × ((L1 ⊆ (Γ' ++ Γ)) × (L2 ⊆ Γ' ++ Γ))
+
+
+
+
+cons-equiv : ∀{b} {B : Set b} {x : B} (L L' : List B) → (L ≡ L') → _≡_ {A = List B} (x ∷ L) (x ∷ L')
+cons-equiv L .L refl = refl
+
+concat-nil : ∀{b} {B : Set b} (L : List B) → (L ++ []) ≡ L
+concat-nil [] = refl
+concat-nil (x ∷ L) = cons-equiv (L ++ []) L (concat-nil L)
 
 
 
@@ -555,78 +572,69 @@ unload-all [] pf Sp In = Sp
 unload-all (x ∷ L) pf Sp In = focL-init pf (unload-all-l (x ∷ L)  pf (focL-end pf Sp) In)
 
 
-subst⁺-l : ∀{Γ A Form} (Γ' : Ctx)
-  → Value (Γ' ++ Γ) A
-  → Exp-l (Γ' ++ HSusp A ∷ Γ) Form
-  → Exp-l (Γ' ++ Γ) Form
 
-subst⁺ : ∀{Γ A Form} (Γ' : Ctx)
+subst⁺-help : ∀{Γ A Form z} 
+  → (Γ' : Ctx)
   → Value (Γ' ++ Γ) A
-  → Exp (Γ' ++ HSusp A ∷ Γ) Form
+  → (e : Exp (Γ' ++ HSusp A ∷ Γ) Form)
+  → (z >′ height e)
   → Exp (Γ' ++ Γ) Form
 
-subst⁺-l Γ' V (focL-step pf In Sp) with fromctx Γ' In
-... |  inj₁ ()
-... |  inj₂ y = focL-step pf y (subst⁺-l Γ' V Sp) 
-subst⁺-l Γ' V (focL-end pf Sp) = focL-end pf (subst⁺ Γ' V Sp) 
+subst⁺ : ∀{Γ A Form z} 
+  → (Γ' : Ctx)
+  → Value (Γ' ++ Γ) A
+  → (e : Exp (Γ' ++ HSusp A ∷ Γ) Form)
+  → (z ≡ height e)
+  → Exp (Γ' ++ Γ) Form
 
-subst⁺ Γ' V (id⁺ x) with fromctx Γ' x
-subst⁺ Γ' V (id⁺ x) | inj₁ refl = V
-subst⁺ Γ' V (id⁺ x) | inj₂ y = id⁺ y
-subst⁺ Γ' V (↓R N) = ↓R (subst⁺ Γ' V N)
-subst⁺ Γ' V (∨R₁ V') = ∨R₁ (subst⁺ Γ' V V')
-subst⁺ Γ' V (∨R₂ V') = ∨R₂ (subst⁺ Γ' V V')
-subst⁺ Γ' V ⊤⁺R = ⊤⁺R
-subst⁺ Γ' V (∧⁺R V₁ V₂) = ∧⁺R (subst⁺ Γ' V V₁) (subst⁺ Γ' V V₂)
+subst⁺-help Γ' V E (>′-refl m≡n) = subst⁺ Γ' V E m≡n
+subst⁺-help Γ' V E (>′-step H) = subst⁺-help Γ' V E H
 
-subst⁺ Γ' V (focR V') = focR (subst⁺ Γ' V V')
-subst⁺ Γ' V (focL-init pf Sp)   with loading-done Sp
-... | L'  , Sub , Exp , Ieq = {!unload-all 
+
+
+subst⁺ {z = zero} Γ' V E H =  ⊥-elim (zero-height-absurd (sym H))
+subst⁺ {z = suc z'} Γ' V (id⁺ x) _ with fromctx Γ' x
+subst⁺ {z = suc z'} Γ' V (id⁺ x) _ | inj₁ refl = V
+subst⁺ {z = suc z'} Γ' V (id⁺ x) _ | inj₂ y = id⁺ y
+subst⁺ {z = suc z'} Γ' V (↓R N) H = ↓R (subst⁺ Γ' V N (suc-inj H))
+subst⁺ {z = suc z'} Γ' V (∨R₁ V') H = ∨R₁ (subst⁺ Γ' V V' (suc-inj H))
+subst⁺ {z = suc z'} Γ' V (∨R₂ V') H = ∨R₂ (subst⁺ Γ' V V' (suc-inj H))
+subst⁺ {z = suc z'} Γ' V ⊤⁺R _ = ⊤⁺R
+subst⁺ {z = suc z'} Γ' V (∧⁺R V₁ V₂) H = 
+   ∧⁺R 
+     (subst⁺-help Γ' V V₁ (suc-max-left H)) 
+     (subst⁺-help Γ' V V₂ (suc-max-right {x = height V₁}  H))
+subst⁺ {z = suc z'} Γ' V (focR V') H = focR (subst⁺ Γ' V V' (suc-inj H))
+
+subst⁺ {Γ} {A} {z = suc z'} Γ' V (focL-init pf Sp) H with loading-done Sp
+... | L'  , Sub , Exp , Ieq rewrite concat-nil L' = 
+  unload-all 
     L' 
-    ?
-    (subst⁺ ?
-                 Exp 
-                 ?
-                 --(subst (\x → x  >′ height Exp) (sym H) (>′-step Ieq))
-
-    ) 
-    Sub !}
-  --focL-init pf (subst⁺-l Γ' V Sp) 
+    pf 
+    (subst⁺-help Γ' V Exp ( (subst (\x → x  >′ height Exp) (sym H) (>′-step Ieq)))) 
+    (pers-hsusp-subset {Γ = Γ} {Γ' = Γ'} Sub)
     
-subst⁺ Γ' V (η⁺ N) = η⁺ (subst⁺ (_ ∷ Γ') (wken V) N)
-subst⁺ Γ' V (η⁻ N) = η⁻ (subst⁺ Γ' V N)
-subst⁺ Γ' V (↓L N) = ↓L (subst⁺ (_ ∷ Γ') (wken V) N)
-subst⁺ Γ' V (↑R N) = ↑R (subst⁺ Γ' V N)
-subst⁺ Γ' V ⊥L = ⊥L
-subst⁺ Γ' V (∨L N₁ N₂) = ∨L (subst⁺ Γ' V N₁) (subst⁺ Γ' V N₂)
-subst⁺ Γ' V (⊤⁺L N) = ⊤⁺L (subst⁺ Γ' V N)
-subst⁺ Γ' V (∧⁺L N) = ∧⁺L (subst⁺ Γ' V N)
-subst⁺ Γ' V (⊃R N) = ⊃R (subst⁺ Γ' V N)
-subst⁺ Γ' V ⊤⁻R = ⊤⁻R
-subst⁺ Γ' V (∧⁻R N₁ N₂) = ∧⁻R (subst⁺ Γ' V N₁) (subst⁺ Γ' V N₂)
+subst⁺ {z = suc z'} Γ' V (η⁺ N) H = η⁺ (subst⁺ (_ ∷ Γ') (wken V) N (suc-inj H))
+subst⁺ {z = suc z'} Γ' V (η⁻ N) H = η⁻ (subst⁺ Γ' V N (suc-inj H))
+subst⁺ {z = suc z'} Γ' V (↓L N) H = ↓L (subst⁺ (_ ∷ Γ') (wken V) N (suc-inj H))
+subst⁺ {z = suc z'} Γ' V (↑R N) H = ↑R (subst⁺ Γ' V N (suc-inj H))
+subst⁺ {z = suc z'} Γ' V ⊥L _ = ⊥L
+subst⁺ {z = suc z'} Γ' V (∨L N₁ N₂) H = 
+  ∨L (subst⁺-help Γ' V N₁ (suc-max-left H)) (subst⁺-help Γ' V N₂ (suc-max-right {x = height N₁} H))
+subst⁺ {z = suc z'} Γ' V (⊤⁺L N) H = ⊤⁺L (subst⁺ Γ' V N (suc-inj H))
+subst⁺ {z = suc z'} Γ' V (∧⁺L N) H = ∧⁺L (subst⁺ Γ' V N (suc-inj H))
+subst⁺ {z = suc z'} Γ' V (⊃R N) H = ⊃R (subst⁺ Γ' V N (suc-inj H))
+subst⁺ {z = suc z'} Γ' V ⊤⁻R _ = ⊤⁻R
+subst⁺ {z = suc z'} Γ' V (∧⁻R N₁ N₂) H = 
+  ∧⁻R (subst⁺-help Γ' V N₁ (suc-max-left H)) (subst⁺-help Γ' V N₂ (suc-max-right {x = height N₁} H))
+subst⁺ {z = suc z'} Γ' V id⁻ _ = id⁻
+subst⁺ {z = suc z'} Γ' V (↑L-nil pf N) H = ↑L-nil pf (subst⁺ Γ' V N (suc-inj H))
+subst⁺ {z = suc z'} Γ' V (↑L-cons pf N) H = ↑L-cons pf (subst⁺ Γ' V N (suc-inj H)) 
+subst⁺ {z = suc z'} Γ' V (⊃L V' Sp) H = 
+  ⊃L (subst⁺-help Γ' V V' (suc-max-left H)) (subst⁺-help Γ' V Sp (suc-max-right {x = height V'} H))
+subst⁺ {z = suc z'} Γ' V (∧⁻L₁ Sp) H = ∧⁻L₁ (subst⁺ Γ' V Sp (suc-inj H))
+subst⁺ {z = suc z'} Γ' V (∧⁻L₂ Sp) H = ∧⁻L₂ (subst⁺ Γ' V Sp (suc-inj H))
 
-subst⁺ Γ' V id⁻ = id⁻
-subst⁺ Γ' V (↑L-nil pf N) = ↑L-nil pf (subst⁺ Γ' V N)
-subst⁺ Γ' V (↑L-cons pf N) = ↑L-cons pf (subst⁺ Γ' V N) 
-subst⁺ Γ' V (⊃L V' Sp) = ⊃L (subst⁺ Γ' V V') (subst⁺ Γ' V Sp)
-subst⁺ Γ' V (∧⁻L₁ Sp) = ∧⁻L₁ (subst⁺ Γ' V Sp)
-subst⁺ Γ' V (∧⁻L₂ Sp) = ∧⁻L₂ (subst⁺ Γ' V Sp)
-
-
-postulate 
-  subseteq-cons : ∀{b} {B : Set b} {L : List B}  {X M} → L ⊆ M → X ∈ M → (X ∷ L) ⊆ M
-
-subseteq-drop-cons : ∀{b} {B : Set b} {X : B} {Y L} → (X ∷ Y) ⊆ L → Y ⊆ L
-subseteq-drop-cons = λ x x₂ → x (there x₂)
-
-
-
-cons-equiv : ∀{b} {B : Set b} {x : B} (L L' : List B) → (L ≡ L') → _≡_ {A = List B} (x ∷ L) (x ∷ L')
-cons-equiv L .L refl = refl
-
-concat-nil : ∀{b} {B : Set b} (L : List B) → (L ++ []) ≡ L
-concat-nil [] = refl
-concat-nil (x ∷ L) = cons-equiv (L ++ []) L (concat-nil L)
 
 
 
@@ -646,9 +654,6 @@ subst⁻ : ∀{Γ A L U z}
 
 subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-refl m≡n) Sp = subst⁻ pf Exp m≡n Sp
 subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-step Ineq) Sp = subst⁻-help pf Exp Ineq Sp
-
-
-
 
 
 subst⁻  {z = zero} pf _ H Sp' = ⊥-elim (zero-height-absurd (sym H))
@@ -675,7 +680,8 @@ subst⁻ {L = .[] , ._} {z = suc z'} pf (∧⁺L N) H Sp = ∧⁺L (subst⁻ pf 
 subst⁻ {L = ._ , .[]} {z = suc z'} pf id⁻ H Sp = Sp
 subst⁻ {L = ._ , proj₂} {z = suc z'} pf (↑L-cons pf₁ N) H Sp = ↑L-cons pf (subst⁻ pf N (suc-inj H) Sp) 
 subst⁻ {L = .[] , proj₂} {z = suc z'} pf (↑L-nil pf₁ N) H Sp = ↑L-nil pf (subst⁻ pf N (suc-inj H) Sp)
-subst⁻ {L = ._ , proj₂} {z = suc z'} pf (⊃L V Sp) H Sp' = ⊃L V (subst⁻ pf Sp (suc-inj H) Sp')
+subst⁻ {L = ._ , proj₂} {z = suc z'} pf (⊃L V Sp) H Sp' = 
+  ⊃L V (subst⁻-help pf Sp (suc-max-right {x = height V} H) Sp')
 subst⁻ {L = ._ , proj₂} {z = suc z'} pf (∧⁻L₁ Sp) H Sp' =  ∧⁻L₁ (subst⁻ pf Sp (suc-inj H) Sp') 
 subst⁻  {L = ._ , proj₂} {z = suc z'} pf (∧⁻L₂ Sp) H Sp' = ∧⁻L₂ (subst⁻ pf Sp (suc-inj H) Sp') 
 

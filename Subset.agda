@@ -24,3 +24,10 @@ sub-cntr : ∀{a} {A : Set a} {x : A}
 sub-cntr xs In (here px) = subst (λ z → Any (_≡_ z) xs) (sym px) In
 sub-cntr xs In (there x∷xs) = x∷xs
 
+
+postulate 
+  subseteq-cons : ∀{b} {B : Set b} {L : List B}  {X M} → L ⊆ M → X ∈ M → (X ∷ L) ⊆ M
+
+subseteq-drop-cons : ∀{b} {B : Set b} {X : B} {Y L} → (X ∷ Y) ⊆ L → Y ⊆ L
+subseteq-drop-cons = λ x x₂ → x (there x₂)
+
