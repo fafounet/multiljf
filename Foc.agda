@@ -10,11 +10,10 @@ open import Data.List.Any
 open import Data.List.Any.Properties
 open import Data.List.All
 open import Data.List.Properties
--- open import Function.Related
 open import Function.Inverse hiding (sym)
 open Membership-≡
 
-
+open import Subset
 
 module Foc where
 
@@ -334,35 +333,9 @@ zero-eq-gt-absurd {suc x'} () (>′-step Ineq)
 zero-height-absurd : ∀{Γ S e} → height {Γ} {S} e ≡ zero → ⊥ 
 zero-height-absurd {e = e} Eq = zero-eq-gt-absurd Eq  (height-neq-zero {E  = e})
 
-postulate
-  load-adm : ∀{Γ L U} → (Data.List.map Pers L ⊆ Γ) → Spine Γ [] [] U → Spine Γ L [] U
 
 
--- Weakening
 
-sub-cons-congr : ∀{a} {A : Set a} {x : A} {xs ys : List A}
-      → xs ⊆ ys
-      → (x ∷ xs) ⊆ (x ∷ ys)
-sub-cons-congr H (here px) = here px
-sub-cons-congr H (there L) = there (H L) 
-
-sub-wkex : ∀{a} {A : Set a} {x y : A} {xs ys : List A} 
-  → (x ∷ xs) ⊆ (x ∷ y ∷ xs)
-sub-wkex (here px) = here px
-sub-wkex (there H) = there (there H)
-
-sub-cntr : ∀{a} {A : Set a} {x : A} 
-       → (xs : List A)
-       → x ∈ xs
-       → (x ∷ xs) ⊆ xs
-sub-cntr xs In (here px) = subst (λ z → Any (_≡_ z) xs) (sym px) In
-sub-cntr xs In (there x∷xs) = x∷xs
-
-postulate 
-  sub-concat : ∀{b} {B : Set b} {L M : List B} {A : B} 
-    → L ⊆ M 
-    → A ∈ M 
-    → _⊆_ (L ++ A ∷ []) M
 
 wk : ∀{Γ Γ' Form} → Γ ⊆ Γ' → Exp Γ Form → Exp Γ' Form
 
@@ -548,6 +521,50 @@ simp-any-pers-susp (x₁ ∷ Γ') X (here refl) = here refl
 simp-any-pers-susp (x₁ ∷ Γ') X (there Y) = there (simp-any-pers-susp Γ' X Y)
 
 
+postulate
+  cons-nil-cons-concat : ∀{b} {B : Set b} {x : B} {C : List B} {A : B} {L : List B} 
+    → _≡_ {A = List B} (x ∷ C ++ A ∷ L) (x ∷ (C ++ A ∷ []) ++ L)
+
+postulate 
+  in-sing-sub : ∀{b} {B : Set b} {L : List B} {A : B} → (A ∈ L) → (A ∷ []) ⊆ L
+
+postulate
+  sub-in-append : ∀{Γ X A C} → X ∷ Data.List.map Pers C ⊆ Γ → Pers A ∈ Γ → X ∷ Data.List.map Pers (C ++ A ∷ []) ⊆ Γ
+
+
+postulate 
+  subseteq-cplx :  ∀{L Γ' Γ A} → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ
+                 → A ∈ L
+                 → ∃ λ L1 
+                 → ∃ λ L2
+                 → (L ≡ (L1 ++ A ∷ L2)) -- × ((L1 ⊆ (Γ' ++ Γ)) × (L2 ⊆ Γ' ++ Γ))
+
+
+
+loading-done : ∀{Γ L U}
+  → (s : Spine-l Γ L U)
+  → ∃ λ L' →  (Data.List.map Pers L') ⊆ Γ ×
+    Σ (Spine Γ (L' ++ L) [] U)  (\s' → height-l s >′ height s')
+
+
+loading-done {L = L} (focL-step {A = A} pf In Sp)  with loading-done Sp 
+loading-done {L = L} (focL-step {A = A} pf In Sp) | [] , Sub , Sp' , IEq = 
+  (A ∷ []) , (in-sing-sub In , (Sp' , >′-step IEq))
+loading-done {L = L} (focL-step {A = A} pf In Sp) | x ∷ C , Sub , Sp' , IEq 
+  rewrite cons-nil-cons-concat {x = x} {C = C} {A = A} {L = L}  = 
+     x ∷ C ++ A ∷ [] , (sub-in-append Sub In , (Sp' , >′-step IEq))
+loading-done {Γ} (focL-end pf Sp) = [] , (λ {x} → λ ()) ,  Sp , >′-refl refl 
+
+unload-all-l : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine-l Γ L U → Data.List.map Pers L ⊆ Γ → Spine-l Γ [] U 
+unload-all-l [] pf Sp In = Sp
+unload-all-l (x ∷ L) pf Sp In = unload-all-l L pf (focL-step pf (In (here refl)) Sp) (λ {x₁} z → In (there z))
+
+
+unload-all : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine Γ L [] U → Data.List.map Pers L ⊆ Γ → Spine Γ [] [] U 
+unload-all [] pf Sp In = Sp
+unload-all (x ∷ L) pf Sp In = focL-init pf (unload-all-l (x ∷ L)  pf (focL-end pf Sp) In)
+
+
 subst⁺-l : ∀{Γ A Form} (Γ' : Ctx)
   → Value (Γ' ++ Γ) A
   → Exp-l (Γ' ++ HSusp A ∷ Γ) Form
@@ -573,7 +590,19 @@ subst⁺ Γ' V ⊤⁺R = ⊤⁺R
 subst⁺ Γ' V (∧⁺R V₁ V₂) = ∧⁺R (subst⁺ Γ' V V₁) (subst⁺ Γ' V V₂)
 
 subst⁺ Γ' V (focR V') = focR (subst⁺ Γ' V V')
-subst⁺ Γ' V (focL-init pf Sp)  = focL-init pf (subst⁺-l Γ' V Sp) 
+subst⁺ Γ' V (focL-init pf Sp)   with loading-done Sp
+... | L'  , Sub , Exp , Ieq = {!unload-all 
+    L' 
+    ?
+    (subst⁺ ?
+                 Exp 
+                 ?
+                 --(subst (\x → x  >′ height Exp) (sym H) (>′-step Ieq))
+
+    ) 
+    Sub !}
+  --focL-init pf (subst⁺-l Γ' V Sp) 
+    
 subst⁺ Γ' V (η⁺ N) = η⁺ (subst⁺ (_ ∷ Γ') (wken V) N)
 subst⁺ Γ' V (η⁻ N) = η⁻ (subst⁺ Γ' V N)
 subst⁺ Γ' V (↓L N) = ↓L (subst⁺ (_ ∷ Γ') (wken V) N)
@@ -593,59 +622,6 @@ subst⁺ Γ' V (⊃L V' Sp) = ⊃L (subst⁺ Γ' V V') (subst⁺ Γ' V Sp)
 subst⁺ Γ' V (∧⁻L₁ Sp) = ∧⁻L₁ (subst⁺ Γ' V Sp)
 subst⁺ Γ' V (∧⁻L₂ Sp) = ∧⁻L₂ (subst⁺ Γ' V Sp)
 
-postulate
-  cons-nil-concat : ∀{b} {B : Set b} {A : B} (L' L : List B)  →  (L' ++ A ∷ L)  ≡ ((L' ++ A ∷ []) ++ L) 
-
-postulate
-  cons-nil-cons-concat : ∀{b} {B : Set b} {x : B} {C : List B} {A : B} {L : List B} 
-    → _≡_ {A = List B} (x ∷ C ++ A ∷ L) (x ∷ (C ++ A ∷ []) ++ L)
-
-postulate 
-  map-concat-subset : ∀{A Γ} → (L : (List (Type _))) → Data.List.map Pers L ++ Pers A ∷ [] ⊆ Γ → Data.List.map Pers (L ++ A ∷ []) ⊆ Γ
-
-postulate 
-  in-sing-sub : ∀{b} {B : Set b} {L : List B} {A : B} → (A ∈ L) → (A ∷ []) ⊆ L
-
-postulate
-  sub-in-append : ∀{Γ X A C} → X ∷ Data.List.map Pers C ⊆ Γ → Pers A ∈ Γ → X ∷ Data.List.map Pers (C ++ A ∷ []) ⊆ Γ
-
-
-
-
-
-loading-done : ∀{Γ L U}
-  → (s : Spine-l Γ L U)
-  → ∃ λ L' →  (Data.List.map Pers L') ⊆ Γ ×
-    Σ (Spine Γ (L' ++ L) [] U)  (\s' → height-l s >′ height s')
-
-
-loading-done {L = L} (focL-step {A = A} pf In Sp)  with loading-done Sp 
-loading-done {L = L} (focL-step {A = A} pf In Sp) | [] , Sub , Sp' , IEq = 
-  (A ∷ []) , (in-sing-sub In , (Sp' , >′-step IEq))
-loading-done {L = L} (focL-step {A = A} pf In Sp) | x ∷ C , Sub , Sp' , IEq 
-  rewrite cons-nil-cons-concat {x = x} {C = C} {A = A} {L = L}  = 
-     x ∷ C ++ A ∷ [] , (sub-in-append Sub In , (Sp' , >′-step IEq))
-loading-done {Γ} (focL-end pf Sp) = [] , (λ {x} → λ ()) ,  Sp , >′-refl refl 
-
-
-
-postulate 
-  subseteq-in : ∀{L Γ' Γ A} → Data.List.map Pers L ⊆ (Γ' ++ Pers A ∷ Γ) → A ∈ L ⊎ A ∉ L
-
-postulate 
-  subseteq-notin : ∀{L Γ' Γ A} → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ → A ∉ L → Data.List.map Pers L ⊆ Γ' ++ Γ
-
-postulate 
-  subseteq-cplx :  ∀{L Γ' Γ A} → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ
-                 → A ∈ L
-                 → ∃ λ L1 
-                 → ∃ λ L2
-                 → (L ≡ (L1 ++ A ∷ L2)) -- × ((L1 ⊆ (Γ' ++ Γ)) × (L2 ⊆ Γ' ++ Γ))
-postulate
-  subseteq-equiv :  ∀{L L1 L2 A Γ Γ'} 
-                    → L ≡ L1 ++ A ∷ L2
-                    → Data.List.map Pers L ⊆ Γ' ++ Pers A ∷ Γ
-                    → Data.List.map Pers (L1 ++ L2) ⊆ Γ' ++ Γ
 
 postulate 
   subseteq-cons : ∀{b} {B : Set b} {L : List B}  {X M} → L ⊆ M → X ∈ M → (X ∷ L) ⊆ M
@@ -654,24 +630,9 @@ subseteq-drop-cons : ∀{b} {B : Set b} {X : B} {Y L} → (X ∷ Y) ⊆ L → Y 
 subseteq-drop-cons = λ x x₂ → x (there x₂)
 
 
-unload-all-l : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine-l Γ L U → Data.List.map Pers L ⊆ Γ → Spine-l Γ [] U 
-
-
-unload-all-l [] pf Sp In = Sp
-unload-all-l (x ∷ L) pf Sp In = unload-all-l L pf (focL-step pf (In (here refl)) Sp) (λ {x₁} z → In (there z))
-
-
-unload-all : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine Γ L [] U → Data.List.map Pers L ⊆ Γ → Spine Γ [] [] U 
-
-unload-all [] pf Sp In = Sp
-unload-all (x ∷ L) pf Sp In = focL-init pf (unload-all-l (x ∷ L)  pf (focL-end pf Sp) In)
-
-
 
 cons-equiv : ∀{b} {B : Set b} {x : B} (L L' : List B) → (L ≡ L') → _≡_ {A = List B} (x ∷ L) (x ∷ L')
 cons-equiv L .L refl = refl
-
-
 
 concat-nil : ∀{b} {B : Set b} (L : List B) → (L ++ []) ≡ L
 concat-nil [] = refl
