@@ -21,29 +21,28 @@ expand⁺ : ∀{A Γ Ω U} → Term (HSusp A ∷ Γ) Ω U → Term Γ (A ∷ Ω)
 expand⁻ : ∀{A Γ} → Term Γ [] (Susp A) → Term Γ [] (Inv A)
 
 expand⁺ {a Q .⁺} N = η⁺ N
-expand⁺ {↓ A} {Γ} N = ↓L (subst⁺ [] (↓R (expand⁻ (focL-init tt (focL-step tt (here refl) (focL-end tt id⁻))))) (wkex N)) 
+expand⁺ {↓ A} {Γ} N = ↓L (subst⁺ [] (↓R (expand⁻ (focL-init tt (focL-step tt (here refl) (focL-end tt id⁻))))) (wkex N) refl) 
 expand⁺ {⊥⁺} N = ⊥L
 expand⁺ {A ∨ A₁} N = 
-  ∨L (expand⁺ (subst⁺ [] (∨R₁ (id⁺ (here refl))) (wkex N))) 
-    (expand⁺ (subst⁺ [] (∨R₂ (id⁺ (here refl))) (wkex N)))
-expand⁺ {⊤⁺} N = ⊤⁺L (subst⁺ [] ⊤⁺R N)
+  ∨L (expand⁺ (subst⁺ [] (∨R₁ (id⁺ (here refl))) (wkex N) refl)) 
+    (expand⁺ (subst⁺ [] (∨R₂ (id⁺ (here refl))) (wkex N) refl))
+expand⁺ {⊤⁺} N = ⊤⁺L (subst⁺ [] ⊤⁺R N refl)
 expand⁺ {A ∧⁺ A₁} N = 
   ∧⁺L (expand⁺ 
         (expand⁺ 
-          (subst⁺ [] (∧⁺R (id⁺ (there (here refl))) (id⁺ (here refl))) (wkex (wkex N)))))
+          (subst⁺ [] (∧⁺R (id⁺ (there (here refl))) (id⁺ (here refl))) (wkex (wkex N)) refl)))
 
 expand⁻ {a Q .⁻} N = η⁻ N
-expand⁻ {↑ A} N = ↑R (subst⁻ tt N (↑L-cons tt (↑L-nil tt (expand⁺ (focR (id⁺ (here refl))))))) 
+expand⁻ {↑ A} N = ↑R (subst⁻ tt N refl (↑L-cons tt (↑L-nil tt (expand⁺ (focR (id⁺ (here refl))))))) 
 expand⁻ {A ⊃ A₁} N = 
-  ⊃R (expand⁺ (expand⁻ (subst⁻ tt (wken N) (⊃L (id⁺ (here refl)) id⁻))))
+  ⊃R (expand⁺ (expand⁻ (subst⁻ tt (wken N) refl (⊃L (id⁺ (here refl)) id⁻))))
 expand⁻ {⊤⁻} N = ⊤⁻R
 expand⁻ {A ∧⁻ A₁} N = 
-  ∧⁻R (expand⁻ (subst⁻ tt N (∧⁻L₁ id⁻))) (expand⁻ (subst⁻ tt N (∧⁻L₂ id⁻)))
+  ∧⁻R (expand⁻ (subst⁻ tt N refl (∧⁻L₁ id⁻))) (expand⁻ (subst⁻ tt N refl (∧⁻L₂ id⁻)))
 
 
 
-postulate in-sub : ∀{b} {B : Set b} {Γ} {X : B} → X ∈ Γ → X ∷ [] ⊆ Γ
-postulate in-sub-there : ∀{b} {B : Set b} {Γ} {X : B} {Y} → X ∈ Γ → X ∷ [] ⊆ (Y ∷ Γ)
+
 
 pers-in-term : (Γ : Ctx) → (A : Type ⁻) → (Pers A ∈ Γ) → Term Γ [] (Inv A)
 

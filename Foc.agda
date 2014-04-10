@@ -689,7 +689,7 @@ subst⁻  {L = ._ , proj₂} {z = suc z'} pf (∧⁻L₂ Sp) H Sp' = ∧⁻L₂ 
 
 
 
-
+{-
 
 subst-' : ∀{Γ A L- L+ L+' U}
   → stable U
@@ -704,5 +704,4 @@ subst-' pf Sp1 (⊃L V Sp) = {!!}
 subst-' pf Sp1 (∧⁻L₁ Sp) = {!!}
 subst-' pf Sp1 (∧⁻L₂ Sp) = {!!}
 
-
-
+-}
