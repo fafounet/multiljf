@@ -19,8 +19,6 @@ module Cut where
 
 
 
-
-
 {- WRONG!
   Take A = ↑ ⊥ 
 -}
@@ -31,8 +29,12 @@ wiik : ∀{Γ A L- L+ U}
      → (Pers A) ∈ Γ 
      → Spine Γ L- L+ U
 
-postulate
-  enough-conj-l : ∀{Γ A B L} → Exp (Pers A ∷ Γ) L → Pers (A ∧⁻ B) ∈ Γ → Exp Γ L
+enough-conj-l : ∀{Γ A B L- L+ F} 
+  → Spine (Pers A ∷ Γ) L- L+ F 
+  → Pers (A ∧⁻ B) ∈ Γ 
+  → Spine Γ L- L+ F
+enough-conj-l Sp In = {!!} 
+
 
 postulate
   enough-conj-r : ∀{Γ A B L} → Exp (Pers B ∷ Γ) L → Pers (A ∧⁻ B) ∈ Γ → Exp Γ L
@@ -98,31 +100,13 @@ lsubst' : ∀{Γ U L- L+ L'+ A}
 
 
 
-gsubst⁻ : ∀{Γ A L1 L+ U}
-  → stable U
-  → (L2 : List (Type ⁻))
-  → (L2' : List (Type ⁻))
-  → Spine Γ L1 L+ (Susp A)
-  → Spine Γ (L2 ++ A ∷ L2')  [] U
-  → Spine Γ (L1 ++ L2 ++ L2') L+ U
-
-
-
-gsubst⁻ {L1 = L1} pf [] [] Exp Sp rewrite concat-nil L1 = subst⁻ pf Exp Sp  
---gsubst⁻ pf [] (x ∷ L2') Exp (focL-step pf₁ In Sp) = {!wiik ? ? (gsubst⁻ ? ? ? ? ?) ?!}
---gsubst⁻ pf [] (x ∷ L2') Exp (focL-end pf₁ Sp) = {!!}
-gsubst⁻ pf [] (x ∷ L2') Exp (↑L-cons pf₁ N) = {!!}
-gsubst⁻ pf [] (x ∷ L2') Exp (⊃L V Sp) = {!!}
-gsubst⁻ pf [] (x ∷ L2') Exp (∧⁻L₁ Sp) = {!!}
-gsubst⁻ pf [] (x ∷ L2') Exp (∧⁻L₂ Sp) = {!!}
-gsubst⁻ pf (x ∷ L2) L2' Exp Sp = {!!}
 
 
 
 
 -- Positive principal substitution
 cut⁺ pfΓ pf (id⁺ x) N with pfΓ x
-cut⁺ pfΓ pf (id⁺ x) (η⁺ N) | _ , refl = subst⁺ [] (id⁺ x) N
+cut⁺ pfΓ pf (id⁺ x) (η⁺ N) | _ , refl = subst⁺ [] (id⁺ x) N refl
 cut⁺ pfΓ pf (id⁺ x) (↑L-nil Y Z)  | _ , refl = cut⁺ pfΓ pf (id⁺ x) Z -- Formula =, part =, derivation <
 cut⁺ pfΓ pf (↓R M) (↓L N) = rsubst [] pfΓ pf M N -- Formula <
 cut⁺ pfΓ pf (∨R₁ V) (∨L N₁ N₂) = cut⁺ pfΓ pf V N₁

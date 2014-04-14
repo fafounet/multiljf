@@ -145,9 +145,13 @@ fromctxGen (x ∷ L) L' (there In) with fromctxGen L L' In
 
 -- Sequent calculus
 
+{- We don't factorize with two lists because this leads to 
+  unwanted conversions -}
 data SeqForm : Set where
   Rfoc : (A : Type ⁺) → SeqForm
-  Left : (List (Type ⁻) × List (Type ⁺)) → (U : Conc) → SeqForm 
+  {- We don't factorize with just two lists because this leads to 
+  unwanted conversions -}
+  Left : (List (Type ⁻) × List (Type ⁺)) ⊎  List (Type ⁺) → (U : Conc) → SeqForm 
 
 suspnormalF : SeqForm → Set
 suspnormalF (Rfoc A) = ⊤
@@ -160,16 +164,16 @@ Value : (Γ : Ctx) → Type ⁺ → Set
 Value Γ A = Exp Γ (Rfoc A)
   
 Term : (Γ : Ctx) → List (Type ⁺) → Conc → Set
-Term Γ Ω U = Exp Γ (Left ([] , Ω) U)
+Term Γ Ω U = Exp Γ (Left (inj₂ Ω) U)
 
 Spine : (Γ : Ctx) (L- : List (Type ⁻)) (L+ : List (Type ⁺)) (U : Conc) → Set
-Spine Γ L- L+ U = Exp Γ (Left (L- , L+) U)
+Spine Γ L- L+ U = Exp Γ (Left (inj₁ (L- , L+)) U)
 
 -- Loading mode for the left multifocused 
 data Exp-l (Γ : Ctx) : SeqForm → Set
 
 Spine-l : (Γ : Ctx) (L- : List (Type ⁻)) (U : Conc) → Set
-Spine-l Γ L- U = Exp-l Γ (Left (L- , []) U)
+Spine-l Γ L- U = Exp-l Γ (Left (inj₁ (L- , [])) U)
 
 
 data Exp-l Γ where
@@ -256,10 +260,11 @@ data Exp Γ where
     → (N : Spine Γ L-  (x ∷ L+) U)
     → Spine Γ  (↑ x ∷ L-) L+ U 
 
-  ↑L-nil : ∀{L+ U}
+  {- Without a not nil restriction this gives weird things -}
+  ↑L-nil : ∀{X L+ U}
     (pf : stable U)
-    → (N : Term Γ L+ U)
-    → Spine Γ [] L+ U 
+    → (N : Term Γ (X ∷ L+) U)
+    → Spine Γ [] (X ∷ L+) U 
   
   ⊃L : ∀{A B L- L+ U}
     (V : Value Γ A)
@@ -397,8 +402,8 @@ wken-all-rfoc (px ∷ All) = Data.List.All.map (\x → wken x) (px ∷ All)
 
 
 wken-all-inv : ∀{Γ' Γ Ω xs B} 
-  → All (λ A → Exp (Γ' ++ Γ) (Left ([] , Ω) (Inv A))) xs
-  → All (λ A → Exp (B ∷ (Γ' ++ Γ)) (Left ([] , Ω) (Inv A))) xs
+  → All (λ A → Exp (Γ' ++ Γ) (Left (inj₂ Ω) (Inv A))) xs
+  → All (λ A → Exp (B ∷ (Γ' ++ Γ)) (Left (inj₂ Ω) (Inv A))) xs
 wken-all-inv [] = []
 wken-all-inv (px ∷ All) = Data.List.All.map (\x → wken x) (px ∷ All) 
 
@@ -459,16 +464,17 @@ postulate
   in-or-not : ∀{b} {B : Set b} (L : List B) (X : B) → X ∈ L ⊎ X ∉ L
 
 end-inv : ∀{Γ X Y U} 
+  → stable U
   → (L : List (Type ⁻)) 
-  → Exp Γ (Left (X ∷ Y ∷ L , []) U) 
+  → Exp Γ (Left (inj₁ (X ∷ Y ∷ L , [])) U) 
   → ↑ ⊥⁺ ∈ L ⊎ 
-      (∃ λ L+ → Exp Γ (Left ([] , L+) U)) 
-end-inv L Exp with (in-or-not L (↑ ⊥⁺))
-end-inv L Exp | inj₁ x = inj₁ x
-end-inv L (↑L-cons pf N) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ⊥L)
-end-inv L (⊃L V Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ⊥L)
-end-inv L (∧⁻L₁ Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ⊥L)
-end-inv L (∧⁻L₂ Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ⊥L)
+      (∃ λ L+ → Exp Γ (Left (inj₁ ([] , L+)) U)) 
+end-inv pf L Exp with (in-or-not L (↑ ⊥⁺))
+end-inv pf L Exp | inj₁ x = inj₁ x
+end-inv pf L (↑L-cons pf1 N) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ↑L-nil pf ⊥L)
+end-inv pf L (⊃L V Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ↑L-nil pf ⊥L)
+end-inv pf L (∧⁻L₁ Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ↑L-nil pf ⊥L)
+end-inv pf L (∧⁻L₂ Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ↑L-nil pf ⊥L)
 
 
 
@@ -567,9 +573,22 @@ unload-all-l [] pf Sp In = Sp
 unload-all-l (x ∷ L) pf Sp In = unload-all-l L pf (focL-step pf (In (here refl)) Sp) (λ {x₁} z → In (there z))
 
 
-unload-all : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine Γ L [] U → Data.List.map Pers L ⊆ Γ → Spine Γ [] [] U 
-unload-all [] pf Sp In = Sp
-unload-all (x ∷ L) pf Sp In = focL-init pf (unload-all-l (x ∷ L)  pf (focL-end pf Sp) In)
+unload-all : ∀{Γ U} 
+  → (L : List (Type ⁻)) 
+  → (pf : stable U) 
+  → Spine Γ L [] U 
+  → Data.List.map Pers L ⊆ Γ 
+  → Term Γ [] U 
+unload-all L- pf Sp In = focL-init pf (unload-all-l L-  pf (focL-end pf Sp) In) 
+
+unload-all-g : ∀{Γ L+ U} 
+  → (L- : List (Type ⁻)) 
+  → (pf : stable U) 
+  → Spine Γ L- L+ U 
+  → Data.List.map Pers L- ⊆ Γ 
+  → Term Γ L+ U 
+unload-all-g [] pf Sp In = {!!}
+unload-all-g (x ∷ L) pf Sp In = {!!}
 
 
 
@@ -611,8 +630,8 @@ subst⁺ {Γ} {A} {z = suc z'} Γ' V (focL-init pf Sp) H with loading-done Sp
   unload-all 
     L' 
     pf 
-    (subst⁺-help Γ' V Exp ( (subst (\x → x  >′ height Exp) (sym H) (>′-step Ieq)))) 
-    (pers-hsusp-subset {Γ = Γ} {Γ' = Γ'} Sub)
+    ((subst⁺-help Γ' V Exp ( (subst (\x → x  >′ height Exp) (sym H) (>′-step Ieq))))) 
+    ((pers-hsusp-subset {Γ = Γ} {Γ' = Γ'} Sub))
     
 subst⁺ {z = suc z'} Γ' V (η⁺ N) H = η⁺ (subst⁺ (_ ∷ Γ') (wken V) N (suc-inj H))
 subst⁺ {z = suc z'} Γ' V (η⁻ N) H = η⁻ (subst⁺ Γ' V N (suc-inj H))
@@ -652,8 +671,8 @@ subst⁻ : ∀{Γ A L U z}
   → Spine Γ [ A ] [] U
   → Exp Γ (Left L U)
 
-subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-refl m≡n) Sp = subst⁻ pf Exp m≡n Sp
-subst⁻-help {L = proj₁ , proj₂} pf Exp (>′-step Ineq) Sp = subst⁻-help pf Exp Ineq Sp
+subst⁻-help pf Exp (>′-refl m≡n) Sp = subst⁻ pf Exp m≡n Sp
+subst⁻-help pf Exp (>′-step Ineq) Sp = subst⁻-help pf Exp Ineq Sp
 
 
 subst⁻  {z = zero} pf _ H Sp' = ⊥-elim (zero-height-absurd (sym H))
@@ -667,41 +686,90 @@ subst⁻  {Γ} {A} {z = z} pf (focL-init pf' Sp) H Sp' with loading-done Sp
                  (subst (\x → x  >′ height Exp) (sym H) (>′-step Ieq))
                  Sp'
     ) 
-    Sub 
-subst⁻ {L = .[] , ._} {z = suc z'} pf (↓L N) H Sp = ↓L (subst⁻ pf N ((suc-inj H)) (wken Sp))
+    Sub  
+subst⁻ {z = suc z'} pf (↓L N) H Sp = ↓L (subst⁻ pf N ((suc-inj H)) (wken Sp))
 subst⁻ {z = suc z'} pf (η⁺ N) H Sp = η⁺ (subst⁻ pf N (suc-inj H) (wken Sp))
-subst⁻ {L = .[] , ._} {z = suc z'} pf ⊥L H Sp = ⊥L
-subst⁻ {L = .[] , ._} {z = suc z'} pf (∨L N₁ N₂) H Sp = 
+subst⁻  {z = suc z'} pf ⊥L H Sp = ⊥L
+subst⁻  {z = suc z'} pf (∨L N₁ N₂) H Sp = 
   ∨L 
     (subst⁻-help {z = suc z'} pf N₁ (suc-max-left H) Sp) 
     (subst⁻-help {z = suc z'} pf N₂ (suc-max-right {x = height N₁} H) Sp)  
-subst⁻ {L = .[] , ._} {z = suc z'} pf (⊤⁺L N) H Sp = ⊤⁺L (subst⁻ pf N (suc-inj H) Sp)
-subst⁻ {L = .[] , ._} {z = suc z'} pf (∧⁺L N) H Sp = ∧⁺L (subst⁻ pf N (suc-inj H) Sp)
-subst⁻ {L = ._ , .[]} {z = suc z'} pf id⁻ H Sp = Sp
-subst⁻ {L = ._ , proj₂} {z = suc z'} pf (↑L-cons pf₁ N) H Sp = ↑L-cons pf (subst⁻ pf N (suc-inj H) Sp) 
-subst⁻ {L = .[] , proj₂} {z = suc z'} pf (↑L-nil pf₁ N) H Sp = ↑L-nil pf (subst⁻ pf N (suc-inj H) Sp)
-subst⁻ {L = ._ , proj₂} {z = suc z'} pf (⊃L V Sp) H Sp' = 
+subst⁻  {z = suc z'} pf (⊤⁺L N) H Sp = ⊤⁺L (subst⁻ pf N (suc-inj H) Sp)
+subst⁻  {z = suc z'} pf (∧⁺L N) H Sp = ∧⁺L (subst⁻ pf N (suc-inj H) Sp)
+subst⁻  {z = suc z'} pf id⁻ H Sp = Sp
+subst⁻  {z = suc z'} pf (↑L-cons pf₁ N) H Sp = ↑L-cons pf (subst⁻ pf N (suc-inj H) Sp) 
+subst⁻ {z = suc z'} pf (↑L-nil pf₁ N) H Sp = ↑L-nil pf (subst⁻ pf N (suc-inj H) Sp)
+subst⁻  {z = suc z'} pf (⊃L V Sp) H Sp' = 
   ⊃L V (subst⁻-help pf Sp (suc-max-right {x = height V} H) Sp')
-subst⁻ {L = ._ , proj₂} {z = suc z'} pf (∧⁻L₁ Sp) H Sp' =  ∧⁻L₁ (subst⁻ pf Sp (suc-inj H) Sp') 
-subst⁻  {L = ._ , proj₂} {z = suc z'} pf (∧⁻L₂ Sp) H Sp' = ∧⁻L₂ (subst⁻ pf Sp (suc-inj H) Sp') 
+subst⁻ {z = suc z'} pf (∧⁻L₁ Sp) H Sp' =  ∧⁻L₁ (subst⁻ pf Sp (suc-inj H) Sp') 
+subst⁻ {z = suc z'} pf (∧⁻L₂ Sp) H Sp' = ∧⁻L₂ (subst⁻ pf Sp (suc-inj H) Sp') 
 
 
 
+
+nil-nil-spine : ∀{Γ U} → Spine Γ [] [] U → ⊥
+nil-nil-spine  = λ {Γ} {U} → λ ()
 
 
 {-
+Not true due to the case:
+ ; [p-|] |- [⊤⁺]
+Unrelated to multifocusing
+-}
+always-true : ∀{Γ L} →  Exp Γ (Left L (True ⊤⁺))
+always-true = {!!}
 
-subst-' : ∀{Γ A L- L+ L+' U}
+{- Not true ? because at least one case reduces to always-true
+needs always-true -} 
+
+www-v : ∀{Γ A L} → Value Γ A → Exp Γ (Left L (True A))
+www-v (id⁺ v) = {!id⁺ v!}
+www-v (↓R N) = {!!}
+www-v (∨R₁ V) = {!!}
+www-v (∨R₂ V) = {!!}
+www-v ⊤⁺R = {!!}
+www-v (∧⁺R V₁ V₂) = {!!}
+
+www : ∀{Γ L U} → stable U → Spine Γ [] [] U → Exp Γ (Left L U)
+www pf Sp = {!!} 
+
+
+gsubst⁻ : ∀{Γ L U}
+  → stable U
+  → (LA : List (Type ⁻))
+  → All (\x → Exp Γ (Left L (Susp x))) LA
+  → Spine Γ LA [] U
+  → Exp Γ (Left L U)
+
+
+gsubst⁻ pf [] [] Sp = {!!}
+gsubst⁻ pf (x ∷ LA) Exps Sp = {!!}
+
+
+{- True ? Useful ?
+gsubst⁻ : ∀{Γ A L- L+ L+' U}
   → stable U
   → Spine Γ L- L+ (Susp A)
-  → Spine Γ [ A ] L+' U
+  → Spine Γ  [ A ]  L+' U
   → Spine Γ L- (L+ ++ L+') U
 
 
-subst-' {L+ = L+} pf Sp1 id⁻ rewrite concat-nil L+ = Sp1
-subst-' pf Sp1 (↑L-cons pf₁ N) = {!!}
-subst-' pf Sp1 (⊃L V Sp) = {!!}
-subst-' pf Sp1 (∧⁻L₁ Sp) = {!!}
-subst-' pf Sp1 (∧⁻L₂ Sp) = {!!}
-
+gsubst⁻ pf (focL-init pf₁ Sp) Sp₁ with loading-done Sp
+... | L'  , Sub , Exp , Ieq rewrite concat-nil L'  = {!gsubst⁻ pf Exp Sp₁!}
+gsubst⁻ pf (η⁺ N) Sp = {!!}
+gsubst⁻ pf (↓L N) Sp = {!!}
+gsubst⁻ pf ⊥L Sp = ⊥L
+gsubst⁻ pf (∨L N₁ N₂) Sp = ∨L (gsubst⁻ pf N₁ Sp) (gsubst⁻ pf N₂ Sp)
+gsubst⁻ pf (⊤⁺L N) Sp = ⊤⁺L (gsubst⁻ pf N Sp)
+gsubst⁻ pf (∧⁺L N) Sp = ∧⁺L (gsubst⁻ pf N Sp)
+gsubst⁻ pf id⁻ Sp = Sp
+gsubst⁻ pf (↑L-cons pf₁ N) Sp = ↑L-cons pf (gsubst⁻ pf N Sp)
+gsubst⁻ pf (↑L-nil pf₁ N) Sp = gsubst⁻ pf N Sp
+gsubst⁻ pf (⊃L V Sp) Sp₁ = ⊃L V (gsubst⁻ pf Sp Sp₁)
+gsubst⁻ pf (∧⁻L₁ Sp) Sp₁ = ∧⁻L₁ (gsubst⁻ pf Sp Sp₁)
+gsubst⁻ pf (∧⁻L₂ Sp) Sp₁ = ∧⁻L₂ (gsubst⁻ pf Sp Sp₁)
 -}
+
+
+
+
