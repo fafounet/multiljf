@@ -145,8 +145,6 @@ fromctxGen (x ∷ L) L' (there In) with fromctxGen L L' In
 
 -- Sequent calculus
 
-{- We don't factorize with two lists because this leads to 
-  unwanted conversions -}
 data SeqForm : Set where
   Rfoc : (A : Type ⁺) → SeqForm
   {- We don't factorize with just two lists because this leads to 
@@ -707,8 +705,27 @@ subst⁻ {z = suc z'} pf (∧⁻L₂ Sp) H Sp' = ∧⁻L₂ (subst⁻ pf Sp (suc
 
 
 
+weak+-true : ∀{Γ F L+} → (X : Type ⁺) → Term Γ L+ (True F) → Term Γ (X ∷ L+) (True F)
+weak+-true (a Q .⁺) T = η⁺ (wken T)
+weak+-true (↓ X) T = ↓L (wken T)
+weak+-true ⊥⁺ T = ⊥L
+weak+-true (X ∨ X₁) T = ∨L (weak+-true X T) (weak+-true X₁ T)
+weak+-true ⊤⁺ T = ⊤⁺L T
+weak+-true (X ∧⁺ X₁) T = ∧⁺L (weak+-true X (weak+-true X₁ T))
+
 nil-nil-spine : ∀{Γ U} → Spine Γ [] [] U → ⊥
 nil-nil-spine  = λ {Γ} {U} → λ ()
+
+term-[]-⊤ : ∀{Γ} → Term Γ [] (True ⊤⁺)
+term-[]-⊤ = λ {Γ} → focR ⊤⁺R
+
+term-⊤ : ∀{Γ} → (L+ : (List (Type ⁺))) → Term Γ L+ (True ⊤⁺) 
+term-⊤ [] = focR ⊤⁺R
+term-⊤ (x ∷ L+) = weak+-true x (term-⊤ L+)
+
+
+nil-true-spine : ∀{Γ L+} → (X : Type ⁺) → Spine Γ [] (X ∷ L+) (True ⊤⁺)
+nil-true-spine {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
 
 
 {-
@@ -716,22 +733,49 @@ Not true due to the case:
  ; [p-|] |- [⊤⁺]
 Unrelated to multifocusing
 -}
-always-true : ∀{Γ L} →  Exp Γ (Left L (True ⊤⁺))
-always-true = {!!}
+always-true-not-true : ∀{Γ} → (L- : List (Type ⁻)) → (L+ : List (Type ⁺)) → Spine Γ L- L+ (True ⊤⁺) → ⊥
+always-true-not-true [] [] Sp = nil-nil-spine Sp
+always-true-not-true [] (a Q .⁺ ∷ L+) Sp = {!!}
+always-true-not-true [] (↓ x ∷ L+) Sp = {!!}
+always-true-not-true [] (⊥⁺ ∷ L+) Sp = {!!}
+always-true-not-true [] (x ∨ x₁ ∷ L+) Sp = {!!}
+always-true-not-true [] (⊤⁺ ∷ L+) Sp = {!!}
+always-true-not-true [] (x ∧⁺ x₁ ∷ L+) Sp = {!!}
+always-true-not-true (x ∷ L-) [] Sp = {!!}
+always-true-not-true (x ∷ L-) (x₁ ∷ L+) Sp = {!!}
+
 
 {- Not true ? because at least one case reduces to always-true
 needs always-true -} 
 
-www-v : ∀{Γ A L} → Value Γ A → Exp Γ (Left L (True A))
-www-v (id⁺ v) = {!id⁺ v!}
+
+test : ∀{Γ L} → (suspnormalΓ Γ) → Term Γ L (True ⊤⁺) → ⊥
+test s (focR (id⁺ v)) = {!!}
+test s (focR ⊤⁺R) = {!!}
+test s (focL-init pf Sp) = {!!}
+test s (η⁺ N) = {!!}
+test s (↓L N) = {!!}
+test s ⊥L = {!!}
+test s (∨L N₁ N₂) = test s N₂
+test s (⊤⁺L N) = test s N
+test s (∧⁺L N) = test s N
+
+www-v : ∀{Γ L A} → Value Γ A → Term Γ L (True A)
+www-v (id⁺ v) = {!!}
 www-v (↓R N) = {!!}
 www-v (∨R₁ V) = {!!}
 www-v (∨R₂ V) = {!!}
 www-v ⊤⁺R = {!!}
 www-v (∧⁺R V₁ V₂) = {!!}
 
-www : ∀{Γ L U} → stable U → Spine Γ [] [] U → Exp Γ (Left L U)
-www pf Sp = {!!} 
+www : ∀{Γ L U} → stable U → Term Γ [] U → Term Γ L U
+www pf (focR V) = {!!}
+www pf (focL-init pf₁ Sp) = {!!}
+www () (η⁻ N)
+www () (↑R N)
+www () (⊃R N)
+www () ⊤⁻R
+www () (∧⁻R N₁ N₂) 
 
 
 gsubst⁻ : ∀{Γ L U}
