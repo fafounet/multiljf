@@ -713,8 +713,12 @@ weak+-true (X ∨ X₁) T = ∨L (weak+-true X T) (weak+-true X₁ T)
 weak+-true ⊤⁺ T = ⊤⁺L T
 weak+-true (X ∧⁺ X₁) T = ∧⁺L (weak+-true X (weak+-true X₁ T))
 
-nil-nil-spine : ∀{Γ U} → Spine Γ [] [] U → ⊥
-nil-nil-spine  = λ {Γ} {U} → λ ()
+weak+-[]-true : ∀{Γ F} → (L+ :(List (Type ⁺))) →  Term Γ [] (True F) → Term Γ L+ (True F)
+weak+-[]-true [] T = T
+weak+-[]-true (x ∷ L+) T = weak+-true x (weak+-[]-true L+ T)
+
+spine-[]-[] : ∀{Γ U} → Spine Γ [] [] U → ⊥
+spine-[]-[]  = λ {Γ} {U} → λ ()
 
 term-[]-⊤ : ∀{Γ} → Term Γ [] (True ⊤⁺)
 term-[]-⊤ = λ {Γ} → focR ⊤⁺R
@@ -724,70 +728,195 @@ term-⊤ [] = focR ⊤⁺R
 term-⊤ (x ∷ L+) = weak+-true x (term-⊤ L+)
 
 
-nil-true-spine : ∀{Γ L+} → (X : Type ⁺) → Spine Γ [] (X ∷ L+) (True ⊤⁺)
-nil-true-spine {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
+spine-[]-⊤ : ∀{Γ L+} → (X : Type ⁺) → Spine Γ [] (X ∷ L+) (True ⊤⁺)
+spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
+
+
+
+spine-⊤ : ∀{Γ} → (L- : List (Type ⁻)) → (L+ : List (Type ⁺)) → Spine Γ L- L+ (True ⊤⁺)
+spine-⊤ = {!!}
+{- Not true due to the following case, unrelated to multifocusing -}
+counter-ex : ∀{Q} → Spine [] [ a Q ⁻ ] [] (True ⊤⁺) → ⊥ 
+counter-ex () 
+
+
+{- Not true, with the case L+ = [] 
+subst-term : ∀{Γ L+ U}
+  → stable U
+  → (LA : List (Type ⁻))
+  → All (\x → Term Γ L+ (Susp x)) LA
+  → Spine Γ LA [] U
+  → Spine Γ [] L+ U
+
+Not true, with the case LA = []
+
+gsubst-term- : ∀{Γ L+ A LA U}
+  → stable U
+  → Term Γ L+ (Susp A)
+  → Spine Γ (A ∷ LA) [] U
+  → Spine Γ LA [] U
+-}
+
+
+∧+-inv : ∀{Γ U Ω A B} → Term Γ (A ∧⁺ B ∷ Ω) U → Term Γ (A ∷ B ∷ Ω) U
+∧+-inv (∧⁺L N) = N
+
+∨+l-inv : ∀{Γ U Ω A B} → Term Γ (A ∨ B ∷ Ω) U → Term Γ (A ∷ Ω) U
+∨+l-inv (∨L N₁ N₂) = N₁
+
+∨+r-inv : ∀{Γ U Ω A B} → Term Γ (A ∨ B ∷ Ω) U → Term Γ (B ∷ Ω) U
+∨+r-inv (∨L N₁ N₂) = N₂
+
+⊤+-inv : ∀{Γ U Ω} → Term Γ (⊤⁺ ∷ Ω) U → Term Γ Ω U
+⊤+-inv (⊤⁺L N) = N
+
+↓-inv : ∀{Γ A U Ω} → Term Γ (↓ A ∷ Ω) U → Term (Pers A ∷ Γ) Ω U
+↓-inv (↓L N) = N
+
+η+-inv : ∀{Γ Q U Ω} → Term Γ (a Q ⁺ ∷ Ω) U → Term (HSusp (a Q ⁺) ∷ Γ) Ω U
+η+-inv (η⁺ N) = N
+
+∧-l-inv : ∀{Γ A B U Ω} → Spine Γ (A ∧⁻ B ∷ Ω) [] U → Spine Γ (A ∷ Ω) [] U 
+∧-l-inv id⁻ = {!!}
+∧-l-inv (∧⁻L₁ Sp) = Sp
+∧-l-inv (∧⁻L₂ Sp) = {!!}
+
+∧+-inv-all : ∀{Γ Ω A B} 
+  → (L : List (Type ⁻))
+  → All (\x → Term Γ (A ∧⁺ B ∷ Ω) (Susp x)) L
+  → All (\x → Term Γ (A ∷ B ∷ Ω) (Susp x)) L
+∧+-inv-all [] Ts = []
+∧+-inv-all (x ∷ xs) (px ∷ Ts) = (∧+-inv px) ∷ (∧+-inv-all xs Ts)
+
+⊤+-inv-all : ∀{Γ Ω} 
+  → (L : List (Type ⁻))
+  → All (\x → Term Γ (⊤⁺ ∷ Ω) (Susp x)) L
+  → All (\x → Term Γ (Ω) (Susp x)) L
+⊤+-inv-all [] Ts = []
+⊤+-inv-all (x ∷ xs) (px ∷ Ts) = (⊤+-inv px) ∷ (⊤+-inv-all xs Ts)
+
+∨+l-inv-all : ∀{Γ A B Ω} 
+  → (L : List (Type ⁻))
+  → All (\x → Term Γ (A ∨ B ∷ Ω) (Susp x)) L
+  → All (\x → Term Γ (A ∷ Ω) (Susp x)) L
+∨+l-inv-all [] Ts = []
+∨+l-inv-all (x ∷ xs) (px ∷ Ts) = (∨+l-inv px) ∷ (∨+l-inv-all xs Ts)
+
+∨+r-inv-all : ∀{Γ A B Ω} 
+  → (L : List (Type ⁻))
+  → All (\x → Term Γ (A ∨ B ∷ Ω) (Susp x)) L
+  → All (\x → Term Γ (B ∷ Ω) (Susp x)) L
+∨+r-inv-all [] Ts = []
+∨+r-inv-all (x ∷ xs) (px ∷ Ts) = (∨+r-inv px) ∷ (∨+r-inv-all xs Ts)
+
+↓-inv-all : ∀{Γ A Ω} 
+  → (L : List (Type ⁻))
+  → All (\x → Term Γ (↓ A ∷ Ω) (Susp x)) L
+  → All (\x → Term (Pers A ∷ Γ) Ω (Susp x)) L
+↓-inv-all [] Ts = []
+↓-inv-all (x ∷ xs) (px ∷ Ts) = (↓-inv px) ∷ (↓-inv-all xs Ts)
+
+η+-inv-all : ∀{Γ Q Ω} 
+  → (L : List (Type ⁻))
+  → All (\x → Term Γ (a Q ⁺ ∷ Ω) (Susp x)) L
+  → All (\x → Term (HSusp (a Q ⁺) ∷ Γ) Ω (Susp x)) L
+η+-inv-all [] Ts = []
+η+-inv-all (x ∷ xs) (px ∷ Ts) = (η+-inv px) ∷ (η+-inv-all xs Ts)
+
+∧-l-inv-all : ∀{Γ A B Ω} 
+  → (L : List (Type ⁻))
+  → All (\x → Spine Γ (A ∧⁻ B ∷ Ω) [] (Susp x)) L
+  → All (\x → Spine Γ (A ∷ Ω) [] (Susp x)) L
+∧-l-inv-all [] Ts = []
+∧-l-inv-all (x ∷ xs) (px ∷ Ts) = {!!}
 
 
 {-
-Not true due to the case:
- ; [p-|] |- [⊤⁺]
-Unrelated to multifocusing
--}
-always-true-not-true : ∀{Γ} → (L- : List (Type ⁻)) → (L+ : List (Type ⁺)) → Spine Γ L- L+ (True ⊤⁺) → ⊥
-always-true-not-true [] [] Sp = nil-nil-spine Sp
-always-true-not-true [] (a Q .⁺ ∷ L+) Sp = {!!}
-always-true-not-true [] (↓ x ∷ L+) Sp = {!!}
-always-true-not-true [] (⊥⁺ ∷ L+) Sp = {!!}
-always-true-not-true [] (x ∨ x₁ ∷ L+) Sp = {!!}
-always-true-not-true [] (⊤⁺ ∷ L+) Sp = {!!}
-always-true-not-true [] (x ∧⁺ x₁ ∷ L+) Sp = {!!}
-always-true-not-true (x ∷ L-) [] Sp = {!!}
-always-true-not-true (x ∷ L-) (x₁ ∷ L+) Sp = {!!}
+This seems to be not true with the following case:
 
+Γ ; [A , Ω | Δ] ⊢ A1 
+----------------------
+Γ ; [A ∧ B, Ω | Δ] ⊢ A1   ...  Γ ; [A ∧ B, Ω | Δ] ⊢ An    Γ ; [A1 ... An| ] ⊢ U
+-------------------------------------------------------------------------------
 
-{- Not true ? because at least one case reduces to always-true
-needs always-true -} 
+We cannot apply induction hypothesis since we cannot guarantee that 
+was the ∧ left rule which was applied on all the premises.
 
-
-test : ∀{Γ L} → (suspnormalΓ Γ) → Term Γ L (True ⊤⁺) → ⊥
-test s (focR (id⁺ v)) = {!!}
-test s (focR ⊤⁺R) = {!!}
-test s (focL-init pf Sp) = {!!}
-test s (η⁺ N) = {!!}
-test s (↓L N) = {!!}
-test s ⊥L = {!!}
-test s (∨L N₁ N₂) = test s N₂
-test s (⊤⁺L N) = test s N
-test s (∧⁺L N) = test s N
-
-www-v : ∀{Γ L A} → Value Γ A → Term Γ L (True A)
-www-v (id⁺ v) = {!!}
-www-v (↓R N) = {!!}
-www-v (∨R₁ V) = {!!}
-www-v (∨R₂ V) = {!!}
-www-v ⊤⁺R = {!!}
-www-v (∧⁺R V₁ V₂) = {!!}
-
-www : ∀{Γ L U} → stable U → Term Γ [] U → Term Γ L U
-www pf (focR V) = {!!}
-www pf (focL-init pf₁ Sp) = {!!}
-www () (η⁻ N)
-www () (↑R N)
-www () (⊃R N)
-www () ⊤⁻R
-www () (∧⁻R N₁ N₂) 
-
-
-gsubst⁻ : ∀{Γ L U}
+gsubst-term-x : ∀{Γ L U}
   → stable U
   → (LA : List (Type ⁻))
   → All (\x → Exp Γ (Left L (Susp x))) LA
   → Spine Γ LA [] U
   → Exp Γ (Left L U)
 
+If we want to generalize with something like:
+→ All (\x → \y → Exp Γ (Left y (Susp x))) LA LL
+then we can have spine and terms appearing as premises
+and the result is far from obvious...
+-}
 
-gsubst⁻ pf [] [] Sp = {!!}
-gsubst⁻ pf (x ∷ LA) Exps Sp = {!!}
+fuse : List (List (Type ⁻) × List (Type ⁺) ⊎ List (Type ⁺))
+  → List (Type ⁻) × List (Type ⁺) 
+fuse [] = ([] , [])
+fuse (inj₁ (L- , L+) ∷ L) with fuse L
+... | (R- , R+) = (L- ++ R-) , (L+ ++ R+)
+fuse (inj₂ L+ ∷ L)  with fuse L
+... | (R- , R+) = R- , (L+ ++ R+)
+
+{- This cannot work either due to the following case (amongst others):
+Γ ; A  ,  Ω1  ⊢ <A1> 
+--------------------
+Γ ; A ∧ B , Ω1 ⊢ <A1>  ...  Γ ; L ⊢ <An>    Γ ; [A1 ... An] ⊢ U
+--------------------------------------------------------------
+
+If we apply the i.h. then we get 
+
+Γ ; [Δ2 ... Δn | A , Ω1 , Ξ2 ... Ξn ] ⊢ U
+
+and we are stuck. At least I don't know how to do.
+
+
+
+gsubst-term-y : ∀{Γ LL U}
+  → stable U
+  → (LA : List (Type ⁻))
+  → All (\x →  Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (Data.List.zip LL  LA)
+  → length LL ≡ length LA
+  → Spine Γ LA [] U
+  → Exp Γ (Left (inj₁ (fuse LL)) U)
+-}
+
+
+ 
+
+
+
+
+gsubst-term : ∀{Γ L+ U}
+  → stable U
+  → (LA : List (Type ⁻))
+  → All (\x → Term Γ L+ (Susp x)) LA
+  → Spine Γ LA [] U
+  → Term Γ L+ U
+
+gsubst-term pf [] Ts Sp =  ⊥-elim (spine-[]-[] Sp)
+gsubst-term pf (x ∷ xs) (focL-init pf₁ Sp ∷ Ts) Sp₁ with loading-done Sp
+... | L'  , Sub , Exp , Ieq rewrite concat-nil L'  = 
+  unload-all 
+    L' 
+    pf 
+    {!gsubst-term ? ? ? ?!} 
+    Sub
+gsubst-term pf (x ∷ xs) (η⁺ N ∷ Ts) Sp = η⁺ (gsubst-term pf (x ∷ xs) (N ∷ η+-inv-all xs Ts) (wken Sp))
+gsubst-term pf (x ∷ xs) (↓L N ∷ Ts) Sp = ↓L (gsubst-term pf (x ∷ xs) (N ∷ ↓-inv-all xs Ts) (wken Sp))
+gsubst-term pf (x ∷ xs) (⊥L ∷ Ts) Sp = ⊥L
+gsubst-term pf (x ∷ xs) (∨L N₁ N₂ ∷ Ts) Sp = 
+  ∨L 
+    (gsubst-term pf (x ∷ xs) (N₁ ∷ ∨+l-inv-all xs Ts ) Sp) 
+    (gsubst-term pf (x ∷ xs) (N₂ ∷ ∨+r-inv-all xs Ts ) Sp) 
+gsubst-term pf (x ∷ xs) (⊤⁺L N ∷ Ts) Sp = ⊤⁺L (gsubst-term pf (x ∷ xs) (N ∷ ⊤+-inv-all xs Ts) Sp)
+gsubst-term pf (x ∷ xs) (∧⁺L N ∷ Ts) Sp = ∧⁺L (gsubst-term pf (x ∷ xs) (N ∷ ∧+-inv-all xs Ts) Sp)
+
 
 
 {- True ? Useful ?
