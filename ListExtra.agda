@@ -15,3 +15,7 @@ concat-nil (x ∷ L) = cons-equiv (L ++ []) L (concat-nil L)
 
 postulate 
   in-or-not : ∀{b} {B : Set b} (L : List B) (X : B) → X ∈ L ⊎ X ∉ L
+
+postulate
+  cons-nil-cons-concat : ∀{b} {B : Set b} {x : B} {C : List B} {A : B} {L : List B} 
+    → _≡_ {A = List B} (x ∷ C ++ A ∷ L) (x ∷ (C ++ A ∷ []) ++ L)

@@ -12,6 +12,8 @@ open Membership-≡
 open import Foc
 open import Weak
 open import NatExtra
+open import ListExtra
+open import Subset
 
 module FocProps where
 
@@ -27,7 +29,7 @@ loading-done {L = L} (focL-step {A = A} pf In Sp) | [] , Sub , Sp' , IEq =
   (A ∷ []) , (in-sing-sub In , (Sp' , >′-step IEq))
 loading-done {L = L} (focL-step {A = A} pf In Sp) | x ∷ C , Sub , Sp' , IEq 
   rewrite cons-nil-cons-concat {x = x} {C = C} {A = A} {L = L}  = 
-     x ∷ C ++ A ∷ [] , (sub-in-append Sub In , (Sp' , >′-step IEq))
+     x ∷ C ++ A ∷ [] , (cons-sub-in-append Sub In , (Sp' , >′-step IEq))
 loading-done {Γ} (focL-end pf Sp) = [] , (λ {x} → λ ()) ,  Sp , >′-refl refl 
 
 unload-all-l : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine-l Γ L U → Data.List.map Pers L ⊆ Γ → Spine-l Γ [] U 
@@ -44,6 +46,18 @@ unload-all : ∀{Γ U}
 unload-all L- pf Sp In = focL-init pf (unload-all-l L-  pf (focL-end pf Sp) In) 
 
 
+
+{-spine-to-term : ∀{Γ Y L- L+ U}
+  → (X : Type ⁻)
+  → (s : Spine Γ (X ∷ Y ∷ L-) L+ (Susp U))
+  → ∃ λ L' → 
+     Σ (Term Γ L' (Susp U))  (\s' → height s >′ height s')
+spine-to-term {L+} (↑ X) (↑L-cons pf N) = {!!}
+spine-to-term (A ⊃ B) (⊃L V Sp) with spine-to-term Sp
+... | L' , T, Ieq = ?
+spine-to-term (A ∧⁻ B) (∧⁻L₁ Sp) = {!!}
+spine-to-term (A ∧⁻ B) (∧⁻L₂ Sp) = {!!}
+-}
 
 
 

@@ -206,7 +206,8 @@ gsubst-term-y : ∀{Γ LL U}
 
 
  
-
+{- This particular case where premisses are only terms.
+  -}
 
 gsubst-term : ∀{Γ L+ U}
   → stable U
@@ -221,7 +222,7 @@ gsubst-term pf (x ∷ xs) (focL-init pf₁ Sp ∷ Ts) Sp₁ with loading-done Sp
   unload-all 
     L' 
     pf 
-    {!gsubst-term ? ? ? ?!} 
+    {!!} 
     Sub
 gsubst-term pf (x ∷ xs) (η⁺ N ∷ Ts) Sp = η⁺ (gsubst-term pf (x ∷ xs) (N ∷ η+-inv-all xs Ts) (wken Sp))
 gsubst-term pf (x ∷ xs) (↓L N ∷ Ts) Sp = ↓L (gsubst-term pf (x ∷ xs) (N ∷ ↓-inv-all xs Ts) (wken Sp))
