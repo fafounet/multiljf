@@ -46,18 +46,30 @@ unload-all : ∀{Γ U}
 unload-all L- pf Sp In = focL-init pf (unload-all-l L-  pf (focL-end pf Sp) In) 
 
 
+postulate 
+  spine-to-term : ∀{Γ X L- L+ U}
+    → (s : Spine Γ L- (X ∷ L+) U)
+    → (∃ λ L' → 
+      (Term Γ (L' ++ X ∷ L+) U) )
 
-{-spine-to-term : ∀{Γ Y L- L+ U}
-  → (X : Type ⁻)
-  → (s : Spine Γ (X ∷ Y ∷ L-) L+ (Susp U))
-  → ∃ λ L' → 
-     Σ (Term Γ L' (Susp U))  (\s' → height s >′ height s')
-spine-to-term {L+} (↑ X) (↑L-cons pf N) = {!!}
-spine-to-term (A ⊃ B) (⊃L V Sp) with spine-to-term Sp
-... | L' , T, Ieq = ?
-spine-to-term (A ∧⁻ B) (∧⁻L₁ Sp) = {!!}
-spine-to-term (A ∧⁻ B) (∧⁻L₂ Sp) = {!!}
--}
+
+{- Is there a way to derive this for all rules???? -}
+term-∧⁺-adm : ∀{Γ L2 A B U} → (L1 : List (Type ⁺)) → Term Γ (L1 ++ A ∷ B ∷ L2) U → Term Γ (L1 ++ A ∧⁺ B ∷ L2) U
+term-∧⁺-adm [] T = ∧⁺L T
+term-∧⁺-adm (._ ∷ xs) (η⁺ N) = η⁺ (term-∧⁺-adm xs N)
+term-∧⁺-adm (._ ∷ xs) (↓L N) = ↓L (term-∧⁺-adm xs N)
+term-∧⁺-adm (.⊥⁺ ∷ xs) ⊥L = ⊥L
+term-∧⁺-adm (._ ∷ xs) (∨L {A₁} {B₁} N₁ N₂) = ∨L (term-∧⁺-adm (A₁ ∷ xs) N₁) (term-∧⁺-adm (B₁ ∷ xs) N₂)
+term-∧⁺-adm (.⊤⁺ ∷ xs) (⊤⁺L N) = ⊤⁺L (term-∧⁺-adm xs N)
+term-∧⁺-adm (._ ∷ xs) (∧⁺L {A = A₁} {B = B₁} N) = ∧⁺L (term-∧⁺-adm (A₁ ∷ B₁ ∷ xs) N)
+
+
+
+
+spine-∧⁺-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ L+) U → Spine Γ L- (A ∧⁺ B ∷ L+) U
+spine-∧⁺-adm Sp with spine-to-term  Sp
+... | L' , T = {!!}
+
 
 
 
@@ -69,7 +81,7 @@ term-[]-⊤ = λ {Γ} → focR ⊤⁺R
 
 term-⊤ : ∀{Γ} → (L+ : (List (Type ⁺))) → Term Γ L+ (True ⊤⁺) 
 term-⊤ [] = focR ⊤⁺R
-term-⊤ (x ∷ L+) = weak+-true x (term-⊤ L+)
+term-⊤ (x ∷ L+) = weak+-term x (term-⊤ L+)
 
 
 spine-[]-⊤ : ∀{Γ L+} → (X : Type ⁺) → Spine Γ [] (X ∷ L+) (True ⊤⁺)

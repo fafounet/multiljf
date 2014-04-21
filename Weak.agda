@@ -59,7 +59,10 @@ any-middle [] (there A) = there (there A)
 any-middle (x₁ ∷ Γ') (here px) = here px
 any-middle (x₁ ∷ Γ') (there A) = there (any-middle Γ' A)
 
-any-middle-list :  ∀{x Γ} (Γ' : Ctx) (L : Ctx) → Any (_≡_ x) (Γ' ++ Γ) → Any (_≡_ x) (Γ' ++ L ++ Γ)
+any-middle-list : 
+  ∀{x Γ} (Γ' : Ctx) (L : Ctx) 
+  → Any (_≡_ x) (Γ' ++ Γ) 
+  → Any (_≡_ x) (Γ' ++ L ++ Γ)
 any-middle-list Γ' [] A = A
 any-middle-list [] L A =  ++ʳ L A
 any-middle-list (x₁ ∷ Γ') (x₂ ∷ L) (here refl) = here refl
@@ -68,7 +71,12 @@ any-middle-list (x₁ ∷ Γ') (x₂ ∷ L) (there A) = there (any-middle-list  
 wken-middle : ∀{Γ Form x } → (Γ' : Ctx) →  Exp (Γ' ++ Γ) Form → Exp (Γ' ++ x ∷ Γ) Form
 wken-middle Γ' Ex = wk (λ x₁ → any-middle Γ' x₁) Ex 
 
-wken-middle-list : ∀{Γ Form} → (Γ' : Ctx) → (L : Ctx) → Exp (Γ' ++ Γ) Form → Exp (Γ' ++ L ++ Γ) Form
+wken-middle-list : 
+  ∀{Γ Form} 
+  → (Γ' : Ctx) 
+  → (L : Ctx) 
+  → Exp (Γ' ++ Γ) Form 
+  → Exp (Γ' ++ L ++ Γ) Form
 wken-middle-list Γ' L E = wk (λ x₁ → any-middle-list Γ' L x₁) E
 
 
@@ -140,14 +148,16 @@ Think for instance of
 
 
 
-weak+-true : ∀{Γ F L+} → (X : Type ⁺) → Term Γ L+ (True F) → Term Γ (X ∷ L+) (True F)
-weak+-true (a Q .⁺) T = η⁺ (wken T)
-weak+-true (↓ X) T = ↓L (wken T)
-weak+-true ⊥⁺ T = ⊥L
-weak+-true (X ∨ X₁) T = ∨L (weak+-true X T) (weak+-true X₁ T)
-weak+-true ⊤⁺ T = ⊤⁺L T
-weak+-true (X ∧⁺ X₁) T = ∧⁺L (weak+-true X (weak+-true X₁ T))
+weak+-term : ∀{Γ C L+} → (X : Type ⁺) → Term Γ L+ C → Term Γ (X ∷ L+) C
+weak+-term (a Q .⁺) T = η⁺ (wken T)
+weak+-term (↓ X) T = ↓L (wken T)
+weak+-term ⊥⁺ T = ⊥L
+weak+-term (X ∨ X₁) T = ∨L (weak+-term X T) (weak+-term X₁ T)
+weak+-term ⊤⁺ T = ⊤⁺L T
+weak+-term (X ∧⁺ X₁) T = ∧⁺L (weak+-term X (weak+-term X₁ T))
 
-weak+-[]-true : ∀{Γ F} → (L+ :(List (Type ⁺))) →  Term Γ [] (True F) → Term Γ L+ (True F)
-weak+-[]-true [] T = T
-weak+-[]-true (x ∷ L+) T = weak+-true x (weak+-[]-true L+ T)
+weak+-[]-term : ∀{Γ C} → (L+ :(List (Type ⁺))) →  Term Γ [] C → Term Γ L+ C
+weak+-[]-term [] T = T
+weak+-[]-term (x ∷ L+) T = weak+-term x (weak+-[]-term L+ T)
+
+

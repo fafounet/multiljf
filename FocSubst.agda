@@ -173,36 +173,57 @@ then we can have spine and terms appearing as premises
 and the result is far from obvious...
 -}
 
-fuse : List (List (Type ⁻) × List (Type ⁺) ⊎ List (Type ⁺))
+fuse : List ((List (Type ⁻) × List (Type ⁺)) ⊎ List (Type ⁺))
   → List (Type ⁻) × List (Type ⁺) 
 fuse [] = ([] , [])
-fuse (inj₁ (L- , L+) ∷ L) with fuse L
-... | (R- , R+) = (L- ++ R-) , (L+ ++ R+)
-fuse (inj₂ L+ ∷ L)  with fuse L
-... | (R- , R+) = R- , (L+ ++ R+)
+fuse (inj₁ (L- , L+) ∷ L) = L- ++ proj₁ (fuse L) , L+ ++ proj₂ (fuse L)
+fuse (inj₂ L+ ∷ L)  = proj₁ (fuse L) , L+ ++ proj₂ (fuse L)
+
+
 
 {- This cannot work either due to the following case (amongst others):
-Γ ; A  ,  Ω1  ⊢ <A1> 
---------------------
-Γ ; A ∧ B , Ω1 ⊢ <A1>  ...  Γ ; L ⊢ <An>    Γ ; [A1 ... An] ⊢ U
---------------------------------------------------------------
+-Γ ; A+  , B+  Ω1  ⊢ <A1> 
+---------------------
+-Γ ; A+ ∧⁺ B+ , Ω1 ⊢ <A1>  ...  Γ ; L ⊢ <An>    Γ ; [A1 ... An] ⊢ U
+---------------------------------------------------------------
+ 
+-If we apply the i.h. then we get 
+ 
+-Γ ; [Δ2 ... Δn | A+ , B+ , Ω1 , Ξ2 ... Ξn ] ⊢ U
+ 
+-and we are stuck. At least I don't know how to do. -}
 
-If we apply the i.h. then we get 
 
-Γ ; [Δ2 ... Δn | A , Ω1 , Ξ2 ... Ξn ] ⊢ U
-
-and we are stuck. At least I don't know how to do.
+{- Maybe .... -}
 
 
 
-gsubst-term-y : ∀{Γ LL U}
+gsubst-gen : ∀{Γ LL U}
   → stable U
   → (LA : List (Type ⁻))
   → All (\x →  Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (Data.List.zip LL  LA)
   → length LL ≡ length LA
   → Spine Γ LA [] U
   → Exp Γ (Left (inj₁ (fuse LL)) U)
--}
+gsubst-gen {LL = []} pf [] Exps Eq Sp = Sp
+gsubst-gen {LL = x ∷ LL} pf [] Exps () Sp
+gsubst-gen {LL = []} pf (x ∷ LA) Exps () Sp
+gsubst-gen {LL = .(inj₂ []) ∷ LL} pf (x₁ ∷ LA) (focL-init pf₁ Sp ∷ Exps) Eq Sp₁ = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (η⁺ N ∷ Exps) Eq Sp = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↓L N ∷ Exps) Eq Sp = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊥L ∷ Exps) Eq Sp = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∨L N₁ N₂ ∷ Exps) Eq Sp = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊤⁺L N ∷ Exps) Eq Sp = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁺L N ∷ Exps) Eq Sp = {!∧⁺L ?!}
+gsubst-gen {LL = .(inj₁ (x₁ ∷ [] , [])) ∷ LL} pf (x₁ ∷ LA) (id⁻ ∷ Exps) Eq Sp = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-cons pf₁ N ∷ Exps) Eq Sp = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-nil pf₁ N ∷ Exps) Eq Sp = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊃L V Sp ∷ Exps) Eq Sp₁ = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁻L₁ Sp ∷ Exps) Eq Sp₁ = ∧⁻L₁  (gsubst-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁) 
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁻L₂ {L- = L-} {L+ = L+} Sp ∷ Exps) Eq Sp₁ = 
+ ∧⁻L₂  (gsubst-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁) 
+
+
 
 
  
@@ -219,6 +240,33 @@ gsubst-term : ∀{Γ L+ U}
 gsubst-term pf [] Ts Sp =  ⊥-elim (spine-[]-[] Sp)
 gsubst-term pf (x ∷ xs) (focL-init pf₁ Sp ∷ Ts) Sp₁ with loading-done Sp
 ... | L'  , Sub , Exp , Ieq rewrite concat-nil L'  = 
+  {- The problem here is that this is not always the case that there exists a Term above in the derivation 
+  
+ ----------------
+  Γ ; [A1-|] ⊢ <A1->
+  --------------
+  --------------
+  Γ ; . ⊢ <A1->   ....  Γ  ; . ⊢ <An>    Γ ; [A1- ... An-| ] ⊢ U
+    --------------------------------------------------------------
+
+How can we conclude that 
+Γ ; A1 ... An ⊢ U     (knowing that A1 ∈ Γ)
+
+In the single focused case we would have: 
+  ---------------
+  Γ; [A-|] ⊢ <A->
+  --------------
+  --------------
+  Γ ; . ⊢ <A>     Γ ; [A ] ⊢ U
+  ------------------------------
+  
+ and we have to show that 
+ Γ ; . ⊢ U
+
+By i.h. Γ ; [A-|] ⊢ U 
+As A- ∈ Γ we can unload it and obtain the result.
+
+-}
   unload-all 
     L' 
     pf 
