@@ -256,7 +256,7 @@ data Exp Γ where
 
   ↑L-cons : ∀{x L- L+ U}
     (pf : stable U)
-    → (N : Spine Γ L-  (x ∷ L+) U)
+    → (N : Spine Γ L- (L+ ++ [ x ])  U)
     → Spine Γ  (↑ x ∷ L-) L+ U 
 
   {- Without a not nil restriction this gives weird things -}

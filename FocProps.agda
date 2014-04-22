@@ -45,12 +45,12 @@ unload-all : ∀{Γ U}
   → Term Γ [] U 
 unload-all L- pf Sp In = focL-init pf (unload-all-l L-  pf (focL-end pf Sp) In) 
 
-
+{- Not precise enough for many purposes -}
 postulate 
   spine-to-term : ∀{Γ X L- L+ U}
     → (s : Spine Γ L- (X ∷ L+) U)
     → (∃ λ L' → 
-      (Term Γ (L' ++ X ∷ L+) U) )
+      (Term Γ (X ∷ (L+ ++ L')) U) )
 
 
 {- Is there a way to derive this for all rules???? -}
@@ -63,13 +63,16 @@ term-∧⁺-adm (._ ∷ xs) (∨L {A₁} {B₁} N₁ N₂) = ∨L (term-∧⁺-a
 term-∧⁺-adm (.⊤⁺ ∷ xs) (⊤⁺L N) = ⊤⁺L (term-∧⁺-adm xs N)
 term-∧⁺-adm (._ ∷ xs) (∧⁺L {A = A₁} {B = B₁} N) = ∧⁺L (term-∧⁺-adm (A₁ ∷ B₁ ∷ xs) N)
 
+postulate
+  spine-∧⁺-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ B ∷ L+) U → Spine Γ L- (A ∧⁺ B ∷ L+) U
+--spine-∧⁺-adm Sp with spine-to-term  Sp
+--... | L' , T = {!!}
 
-
-
-spine-∧⁺-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ L+) U → Spine Γ L- (A ∧⁺ B ∷ L+) U
-spine-∧⁺-adm Sp with spine-to-term  Sp
-... | L' , T = {!!}
-
+postulate
+  spine-∨-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ L+) U → Spine Γ L- (B ∷ L+) U → Spine Γ L- (A ∨ B ∷ L+) U
+  
+postulate 
+  spine-↑-adm : ∀{Γ L- L1 L2 A U} → Spine Γ L- (L1 ++ A ∷ L2) U → Spine Γ (↑ A ∷ L-) (L1 ++ L2) U
 
 
 

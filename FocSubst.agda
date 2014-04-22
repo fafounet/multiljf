@@ -212,13 +212,20 @@ gsubst-gen {LL = .(inj₂ []) ∷ LL} pf (x₁ ∷ LA) (focL-init pf₁ Sp ∷ E
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (η⁺ N ∷ Exps) Eq Sp = {!!}
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↓L N ∷ Exps) Eq Sp = {!!}
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊥L ∷ Exps) Eq Sp = {!!}
-gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∨L N₁ N₂ ∷ Exps) Eq Sp = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∨L N₁ N₂ ∷ Exps) Eq Sp = 
+  spine-∨-adm (gsubst-gen pf (x₁ ∷ LA) (N₁ ∷ Exps) Eq Sp) (gsubst-gen pf (x₁ ∷ LA) (N₂ ∷ Exps) Eq Sp ) 
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊤⁺L N ∷ Exps) Eq Sp = {!!}
-gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁺L N ∷ Exps) Eq Sp = {!∧⁺L ?!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁺L N ∷ Exps) Eq Sp = 
+  spine-∧⁺-adm (gsubst-gen pf (x₁ ∷ LA) (N ∷ Exps) Eq Sp)
+
 gsubst-gen {LL = .(inj₁ (x₁ ∷ [] , [])) ∷ LL} pf (x₁ ∷ LA) (id⁻ ∷ Exps) Eq Sp = {!!}
-gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-cons pf₁ N ∷ Exps) Eq Sp = {!!}
-gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-nil pf₁ N ∷ Exps) Eq Sp = {!!}
-gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊃L V Sp ∷ Exps) Eq Sp₁ = {!!}
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-cons pf₁ N ∷ Exps) Eq Sp = {!gsubst-gen pf ? (N ∷ Exps) ? Sp!}
+-- We have 
+-- Exp .Γ (Left (inj₁ (.L- ++ proj₁ (fuse LL) , (.L+ ++ [ .x ]) ++ proj₂ (fuse LL))) .U))
+-- We want
+-- Exp .Γ (Left (inj₁ (↑ .x ∷ .L- ++ proj₁ (fuse LL) , .L+ ++ proj₂ (fuse LL))) .U)
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-nil pf₁ N ∷ Exps) Eq Sp = gsubst-gen pf (x₁ ∷ LA) (N ∷ Exps) Eq Sp
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊃L V Sp ∷ Exps) Eq Sp₁ = ⊃L V (gsubst-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁)
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁻L₁ Sp ∷ Exps) Eq Sp₁ = ∧⁻L₁  (gsubst-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁) 
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁻L₂ {L- = L-} {L+ = L+} Sp ∷ Exps) Eq Sp₁ = 
  ∧⁻L₂  (gsubst-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁) 
