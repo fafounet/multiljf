@@ -52,11 +52,14 @@ postulate
     → (∃ λ L' → 
       (Term Γ (X ∷ (L+ ++ L')) U) )
 
+
+
+{-
 {- There are two possible ways to end a spine phase:
 - either we are done with this subtree (the case where LA = L+ = [])
 - or we cannot be done, and we will have to end it, and start a new one later
 -}
-spine-possib-phases : ∀{Γ LA U L+ U} 
+spine-possib-phases : ∀{Γ LA U L+}
   → (A : Type ⁻)
   → Spine Γ (A ∷ LA) L+ U 
   → ((LA ≡ []) × (L+ ≡ []))
@@ -68,12 +71,68 @@ spine-possib-phases : ∀{Γ LA U L+ U}
      (All (\x → Value Γ x) LIG) ×
        -- It's important to be able to reconstruct the negative multifocused part
        -- for ANY spine, 
-       (∀{Γ' LA' L'+ U'} → Spine Γ' LA' (L'+ ++ RA) U' →  Spine Γ' (A ∷ LA') L'+ U'))
-spine-possib-phases A Sp = {!!}
-  
-  
-  
-  
+       (∀{LA' L'+ U'} → stable U' → Spine Γ LA' (L'+ ++ RA) U' →  Spine Γ (A ∷ LA') L'+ U'))
+spine-possib-phases (a Q .⁻) id⁻ = inj₁ (refl , refl)
+spine-possib-phases (↑ A) id⁻ = inj₁ (refl , refl)
+spine-possib-phases {Γ} {[]} {U} {L+} (↑ x) (↑L-cons pf N) = 
+  inj₂ (x ∷ [] , ([] , (N , ([] , (λ x₁ x₂ → ↑L-cons x₁ x₂)))))
+spine-possib-phases {Γ} {x ∷ LA} (↑ x₁) (↑L-cons pf N) with spine-possib-phases _ N
+spine-possib-phases {Γ} {x ∷ LA} (↑ x₁) (↑L-cons pf N) | inj₁ x₂ = inj₂ (x₁ ∷ [] , [] , N , [] , ↑L-cons)
+spine-possib-phases {Γ} {x ∷ LA} (↑ x₁) (↑L-cons pf N) | inj₂ y = inj₂ (x₁ ∷ [] , [] , N , [] , ↑L-cons)
+
+spine-possib-phases (A ⊃ A₁) id⁻ = inj₁ (refl , refl)
+spine-possib-phases (A ⊃ B) (⊃L V Sp) with spine-possib-phases B Sp
+spine-possib-phases (A ⊃ B) (⊃L V Sp) | inj₁ x = inj₁ x
+spine-possib-phases (A ⊃ B) (⊃L V Sp) | inj₂ (RA , LIG , Sp' , LV , R)  = 
+  inj₂ (RA , LIG , Sp' , LV , (λ {x₁} {x₂} {x₃} pf x₄  → ⊃L V (R pf x₄)))
+
+spine-possib-phases ⊤⁻ id⁻ = inj₁ (refl , refl)
+spine-possib-phases (A ∧⁻ A₁) id⁻ = inj₁ (refl , refl)
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₁ Sp) with spine-possib-phases A Sp
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₁ Sp) | inj₁ x = inj₁ x
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₁ Sp) | inj₂ (RA , LIG , Sp' , LV , R) = 
+  inj₂ (RA , LIG , Sp' , LV , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₁ (R pf x₄)))
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₂ Sp) with spine-possib-phases A₁ Sp
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₂ Sp) | inj₁ x = inj₁ x
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₂ Sp) | inj₂ (RA , LIG , Sp' , LV , R) = 
+  inj₂ (RA , LIG , Sp' , LV , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₂ (R pf x₄)))
+-}  
+
+
+spine-possib-phases : ∀{Γ LA U L+}
+  → (A : Type ⁻)
+  → Spine Γ (A ∷ LA) L+ U 
+  → ((LA ≡ []) × (L+ ≡ []))
+         ⊎
+  (∃ λ RA → 
+     (Spine Γ LA (L+ ++ RA) U) × 
+      -- It's important to be able to reconstruct the negative multifocused part
+      -- for ANY spine, 
+       (∀{LA' L'+ U'} → stable U' → Spine Γ LA' (L'+ ++ RA) U' →  Spine Γ (A ∷ LA') L'+ U'))
+spine-possib-phases (a Q .⁻) id⁻ = inj₁ (refl , refl)
+spine-possib-phases (↑ A) id⁻ = inj₁ (refl , refl)
+spine-possib-phases {Γ} {[]} {U} {L+} (↑ x) (↑L-cons pf N) = 
+  inj₂ (x ∷ [] , N , ↑L-cons)
+spine-possib-phases {Γ} {x ∷ LA} (↑ x₁) (↑L-cons pf N) with spine-possib-phases _ N
+spine-possib-phases {Γ} {x ∷ LA} (↑ x₁) (↑L-cons pf N) | inj₁ x₂ = inj₂ (x₁ ∷ [] , N , ↑L-cons)
+spine-possib-phases {Γ} {x ∷ LA} (↑ x₁) (↑L-cons pf N) | inj₂ y = inj₂ (x₁ ∷ [] , N , ↑L-cons)
+
+spine-possib-phases (A ⊃ A₁) id⁻ = inj₁ (refl , refl)
+spine-possib-phases (A ⊃ B) (⊃L V Sp) with spine-possib-phases B Sp
+spine-possib-phases (A ⊃ B) (⊃L V Sp) | inj₁ x = inj₁ x
+spine-possib-phases (A ⊃ B) (⊃L V Sp) | inj₂ (RA  , Sp' , R)  = 
+  inj₂ (RA , Sp' , (λ {x₁} {x₂} {x₃} pf x₄  → ⊃L V (R pf x₄)))
+
+spine-possib-phases ⊤⁻ id⁻ = inj₁ (refl , refl)
+spine-possib-phases (A ∧⁻ A₁) id⁻ = inj₁ (refl , refl)
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₁ Sp) with spine-possib-phases A Sp
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₁ Sp) | inj₁ x = inj₁ x
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₁ Sp) | inj₂ (RA , Sp' , R) = 
+  inj₂ (RA  , Sp' , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₁ (R pf x₄)))
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₂ Sp) with spine-possib-phases A₁ Sp
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₂ Sp) | inj₁ x = inj₁ x
+spine-possib-phases (A ∧⁻ A₁) (∧⁻L₂ Sp) | inj₂ (RA , Sp' , R) = 
+  inj₂ (RA , Sp' , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₂ (R pf x₄)))
 
 
 
@@ -144,6 +203,7 @@ counter-ex ()
 
 η+-inv : ∀{Γ Q U Ω} → Term Γ (a Q ⁺ ∷ Ω) U → Term (HSusp (a Q ⁺) ∷ Γ) Ω U
 η+-inv (η⁺ N) = N
+
 
 
 ∧+-inv-all : ∀{Γ Ω A B} 
