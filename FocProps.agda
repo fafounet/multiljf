@@ -52,6 +52,31 @@ postulate
     → (∃ λ L' → 
       (Term Γ (X ∷ (L+ ++ L')) U) )
 
+{- There are two possible ways to end a spine phase:
+- either we are done with this subtree (the case where LA = L+ = [])
+- or we cannot be done, and we will have to end it, and start a new one later
+-}
+spine-possib-phases : ∀{Γ LA U L+ U} 
+  → (A : Type ⁻)
+  → Spine Γ (A ∷ LA) L+ U 
+  → ((LA ≡ []) × (L+ ≡ []))
+         ⊎
+  (∃ λ RA → 
+    ∃ λ LIG → 
+     (Spine Γ LA (L+ ++ RA) U) × 
+     -- Don't forget the Left Implications Parts to reconstruct!
+     (All (\x → Value Γ x) LIG) ×
+       -- It's important to be able to reconstruct the negative multifocused part
+       -- for ANY spine, 
+       (∀{Γ' LA' L'+ U'} → Spine Γ' LA' (L'+ ++ RA) U' →  Spine Γ' (A ∷ LA') L'+ U'))
+spine-possib-phases A Sp = {!!}
+  
+  
+  
+  
+
+
+
 
 {- Is there a way to derive this for all rules???? -}
 term-∧⁺-adm : ∀{Γ L2 A B U} → (L1 : List (Type ⁺)) → Term Γ (L1 ++ A ∷ B ∷ L2) U → Term Γ (L1 ++ A ∧⁺ B ∷ L2) U
@@ -65,14 +90,15 @@ term-∧⁺-adm (._ ∷ xs) (∧⁺L {A = A₁} {B = B₁} N) = ∧⁺L (term-�
 
 postulate
   spine-∧⁺-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ B ∷ L+) U → Spine Γ L- (A ∧⁺ B ∷ L+) U
---spine-∧⁺-adm Sp with spine-to-term  Sp
---... | L' , T = {!!}
 
 postulate
   spine-∨-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ L+) U → Spine Γ L- (B ∷ L+) U → Spine Γ L- (A ∨ B ∷ L+) U
   
 postulate 
-  spine-↑-adm : ∀{Γ L- L1 L2 A U} → Spine Γ L- (L1 ++ A ∷ L2) U → Spine Γ (↑ A ∷ L-) (L1 ++ L2) U
+  spine-↑-adm : ∀{Γ L- L1 L2 A U} → Spine Γ L- ((L1 ++ [ A ]) ++ L2) U → Spine Γ (↑ A ∷ L-) (L1 ++ L2) U
+
+postulate
+  spine-⊤⁺-adm :  ∀{Γ L- L+ U} → Spine Γ L- L+  U → Spine Γ L- (⊤⁺ ∷ L+) U
 
 
 
