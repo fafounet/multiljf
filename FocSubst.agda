@@ -3,6 +3,9 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 open import Data.Empty
 open import Data.List 
 open import Data.List.All
+--open import Algebra
+--module LAssoc {a} {A} = Monoid (monoid {a} A)
+
 open import Data.Nat  hiding (_≤′_; module _≤′_; _<′_; _≥′_; _>′_)
 open import Data.Sum 
 open import Data.Product
@@ -244,6 +247,48 @@ fuse-gen (inj₁ (L- , L+) ∷ L) LL+ = L- ++ proj₁ (fuse-gen L LL+) , L+ ++ p
 fuse-gen (inj₂ L+ ∷ L) LL+ = proj₁ (fuse-gen L LL+) , L+ ++ proj₂ (fuse-gen L LL+)
 
 
+fuse-gen-proj₁ : ∀{LL L+ L'+} →  proj₁ (fuse-gen LL (L+ ++ L'+)) ≡ proj₁ (fuse-gen LL L+)
+fuse-gen-proj₁ {[]} = λ {L+} {L'+} → refl
+fuse-gen-proj₁ {inj₁ x ∷ LL} {L+} {L'+} with fuse-gen-proj₁ {LL = LL} {L+ = L+} {L'+ = L'+}
+... | Eq rewrite Eq = refl
+fuse-gen-proj₁ {inj₂ y ∷ LL} = fuse-gen-proj₁ {LL = LL}
+
+
+fuse-gen-proj₂  : ∀{LL L+ RA} 
+  → proj₂ (fuse-gen LL (L+ ++ RA)) ≡ 
+    proj₂ (fuse-gen LL L+) ++ RA 
+fuse-gen-proj₂ {LL = []} = refl
+fuse-gen-proj₂ {LL = inj₁ x ∷ LL} {L+} {RA} with fuse-gen-proj₂ {LL} {L+} {RA}
+... | Eq rewrite Eq | assoc (proj₂ x)  (proj₂ (fuse-gen LL L+)) (RA) = refl
+fuse-gen-proj₂ {LL = inj₂ y ∷ LL} {L+} {RA} with fuse-gen-proj₂ {LL} {L+} {RA}
+... | Eq rewrite Eq  | assoc y  (proj₂ (fuse-gen LL L+)) (RA) = refl
+
+
+
+
+
+suc-foldr-eq : ∀{b} {c} {B : Set b} {C : Set c} (LL : List B) (LA : List C)
+  → suc (foldr (λ _ → suc) 0 LL) ≡ suc (foldr (λ _ → suc) 0 LA) 
+  → length LL ≡ length LA
+suc-foldr-eq [] [] Eq = refl
+suc-foldr-eq [] (x ∷ LA) ()
+suc-foldr-eq (x ∷ LL) [] ()
+suc-foldr-eq (x ∷ LL) (x₁ ∷ LA) Eq with length (x ∷ LL) 
+suc-foldr-eq (x ∷ LL) (x₁ ∷ LA) refl | .(suc (foldr (λ _ → suc) 0 LA)) = refl 
+
+
+
+{- Apply the hypothesis that we can reconstruct x₁ in presence of fuse-gen -}
+apply-R-splitting : ∀{U Γ LL L+ RA x₁}  
+       → stable U
+       → ({LA' : List (Type ⁻)} {L'+ : List (Type ⁺)} {U' : Conc} →
+               stable U' →
+               Exp Γ (Left (inj₁ (LA' , L'+ ++ RA)) U') →
+               Exp Γ (Left (inj₁ (x₁ ∷ LA' , L'+)) U'))
+       → Exp Γ (Left (inj₁ (fuse-gen LL (L+ ++ RA))) U)
+       → Spine Γ (x₁ ∷ proj₁ (fuse-gen LL L+)) (proj₂ (fuse-gen LL L+)) U
+apply-R-splitting {L+ = L+} pf R Sp  = {!!}  -- 
+
 
 
 gsubst-more-gen : ∀{Γ LL L+ U}
@@ -283,11 +328,17 @@ gsubst-more-gen {Γ} {.(inj₁ ([ ⊤⁻ ] , [])) ∷ .[]} pf (⊤⁻ ∷ .[]) (
 gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ 
   with length-cons-nil {X = inj₁ (([ x₁ ∧⁻ x₂ ] , []))} {Y = x₁ ∧⁻ x₂ } {L = LL} Eq 
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ .[]} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ | refl = id⁻
-
-gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) = {!!}
+--********
+gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
+  with spine-possib-phases x₁ Sp 
+-- Case INJ1
+gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
+  | inj₁ (refl , refl) rewrite suc-inj Eq = {!!}
+-- CASE INJ2
+gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} {L+ = L+} {U = U} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
+  | inj₂ (RA , Sp' , R)   = ∧⁻L₁ (apply-R-splitting {LL = LL} pf R ((gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp')))  
 gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) = {!!}
 ------------------
-
 
 gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-cons {L+ = L+} pf₁ N ∷ Exps) Eq Sp = 
   spine-↑-adm 
