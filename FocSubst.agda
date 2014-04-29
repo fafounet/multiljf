@@ -265,8 +265,6 @@ fuse-gen-proj₂ {LL = inj₂ y ∷ LL} {L+} {RA} with fuse-gen-proj₂ {LL} {L+
 
 
 
-
-
 suc-foldr-eq : ∀{b} {c} {B : Set b} {C : Set c} (LL : List B) (LA : List C)
   → suc (foldr (λ _ → suc) 0 LL) ≡ suc (foldr (λ _ → suc) 0 LA) 
   → length LL ≡ length LA
@@ -287,7 +285,16 @@ apply-R-splitting : ∀{U Γ LL L+ RA x₁}
                Exp Γ (Left (inj₁ (x₁ ∷ LA' , L'+)) U'))
        → Exp Γ (Left (inj₁ (fuse-gen LL (L+ ++ RA))) U)
        → Spine Γ (x₁ ∷ proj₁ (fuse-gen LL L+)) (proj₂ (fuse-gen LL L+)) U
-apply-R-splitting {L+ = L+} pf R Sp  = {!!}  -- 
+apply-R-splitting {LL = []} pf R Sp = R pf Sp
+apply-R-splitting {LL = inj₁ x ∷ LL} {L+ = L+} {RA = RA} pf R Sp  
+  rewrite fuse-gen-proj₁ {LL = LL} {L+ = L+} {L'+ = RA} 
+          | fuse-gen-proj₂ {LL = LL} {L+ = L+} {RA = RA} 
+          | assoc (proj₂ x) (proj₂ (fuse-gen LL L+)) RA = R pf Sp  
+apply-R-splitting {LL = inj₂ y ∷ LL} {L+ = L+} {RA = RA} pf R Sp
+   rewrite fuse-gen-proj₁ {LL = LL} {L+ = L+} {L'+ = RA} 
+          | fuse-gen-proj₂ {LL = LL} {L+ = L+} {RA = RA} 
+          | assoc y (proj₂ (fuse-gen LL L+)) RA = R pf Sp   
+
 
 
 
