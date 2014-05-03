@@ -3,6 +3,7 @@ open import Data.List.Any
 open import Data.List.Any.Properties
 open import Data.List.All
 open import Data.Sum
+open import Data.Empty
 open Membership-≡
 open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 
@@ -161,3 +162,8 @@ weak+-[]-term [] T = T
 weak+-[]-term (x ∷ L+) T = weak+-term x (weak+-[]-term L+ T)
 
 
+-- The following is not true
+-- weak+-spine : ∀{Γ L- L+ U} → (X : Type ⁺) → Spine Γ L- L+ U →  Spine Γ L- (X ∷ L+) U
+-- for this reason:
+weak+-spine-counterex : ∀{Γ Q X} → Spine Γ (a Q ⁻ ∷ []) (X ∷ []) (Susp (a Q ⁻)) → ⊥
+weak+-spine-counterex ()

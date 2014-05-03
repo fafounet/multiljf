@@ -25,5 +25,11 @@ length-cons-nil : ∀{b c} {B : Set b} {C : Set c} {X : B} {Y : C} {L} → lengt
 length-cons-nil {L = []} Eq = refl
 length-cons-nil {L = x ∷ L} ()
 
+postulate 
+  length-cons : 
+              ∀{b c} {B : Set b} {C : Set c} {X : B} {Y : C} (L : List B) (L' : List C) 
+                → length (X ∷ L) ≡ length (Y ∷ L') 
+                → length L ≡ length L'
+
 postulate
   assoc :  ∀{b} {B : Set b} (L1 L2 L3 : List B) → L1 ++ L2 ++ L3 ≡ (L1 ++ L2) ++ L3

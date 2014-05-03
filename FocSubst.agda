@@ -247,6 +247,9 @@ fuse-gen (inj₁ (L- , L+) ∷ L) LL+ = L- ++ proj₁ (fuse-gen L LL+) , L+ ++ p
 fuse-gen (inj₂ L+ ∷ L) LL+ = proj₁ (fuse-gen L LL+) , L+ ++ proj₂ (fuse-gen L LL+)
 
 
+fuse-gen-expand : ∀{LL L+} → fuse-gen LL L+ ≡ proj₁ (fuse-gen LL L+) , proj₂ (fuse-gen LL L+)
+fuse-gen-expand = refl
+
 fuse-gen-proj₁ : ∀{LL L+ L'+} →  proj₁ (fuse-gen LL (L+ ++ L'+)) ≡ proj₁ (fuse-gen LL L+)
 fuse-gen-proj₁ {[]} = λ {L+} {L'+} → refl
 fuse-gen-proj₁ {inj₁ x ∷ LL} {L+} {L'+} with fuse-gen-proj₁ {LL = LL} {L+ = L+} {L'+ = L'+}
@@ -278,6 +281,8 @@ suc-fold-[] : ∀{b} {B : Set b} → (L : List B) → suc (foldr (λ _ → suc) 
 suc-fold-[] [] Eq = refl
 suc-fold-[] (x ∷ L) ()
 
+suc-fold-⊥ : ∀{b} {B : Set b} → (L : List B) → suc (foldr (λ _ → suc) 0 L) ≡ 0 → ⊥
+suc-fold-⊥ L ()
 
 {- Apply the hypothesis that we can reconstruct x₁ in presence of fuse-gen -}
 apply-R-splitting : ∀{U Γ LL L+ RA x₁}  
@@ -299,6 +304,25 @@ apply-R-splitting {LL = inj₂ y ∷ LL} {L+ = L+} {RA = RA} pf R Sp
           | assoc y (proj₂ (fuse-gen LL L+)) RA = R pf Sp   
 
 
+init-not-empty : ∀{Γ x Q L+ LA U} → Spine Γ (x ∷ a Q ⁻ ∷ LA) L+ U → ⊥
+init-not-empty {L+ = []} (↑L-cons pf ())
+init-not-empty {L+ = x ∷ L+} (↑L-cons pf ())
+init-not-empty (⊃L V Sp) = init-not-empty Sp
+init-not-empty (∧⁻L₁ Sp) = init-not-empty Sp
+init-not-empty (∧⁻L₂ Sp) = init-not-empty Sp
+
+
+
+⊥⁺-adm : ∀{Γ x₁ LL LA L+ Ω U} → 
+  stable U → 
+  length LL ≡ length LA →
+  Spine Γ (x₁ ∷ LA) L+ U →
+  All (λ x → Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (zipWith _,_ LL LA) → 
+    Exp Γ (Left (inj₁ (proj₁ (fuse-gen LL L+) , ⊥⁺ ∷ Ω ++ proj₂ (fuse-gen LL L+))) U)
+-- Impossible to induct over x₁ 
+⊥⁺-adm pf Eq Sp Exps = ?
+
+
 
 
 gsubst-more-gen : ∀{Γ LL L+ U}
@@ -314,7 +338,15 @@ gsubst-more-gen {LL = []} pf (x ∷ LA) Exps () Sp
 gsubst-more-gen {LL = .(inj₂ []) ∷ LL} pf (x₁ ∷ LA) (focL-init pf₁ Sp ∷ Exps) Eq Sp₁ = {!!}
 gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (η⁺ N ∷ Exps) Eq Sp = {!!}
 gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↓L N ∷ Exps) Eq Sp = {!!}
+
 gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊥L ∷ Exps) Eq Sp = {!!}
+{-with spine-possib-phases x₁ Sp
+gsubst-more-gen {Γ} {._ ∷ LL} pf (x₁ ∷ .[]) (⊥L ∷ Exps) Eq Sp | inj₁ (refl , refl) 
+  rewrite suc-fold-[] LL Eq  = ↑L-nil pf ⊥L
+gsubst-more-gen {Γ} {._ ∷ LL} pf (x₁ ∷ LA) (⊥L ∷ Exps) Eq Sp 
+  | inj₂ (RA , Sp' , R) = {!gsubst-more-gen pf LA Exps ? Sp'!} 
+  -- Here it's not possible to use ⊥⁺L admissibility simply because it's not true! -}
+
 gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∨L N₁ N₂ ∷ Exps) Eq Sp = 
   spine-∨-adm (gsubst-more-gen pf (x₁ ∷ LA) (N₁ ∷ Exps) Eq Sp) (gsubst-more-gen pf (x₁ ∷ LA) (N₂ ∷ Exps) Eq Sp ) 
 gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊤⁺L N ∷ Exps) Eq Sp = 
@@ -327,11 +359,28 @@ gsubst-more-gen {LL = inj₂ (A ∧⁺ B ∷ Ω) ∷ LL} pf (x₁ ∷ LA) (∧�
 -----------------------
 gsubst-more-gen {LL = .(inj₁ (a Q ⁻ ∷ [] , [])) ∷ LL} pf (a Q .⁻ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ 
   with length-cons-nil {X = inj₁ ([ a Q ⁻ ] , [])} {Y = a Q ⁻} {L = LL} Eq  
-gsubst-more-gen {Γ} {.(inj₁ ([ a Q ⁻ ] , [])) ∷ .[]} pf (a Q .⁻ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ | refl = 
-  id⁻
+gsubst-more-gen {Γ} {.(inj₁ ([ a Q ⁻ ] , [])) ∷ .[]} pf (a Q .⁻ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ | refl = id⁻
 
-gsubst-more-gen {LL = .(inj₁ (↑ x₁ ∷ [] , [])) ∷ LL} pf (↑ x₁ ∷ LA) (id⁻ ∷ Exps) Eq Sp  = {!!}
-gsubst-more-gen {LL = .(inj₁ (x₁ ⊃ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ⊃ x₂ ∷ LA) (id⁻ ∷ Exps) Eq Sp = {!!}
+gsubst-more-gen {LL = .(inj₁ (↑ x₁ ∷ [] , [])) ∷ LL} pf (↑ x₁ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ 
+  with length-cons-nil {X = inj₁ ([ ↑ x₁ ] , [])} {Y = ↑ x₁} {L = LL} Eq 
+gsubst-more-gen {Γ} {.(inj₁ ([ ↑ x₁ ] , [])) ∷ .[]} pf (↑ x₁ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ | refl = id⁻
+gsubst-more-gen {LL = .(inj₁ ([ ↑ x ] , [])) ∷ LL} {L+ = L+} pf (↑ x ∷ L-) (id⁻ ∷ Exps) Eq (↑L-cons pf₁ N) 
+  with (gsubst-more-gen pf L- Exps (length-cons {X = inj₁ ([ ↑ x ] , [])} {Y = ↑ x} (LL) (L-) Eq) N)
+... | R   rewrite fuse-gen-proj₁ {LL} {L+} {[ x ]} 
+                   | fuse-gen-proj₂ {LL} {L+} {[ x ]} 
+          = ↑L-cons pf₁ {!!}       -- The rewrites do not work!
+-- rewrite fuse-gen-expand {LL} {L+ ++ x ∷ []} | 
+
+gsubst-more-gen {LL = .(inj₁ (x₁ ⊃ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ⊃ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ 
+  with length-cons-nil {X = inj₁ ([ x₁ ⊃ x₂ ] , [])} {Y = x₁ ⊃ x₂} {L = LL} Eq
+gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ⊃ x₂ ] , [])) ∷ .[]} pf (x₁ ⊃ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ | refl = id⁻
+
+gsubst-more-gen {LL = .(inj₁ (x₁ ⊃ B ∷ [] , [])) ∷ LL} pf (x₁ ⊃ B ∷ LA) (id⁻ ∷ Exps) Eq (⊃L V Sp) 
+  with spine-possib-phases B Sp 
+gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ⊃ B ] , [])) ∷ LL} pf (x₁ ⊃ B ∷ .[]) (id⁻ ∷ Exps) Eq (⊃L V Sp) 
+  | inj₁ (refl , refl) rewrite suc-fold-[] LL Eq = ⊃L V Sp
+gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ⊃ B ] , [])) ∷ LL} pf (x₁ ⊃ B ∷ LA) (id⁻ ∷ Exps) Eq (⊃L V Sp) 
+  | inj₂ (RA , Sp' , R) =  ⊃L V (apply-R-splitting {LL = LL} pf R (gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp'))  
 
 gsubst-more-gen {LL = .(inj₁ (⊤⁻ ∷ [] , [])) ∷ LL} pf (⊤⁻ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ 
   with length-cons-nil {X = inj₁ ([ ⊤⁻ ] , [])} {Y = ⊤⁻} {L = LL} Eq 
@@ -343,19 +392,15 @@ gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ .[]} pf (x₁ �
 
 gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
   with spine-possib-phases x₁ Sp 
--- Case INJ1
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
   | inj₁ (refl , refl) rewrite suc-fold-[] LL Eq = ∧⁻L₁ Sp
--- CASE INJ2
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} {L+ = L+} {U = U} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
   | inj₂ (RA , Sp' , R)   = ∧⁻L₁ (apply-R-splitting {LL = LL} pf R ((gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp'))) 
  
 gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) 
   with spine-possib-phases x₂ Sp 
--- Case INJ1
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) 
   | inj₁ (refl , refl) rewrite suc-fold-[] LL Eq = ∧⁻L₂ Sp
--- CASE INJ2
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} {L+ = L+} {U = U} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) 
   | inj₂ (RA , Sp' , R)   = ∧⁻L₂ (apply-R-splitting {LL = LL} pf R ((gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp')))  
 ------------------
