@@ -46,12 +46,6 @@ unload-all : ∀{Γ U}
   → Term Γ [] U 
 unload-all L- pf Sp In = focL-init pf (unload-all-l L-  pf (focL-end pf Sp) In) 
 
-{- Not precise enough for many purposes -}
-postulate 
-  spine-to-term : ∀{Γ X L- L+ U}
-    → (s : Spine Γ L- (X ∷ L+) U)
-    → (∃ λ L' → 
-      (Term Γ (X ∷ (L+ ++ L')) U) )
 
 
 spine-init : ∀{Γ Q LA U L+}
@@ -120,6 +114,9 @@ postulate
 postulate
   spine-⊤⁺-adm :  ∀{Γ L- L+ U} → Spine Γ L- L+  U → Spine Γ L- (⊤⁺ ∷ L+) U
 
+
+
+
 {-has-atomic-residual : Type ⁻ → Bool
 has-atomic-residual (a Q .⁻) = true
 has-atomic-residual (↑ x) = {!!}
@@ -142,8 +139,7 @@ spine-⊥ {Γ} {x ∧⁻ x₁ ∷ L- } pf | inj₂ y = {!!}
 -}
 
 
-spine-⊥-notadm : ∀{Γ Q L- L+ U} → stable U →  Spine Γ (a Q ⁻ ∷ L-) (⊥⁺ ∷ L+) U → ⊥
-spine-⊥-notadm pf ()
+
 
 
 
@@ -162,12 +158,7 @@ spine-[]-⊤ : ∀{Γ L+} → (X : Type ⁺) → Spine Γ [] (X ∷ L+) (True �
 spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
 
 
-{-
-spine-⊤ : ∀{Γ} → (L- : List (Type ⁻)) → (L+ : List (Type ⁺)) → Spine Γ L- L+ (True ⊤⁺)
-spine-⊤ = {!!}
- Not true due to the following case, unrelated to multifocusing: -}
-counter-ex : ∀{Q} → Spine [] [ a Q ⁻ ] [] (True ⊤⁺) → ⊥ 
-counter-ex () 
+
 
 
 
@@ -234,3 +225,62 @@ counter-ex ()
 η+-inv-all [] Ts = []
 η+-inv-all (x ∷ xs) (px ∷ Ts) = (η+-inv px) ∷ (η+-inv-all xs Ts)
 
+
+
+{- *************
+ IMPOSSIBILITIES 
+-}
+
+
+-- [weak.agda] weak+-spine-counterex : ∀{Γ Q X} → Spine Γ (a Q ⁻ ∷ []) (X ∷ []) (Susp (a Q ⁻)) → ⊥
+
+-- The followins is not true, due to the case where L- = a Q ⁻ 
+-- spine-η⁺-adm :  ∀{Γ L- L+ U Q} → Spine (HSusp (a Q ⁺) ∷ Γ) L- L+  U → Spine Γ L- (a Q ⁺ ∷ L+) U
+
+spine-⊥-notadm : ∀{Γ Q L- L+ U} → stable U →  Spine Γ (a Q ⁻ ∷ L-) (⊥⁺ ∷ L+) U → ⊥
+spine-⊥-notadm pf ()
+
+
+init-not-empty : ∀{Γ x Q L+ LA U} → Spine Γ (x ∷ a Q ⁻ ∷ LA) L+ U → ⊥
+init-not-empty {L+ = []} (↑L-cons pf ())
+init-not-empty {L+ = x ∷ L+} (↑L-cons pf ())
+init-not-empty (⊃L V Sp) = init-not-empty Sp
+init-not-empty (∧⁻L₁ Sp) = init-not-empty Sp
+init-not-empty (∧⁻L₂ Sp) = init-not-empty Sp
+
+
+
+{- This is not true, due to the following counter example 
+subst-term-[] : ∀{Γ x LA U L+} → Term Γ [] (Susp x) → Spine Γ (x ∷ LA) L+ U → Spine Γ LA L+ U -}
+cex : ∀{Q} → Term [] [] (Susp (a Q ⁻)) → Spine [] [] [] (Susp (a Q ⁻)) → ⊥
+cex (focL-init pf (focL-step pf₁ In Sp)) = λ ()
+cex (focL-init pf (focL-end pf₁ ()))
+
+
+{-
+spine-⊤ : ∀{Γ} → (L- : List (Type ⁻)) → (L+ : List (Type ⁺)) → Spine Γ L- L+ (True ⊤⁺)
+spine-⊤ = {!!}
+ Not true due to the following case, unrelated to multifocusing: -}
+counter-ex : ∀{Q} → Spine [] [ a Q ⁻ ] [] (True ⊤⁺) → ⊥ 
+counter-ex () 
+
+
+
+spine-append-neg-lit-absurd : ∀{Γ L- L+ Q X U} → Spine Γ (a Q ⁻ ∷ L-) (L+ ++ [ X ]) U → ⊥
+spine-append-neg-lit-absurd {L+ = []} ()
+spine-append-neg-lit-absurd {L+ = x ∷ L+} ()
+
+
+spine-cons-neg-lit-absurd : ∀{Γ X L- L+ Q U} → Spine Γ (X ∷ L-) L+ U → (a Q ⁻ ∈ L-) → ⊥ 
+spine-cons-neg-lit-absurd {X = a Q .⁻} id⁻ ()
+spine-cons-neg-lit-absurd {X = ↑ X} id⁻ ()
+spine-cons-neg-lit-absurd {X = ↑ x} {[]} (↑L-cons pf N) ()
+spine-cons-neg-lit-absurd {X = ↑ x} {._ ∷ L-} {L+} (↑L-cons pf N) (here refl) 
+  = spine-append-neg-lit-absurd {L+ = L+} N
+spine-cons-neg-lit-absurd {X = ↑ x} {x₁ ∷ L-} (↑L-cons pf N) (there In) = spine-cons-neg-lit-absurd N In
+spine-cons-neg-lit-absurd {X = X ⊃ X₁} id⁻ ()
+spine-cons-neg-lit-absurd {X = A ⊃ B} (⊃L V Sp) In =  spine-cons-neg-lit-absurd Sp In
+spine-cons-neg-lit-absurd {X = ⊤⁻} id⁻ ()
+spine-cons-neg-lit-absurd {X = X ∧⁻ X₁} id⁻ ()
+spine-cons-neg-lit-absurd {X = A ∧⁻ X₁} (∧⁻L₁ Sp) In = spine-cons-neg-lit-absurd Sp In
+spine-cons-neg-lit-absurd {X = A ∧⁻ X₁} (∧⁻L₂ Sp) In = spine-cons-neg-lit-absurd Sp In 

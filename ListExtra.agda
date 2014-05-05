@@ -21,7 +21,9 @@ postulate
     → _≡_ {A = List B} (x ∷ C ++ A ∷ L) (x ∷ (C ++ A ∷ []) ++ L)
 
 
-length-cons-nil : ∀{b c} {B : Set b} {C : Set c} {X : B} {Y : C} {L} → length (X ∷ L) ≡ length (Y ∷ []) → L ≡ []
+length-cons-nil : ∀{b c} {B : Set b} {C : Set c} {X : B} {Y : C} {L} 
+  → length (X ∷ L) ≡ length (Y ∷ []) 
+  → L ≡ []
 length-cons-nil {L = []} Eq = refl
 length-cons-nil {L = x ∷ L} ()
 
@@ -33,3 +35,6 @@ postulate
 
 postulate
   assoc :  ∀{b} {B : Set b} (L1 L2 L3 : List B) → L1 ++ L2 ++ L3 ≡ (L1 ++ L2) ++ L3
+
+postulate
+  assoc-cons-append : ∀{b} {B : Set b} (X : B) (L1 L2 L3 : List B) → X ∷ (L1 ++ L2) ++ L3 ≡ X ∷ L1 ++ L2 ++ L3

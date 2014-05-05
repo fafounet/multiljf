@@ -3,6 +3,11 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 open import Data.Empty
 open import Data.List 
 open import Data.List.All
+open import Data.List.Any
+open Membership-≡
+
+
+open import Data.Unit
 --open import Algebra
 --module LAssoc {a} {A} = Monoid (monoid {a} A)
 
@@ -304,25 +309,33 @@ apply-R-splitting {LL = inj₂ y ∷ LL} {L+ = L+} {RA = RA} pf R Sp
           | assoc y (proj₂ (fuse-gen LL L+)) RA = R pf Sp   
 
 
-init-not-empty : ∀{Γ x Q L+ LA U} → Spine Γ (x ∷ a Q ⁻ ∷ LA) L+ U → ⊥
-init-not-empty {L+ = []} (↑L-cons pf ())
-init-not-empty {L+ = x ∷ L+} (↑L-cons pf ())
-init-not-empty (⊃L V Sp) = init-not-empty Sp
-init-not-empty (∧⁻L₁ Sp) = init-not-empty Sp
-init-not-empty (∧⁻L₂ Sp) = init-not-empty Sp
 
 
 
-⊥⁺-adm : ∀{Γ x₁ LL LA L+ Ω U} → 
+
+{- Describe the shape of LAs that we can encounter in gsubst -}
+gsubst-more-gen-single-neg-lit : ∀{Γ LL L+ Q U}
+  → stable U
+  → (LA : List (Type ⁻))
+  → All (\x →  Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (Data.List.zip LL  LA)
+  → length LL ≡ length LA
+  → Spine Γ LA L+ U
+  → ((a Q ⁻) ∈ LA → LA ≡ [ a Q ⁻ ])
+gsubst-more-gen-single-neg-lit pf [] Exps Eq Sp ()
+gsubst-more-gen-single-neg-lit pf (._ ∷ LA) Exps Eq Sp (here refl) with Sp
+gsubst-more-gen-single-neg-lit pf (._ ∷ .[]) Exps Eq Sp (here refl) | id⁻ = refl
+gsubst-more-gen-single-neg-lit pf (x ∷ LA) Exps Eq Sp (there In) = ⊥-elim (spine-cons-neg-lit-absurd Sp In)
+
+
+
+
+
+⊥⁺-admm : ∀{Γ LL LA L+ Ω U} → 
   stable U → 
   length LL ≡ length LA →
-  Spine Γ (x₁ ∷ LA) L+ U →
+  Spine Γ LA L+ U →
   All (λ x → Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (zipWith _,_ LL LA) → 
     Exp Γ (Left (inj₁ (proj₁ (fuse-gen LL L+) , ⊥⁺ ∷ Ω ++ proj₂ (fuse-gen LL L+))) U)
--- Impossible to induct over x₁ 
-⊥⁺-adm pf Eq Sp Exps = ?
-
-
 
 
 gsubst-more-gen : ∀{Γ LL L+ U}
@@ -332,6 +345,46 @@ gsubst-more-gen : ∀{Γ LL L+ U}
   → length LL ≡ length LA
   → Spine Γ LA L+ U
   → Exp Γ (Left (inj₁ (fuse-gen LL L+)) U)
+
+
+
+
+⊥⁺-admm {LL = []} pf Eq Sp Exps = ↑L-nil pf ⊥L
+-- We have a spine 
+⊥⁺-admm {LL = inj₁ (proj₁ , proj₂) ∷ LL} {[]} pf () Sp Exps
+⊥⁺-admm {LL = inj₁ (L'- , L'+) ∷ LL} {x ∷ LA} pf Eq Sp (px ∷ Exps) = {!⊥⁺-admm {LL = LL} pf ? Exps!}
+
+-- We have a term
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {[]} pf () SP Exps
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} {Ω = Ω} pf Eq Sp (px ∷ Exps) = 
+  ⊥⁺-admm {Ω = Ω} pf (length-cons {X = inj₁ (LA , Ω)} {Y = x} LL LA Eq) {!!}  Exps 
+
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {[]} pf () Sp Exps
+⊥⁺-admm {LL = inj₂ (a Q .⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (η⁺ N ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (↓ x ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (⊥⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∨ x₁ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (⊤⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∧⁺ x₁ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+{-
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {a Q .⁻ ∷ .[]} pf Eq id⁻ (px ∷ Exps) 
+  rewrite length-cons-nil {X = inj₂ (x ∷ y)} {Y = a Q ⁻} {L = LL} Eq = ↑L-nil tt ⊥L
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {↑ x₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {x₁ ⊃ x₂ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {⊤⁻ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {x₁ ∧⁻ x₂ ∷ .[]} pf Eq id⁻ (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {A ∧⁻ x₂ ∷ LA} pf Eq (∧⁻L₁ Sp) (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {A ∧⁻ x₂ ∷ LA} pf Eq (∧⁻L₂ Sp) (px ∷ Exps) = {!!} -}
+{-  with ⊥⁺-admm {LL = LL} {L+ = L+} {Ω = Ω ++ x ∷ y} {U = U} pf 
+  (length-cons {X = inj₁ (LA , Ω)} {Y = x₁} LL LA Eq) {!!} Exps
+... | Z rewrite assoc-cons-append ⊥⁺ Ω (x ∷ y) (proj₂ (fuse-gen LL L+)) = Z -}
+
+
+
+
+
+
+
 gsubst-more-gen {LL = []} pf [] Exps Eq Sp = Sp
 gsubst-more-gen {LL = x ∷ LL} pf [] Exps () Sp
 gsubst-more-gen {LL = []} pf (x ∷ LA) Exps () Sp
@@ -380,7 +433,8 @@ gsubst-more-gen {LL = .(inj₁ (x₁ ⊃ B ∷ [] , [])) ∷ LL} pf (x₁ ⊃ B 
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ⊃ B ] , [])) ∷ LL} pf (x₁ ⊃ B ∷ .[]) (id⁻ ∷ Exps) Eq (⊃L V Sp) 
   | inj₁ (refl , refl) rewrite suc-fold-[] LL Eq = ⊃L V Sp
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ⊃ B ] , [])) ∷ LL} pf (x₁ ⊃ B ∷ LA) (id⁻ ∷ Exps) Eq (⊃L V Sp) 
-  | inj₂ (RA , Sp' , R) =  ⊃L V (apply-R-splitting {LL = LL} pf R (gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp'))  
+  | inj₂ (RA , Sp' , R) =  
+  ⊃L V (apply-R-splitting {LL = LL} pf R (gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp'))  
 
 gsubst-more-gen {LL = .(inj₁ (⊤⁻ ∷ [] , [])) ∷ LL} pf (⊤⁻ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ 
   with length-cons-nil {X = inj₁ ([ ⊤⁻ ] , [])} {Y = ⊤⁻} {L = LL} Eq 
@@ -395,25 +449,29 @@ gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ 
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
   | inj₁ (refl , refl) rewrite suc-fold-[] LL Eq = ∧⁻L₁ Sp
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} {L+ = L+} {U = U} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
-  | inj₂ (RA , Sp' , R)   = ∧⁻L₁ (apply-R-splitting {LL = LL} pf R ((gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp'))) 
+  | inj₂ (RA , Sp' , R)   = 
+  ∧⁻L₁ (apply-R-splitting {LL = LL} pf R ((gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp'))) 
  
 gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) 
   with spine-possib-phases x₂ Sp 
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) 
   | inj₁ (refl , refl) rewrite suc-fold-[] LL Eq = ∧⁻L₂ Sp
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} {L+ = L+} {U = U} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) 
-  | inj₂ (RA , Sp' , R)   = ∧⁻L₂ (apply-R-splitting {LL = LL} pf R ((gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp')))  
+  | inj₂ (RA , Sp' , R)   = 
+  ∧⁻L₂ (apply-R-splitting {LL = LL} pf R ((gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp')))  
 ------------------
 -- END OF ID-
 -------------------
 
-gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-cons {L+ = L+} pf₁ N ∷ Exps) Eq Sp = spine-↑-adm 
-    {L1 = L+} 
-    (gsubst-more-gen pf (x₁ ∷ LA) (N ∷ Exps) Eq Sp)
+gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-cons {L+ = L+} pf₁ N ∷ Exps) Eq Sp = 
+  spine-↑-adm {L1 = L+} (gsubst-more-gen pf (x₁ ∷ LA) (N ∷ Exps) Eq Sp)
 
-gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-nil pf₁ N ∷ Exps) Eq Sp = gsubst-more-gen pf (x₁ ∷ LA) (N ∷ Exps) Eq Sp
-gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊃L V Sp ∷ Exps) Eq Sp₁ = ⊃L V (gsubst-more-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁)
-gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁻L₁ Sp ∷ Exps) Eq Sp₁ = ∧⁻L₁  (gsubst-more-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁) 
+gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↑L-nil pf₁ N ∷ Exps) Eq Sp = 
+  gsubst-more-gen pf (x₁ ∷ LA) (N ∷ Exps) Eq Sp
+gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊃L V Sp ∷ Exps) Eq Sp₁ = 
+  ⊃L V (gsubst-more-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁)
+gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁻L₁ Sp ∷ Exps) Eq Sp₁ = 
+  ∧⁻L₁  (gsubst-more-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁) 
 gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁻L₂ {L- = L-} {L+ = L+} Sp ∷ Exps) Eq Sp₁ = 
  ∧⁻L₂  (gsubst-more-gen pf (x₁ ∷ LA) (Sp ∷ Exps) Eq Sp₁) 
 
