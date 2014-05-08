@@ -355,9 +355,20 @@ gsubst-more-gen : ∀{Γ LL L+ U}
 ⊥⁺-admm {LL = inj₁ (L'- , L'+) ∷ LL} {x ∷ LA} pf Eq Sp (px ∷ Exps) = {!⊥⁺-admm {LL = LL} pf ? Exps!}
 
 -- We have a term
+{- ⊥⁺-admm {LL = inj₂ [] ∷ LL} {[]} pf () SP Exps
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {a Q .⁻ ∷ .[]} pf Eq id⁻ (px ∷ Exps) 
+  rewrite length-cons-nil {X = inj₂ []} {Y = a Q ⁻} {L = LL} Eq = ↑L-nil tt ⊥L
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {↑ x ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ⊃ x₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {⊤⁻ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∧⁻ x₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!} -}
+
 ⊥⁺-admm {LL = inj₂ [] ∷ LL} {[]} pf () SP Exps
-⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} {Ω = Ω} pf Eq Sp (px ∷ Exps) = 
-  ⊥⁺-admm {Ω = Ω} pf (length-cons {X = inj₁ (LA , Ω)} {Y = x} LL LA Eq) {!!}  Exps 
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} pf Eq SP (focL-init pf₁ Sp ∷ Exps) 
+  with loading-done Sp
+⊥⁺-admm {Γ} {inj₂ [] ∷ LL} {x ∷ LA} pf Eq SP (focL-init pf₁ Sp ∷ Exps) 
+  | L' , Sub , Sp' , H = {!unload-all L' pf ? Sub!}
+
 
 ⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {[]} pf () Sp Exps
 ⊥⁺-admm {LL = inj₂ (a Q .⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (η⁺ N ∷ Exps) = {!!}

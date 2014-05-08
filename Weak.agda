@@ -8,6 +8,7 @@ open Membership-≡
 open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 
 open import Foc
+open import FocSimpleProps
 open import Subset
 
 module Weak where
@@ -165,5 +166,16 @@ weak+-[]-term (x ∷ L+) T = weak+-term x (weak+-[]-term L+ T)
 -- The following is not true
 -- weak+-spine : ∀{Γ L- L+ U} → (X : Type ⁺) → Spine Γ L- L+ U →  Spine Γ L- (X ∷ L+) U
 -- for this reason:
-weak+-spine-counterex : ∀{Γ Q X} → Spine Γ (a Q ⁻ ∷ []) (X ∷ []) (Susp (a Q ⁻)) → ⊥
-weak+-spine-counterex ()
+weak+-spine-counterex : ∀{Γ Q X} 
+  → Spine Γ (a Q ⁻ ∷ []) ([]) (Susp (a Q ⁻)) 
+  → Spine Γ (a Q ⁻ ∷ []) (X ∷ []) (Susp (a Q ⁻)) 
+  → ⊥
+weak+-spine-counterex = λ {Γ} {Q} {X} _ → λ ()
+
+
+weak+-[]-spine : ∀{Γ L+ U} → (X : Type ⁺) → Spine Γ [] L+ U →  Spine Γ [] (X ∷ L+) U
+weak+-[]-spine {L+ = []} X ()
+weak+-[]-spine {L+ = X₁ ∷ L+} X (↑L-nil pf N) = ↑L-nil pf (weak+-term X N)
+
+
+

@@ -19,6 +19,74 @@ open import Subset
 module FocProps where
 
 
+load-std : ∀{Γ U} → Spine-l Γ [] U → Term Γ [] U
+load-std (focL-step pf In Sp) = focL-init pf (focL-step pf In Sp)
+load-std (focL-end pf Sp) = focL-init pf (focL-end pf Sp)
+
+
+
+
+∧-residual-loading : ∀{Γ A B L1 L2 U} → 
+ Spine-l (Γ) (L1 ++ A ∧⁻ B ∷ L2) U → 
+ Spine-l (Γ) (L1 ++ A ∷ B ∷ L2) U 
+∧-residual-loading {L1 = []} (focL-step pf In Sp) = {!!}
+∧-residual-loading {L1 = []} (focL-end pf id⁻) = {!!}
+∧-residual-loading {L1 = []} (focL-end pf (∧⁻L₁ Sp)) = {!!}
+∧-residual-loading {L1 = []} (focL-end pf (∧⁻L₂ Sp)) = {!!}
+∧-residual-loading {L1 = x ∷ L1} Sp = {!!}
+
+load-inv-step-adm : ∀{Γ1 Γ2 X L U} 
+  → stable U 
+  → Spine-l (Γ1 ++ Pers X ∷ Γ2) (X ∷ L) U 
+  → Spine-l (Γ1 ++ Pers X ∷ Γ2) (L) U
+load-inv-step-adm {Γ1} {X = X} pf Sp = focL-step pf (in-append-in {X = Pers X} {L1 = Γ1})  Sp
+
+
+∧-context-adm : ∀{Γ1 Γ2 A B L} 
+  → Exp (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L 
+  → Exp (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
+
+∧-context-loading-adm : ∀{Γ1 Γ2 A B L} 
+  → Exp-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L 
+  → Exp-l (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
+
+∧-context-loading-adm {Γ1} (focL-step pf In Sp) with fromctx Γ1 In
+∧-context-loading-adm {Γ1} {Γ2} {A} {B} (focL-step pf In Sp) | inj₁ refl 
+  = {!!}
+... | inj₂ X = {!!} --focL-step pf {!!} (∧-context-loading-adm Sp)
+∧-context-loading-adm {Γ1} (focL-end pf Sp) = focL-end pf (∧-context-adm {Γ1} Sp)
+
+
+∧-context-adm {Γ1} (id⁺ v) with fromctx Γ1 v 
+∧-context-adm (id⁺ v) | inj₁ ()
+... | inj₂ X = id⁺ (in-append-double-weak {L1 = Γ1} X)
+∧-context-adm {Γ1} (↓R N) = ↓R (∧-context-adm {Γ1} N)
+∧-context-adm {Γ1}  (∨R₁ V) = ∨R₁ (∧-context-adm {Γ1}  V)
+∧-context-adm {Γ1}  (∨R₂ V) = ∨R₂ (∧-context-adm {Γ1}  V)
+∧-context-adm {Γ1}  ⊤⁺R = ⊤⁺R
+∧-context-adm {Γ1}  (∧⁺R V₁ V₂) = ∧⁺R (∧-context-adm {Γ1}  V₁) (∧-context-adm {Γ1}  V₂)
+∧-context-adm {Γ1}  (focR V) = focR (∧-context-adm {Γ1}  V)
+∧-context-adm {Γ1} {Γ2} {A = A} {B = B} (focL-init pf Sp) 
+  = load-std {Γ = Γ1 ++ Pers A ∷ Pers B ∷ Γ2} (∧-context-loading-adm {Γ1} {Γ2} {A = A} {B = B} Sp)
+∧-context-adm {Γ1}  (η⁺ {Q} N) = η⁺ (∧-context-adm {Γ1 = HSusp (a Q ⁺) ∷ Γ1}  N)
+∧-context-adm {Γ1}  (↓L {A₁} N) = ↓L (∧-context-adm {Γ1 = Pers A₁ ∷ Γ1}  N)
+∧-context-adm {Γ1}  ⊥L = ⊥L
+∧-context-adm {Γ1}  (∨L N₁ N₂) = ∨L (∧-context-adm {Γ1}  N₁) (∧-context-adm {Γ1}  N₂)
+∧-context-adm {Γ1}  (⊤⁺L N) = ⊤⁺L (∧-context-adm {Γ1}  N)
+∧-context-adm {Γ1}  (∧⁺L N) = ∧⁺L (∧-context-adm {Γ1}  N)
+∧-context-adm {Γ1}  (η⁻ N) = η⁻ (∧-context-adm {Γ1}  N)
+∧-context-adm {Γ1}  (↑R N) = ↑R (∧-context-adm {Γ1}  N)
+∧-context-adm {Γ1}  (⊃R N) = ⊃R (∧-context-adm {Γ1}  N)
+∧-context-adm {Γ1}  ⊤⁻R = ⊤⁻R
+∧-context-adm {Γ1}  (∧⁻R N₁ N₂) = ∧⁻R (∧-context-adm {Γ1}  N₁) (∧-context-adm {Γ1}  N₂)
+∧-context-adm {Γ1}  id⁻ = id⁻
+∧-context-adm {Γ1}  (↑L-cons pf N) = ↑L-cons pf (∧-context-adm {Γ1}  N)
+∧-context-adm {Γ1}  (↑L-nil pf N) = ↑L-nil pf (∧-context-adm {Γ1}  N)
+∧-context-adm {Γ1}  (⊃L V Sp) = ⊃L (∧-context-adm {Γ1}  V) (∧-context-adm {Γ1}  Sp)
+∧-context-adm {Γ1}  (∧⁻L₁ Sp) = ∧⁻L₁ (∧-context-adm {Γ1}  Sp)
+∧-context-adm {Γ1}  (∧⁻L₂ Sp) = ∧⁻L₂ (∧-context-adm {Γ1}  Sp)
+
+
 loading-done : ∀{Γ L U}
   → (s : Spine-l Γ L U)
   → ∃ λ L' →  (Data.List.map Pers L') ⊆ Γ ×
@@ -38,14 +106,55 @@ unload-all-l [] pf Sp In = Sp
 unload-all-l (x ∷ L) pf Sp In = unload-all-l L pf (focL-step pf (In (here refl)) Sp) (λ {x₁} z → In (there z))
 
 
-unload-all : ∀{Γ U} 
+unload-all-term : ∀{Γ U} 
   → (L : List (Type ⁻)) 
   → (pf : stable U) 
   → Spine Γ L [] U 
   → Data.List.map Pers L ⊆ Γ 
   → Term Γ [] U 
-unload-all L- pf Sp In = focL-init pf (unload-all-l L-  pf (focL-end pf Sp) In) 
+unload-all-term L- pf Sp In = focL-init pf (unload-all-l L-  pf (focL-end pf Sp) In) 
 
+unload-one-adm : ∀{Γ X Y L- L+ U} 
+  → (pf : stable U) 
+  → Spine Γ (Y ∷ L-) (X ∷ L+) U 
+  → Data.List.map Pers (Y ∷ L-) ⊆ Γ 
+  → Spine Γ L- (X ∷ L+) U 
+unload-one-adm {Y = a Q .⁻} pf () Sub
+unload-one-adm {Y = ↑ x} {[]} pf (↑L-cons pf₁ N) Sub = {!!}
+unload-one-adm {Y = ↑ x} {x₁ ∷ L-} pf (↑L-cons pf₁ N) Sub = {!!}
+unload-one-adm {Y = A ⊃ B} pf (⊃L V Sp) Sub = {!!}
+unload-one-adm {Y = ⊤⁻} pf () Sub
+unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₁ Sp) Sub = {!!}
+unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₂ Sp) Sub = {!!}
+
+unload-all-adm-bis : ∀{Γ X L- L+ U} 
+  → (pf : stable U) 
+  → Spine Γ L- (X ∷ L+) U 
+  → Data.List.map Pers L- ⊆ Γ 
+  → Spine Γ [] (X ∷ L+) U 
+unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (↑L-cons pf₁ N) Sub = {!unload-all-adm-bis pf N ?!}
+unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (↑L-nil pf₁ N) Sub = {!!}
+unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (⊃L V Sp) Sub = {!!}
+unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (∧⁻L₁ Sp) Sub = {!!}
+unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (∧⁻L₂ Sp) Sub = {!!}
+unload-all-adm-bis {X = ↓ X} {L+ = []} pf Sp Sub = {!!}
+unload-all-adm-bis {X = ⊥⁺} {L+ = []} pf Sp Sub = {!!}
+unload-all-adm-bis {X = X ∨ X₁} {L+ = []} pf Sp Sub = {!!}
+unload-all-adm-bis {X = ⊤⁺} {L+ = []} pf Sp Sub = {!!}
+unload-all-adm-bis {X = X ∧⁺ X₁} {L+ = []} pf Sp Sub = {!!}
+unload-all-adm-bis {L+ = x ∷ L+} pf Sp Sub = {!!}
+
+
+
+
+
+unload-all-adm : ∀{Γ X L- L+ U} 
+  → (pf : stable U) 
+  → Spine Γ L- (X ∷ L+) U 
+  → Data.List.map Pers L- ⊆ Γ 
+  → Spine Γ [] (X ∷ L+) U 
+unload-all-adm {L- = []} pf Sp Sub = Sp
+unload-all-adm {L- = x ∷ L-} pf Sp Sub = unload-all-adm pf (unload-one-adm pf Sp Sub) (λ {x₁} z → Sub (there z))
 
 
 spine-init : ∀{Γ Q LA U L+}
@@ -231,22 +340,6 @@ spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
  IMPOSSIBILITIES 
 -}
 
-
--- [weak.agda] weak+-spine-counterex : ∀{Γ Q X} → Spine Γ (a Q ⁻ ∷ []) (X ∷ []) (Susp (a Q ⁻)) → ⊥
-
--- The followins is not true, due to the case where L- = a Q ⁻ 
--- spine-η⁺-adm :  ∀{Γ L- L+ U Q} → Spine (HSusp (a Q ⁺) ∷ Γ) L- L+  U → Spine Γ L- (a Q ⁺ ∷ L+) U
-
-spine-⊥-notadm : ∀{Γ Q L- L+ U} → stable U →  Spine Γ (a Q ⁻ ∷ L-) (⊥⁺ ∷ L+) U → ⊥
-spine-⊥-notadm pf ()
-
-
-init-not-empty : ∀{Γ x Q L+ LA U} → Spine Γ (x ∷ a Q ⁻ ∷ LA) L+ U → ⊥
-init-not-empty {L+ = []} (↑L-cons pf ())
-init-not-empty {L+ = x ∷ L+} (↑L-cons pf ())
-init-not-empty (⊃L V Sp) = init-not-empty Sp
-init-not-empty (∧⁻L₁ Sp) = init-not-empty Sp
-init-not-empty (∧⁻L₂ Sp) = init-not-empty Sp
 
 
 

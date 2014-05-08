@@ -1,5 +1,3 @@
-open import Foc
-
 open import Data.List
 open import Data.Unit
 open import Data.Nat
@@ -7,6 +5,11 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to Nil)
 open import Data.List.Any
 open import Data.List.Any.Properties
 open Membership-≡
+
+
+open import Foc
+open import FocSubst
+
 
 module Identity where
 
