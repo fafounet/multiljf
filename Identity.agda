@@ -9,6 +9,7 @@ open Membership-≡
 
 open import Foc
 open import FocSubst
+open import Weak
 
 
 module Identity where
@@ -24,7 +25,14 @@ expand⁺ : ∀{A Γ Ω U} → Term (HSusp A ∷ Γ) Ω U → Term Γ (A ∷ Ω)
 expand⁻ : ∀{A Γ} → Term Γ [] (Susp A) → Term Γ [] (Inv A)
 
 expand⁺ {a Q .⁺} N = η⁺ N
-expand⁺ {↓ A} {Γ} N = ↓L (subst⁺ [] (↓R (expand⁻ (focL-init tt (focL-step tt (here refl) (focL-end tt id⁻))))) (wkex N) refl) 
+expand⁺ {↓ A} {Γ} N = 
+  ↓L (
+    subst⁺ 
+      [] 
+      (↓R (expand⁻ (focL-init tt (focL-step tt (here refl) (focL-end tt id⁻))))) 
+      (wkex N) 
+      refl
+    ) 
 expand⁺ {⊥⁺} N = ⊥L
 expand⁺ {A ∨ A₁} N = 
   ∨L (expand⁺ (subst⁺ [] (∨R₁ (id⁺ (here refl))) (wkex N) refl)) 

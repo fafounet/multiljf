@@ -25,7 +25,7 @@ load-std (focL-end pf Sp) = focL-init pf (focL-end pf Sp)
 
 
 
-
+{-
 ∧-residual-loading : ∀{Γ A B L1 L2 U} → 
  Spine-l (Γ) (L1 ++ A ∧⁻ B ∷ L2) U → 
  Spine-l (Γ) (L1 ++ A ∷ B ∷ L2) U 
@@ -34,6 +34,7 @@ load-std (focL-end pf Sp) = focL-init pf (focL-end pf Sp)
 ∧-residual-loading {L1 = []} (focL-end pf (∧⁻L₁ Sp)) = {!!}
 ∧-residual-loading {L1 = []} (focL-end pf (∧⁻L₂ Sp)) = {!!}
 ∧-residual-loading {L1 = x ∷ L1} Sp = {!!}
+-}
 
 load-inv-step-adm : ∀{Γ1 Γ2 X L U} 
   → stable U 
@@ -46,16 +47,16 @@ load-inv-step-adm {Γ1} {X = X} pf Sp = focL-step pf (in-append-in {X = Pers X} 
   → Exp (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L 
   → Exp (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
 
-∧-context-loading-adm : ∀{Γ1 Γ2 A B L} 
-  → Exp-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L 
-  → Exp-l (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
-
-∧-context-loading-adm {Γ1} (focL-step pf In Sp) with fromctx Γ1 In
+postulate
+  ∧-context-loading-adm : ∀{Γ1 Γ2 A B L} 
+    → Exp-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L 
+    → Exp-l (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
+{-∧-context-loading-adm {Γ1} (focL-step pf In Sp) with fromctx Γ1 In
 ∧-context-loading-adm {Γ1} {Γ2} {A} {B} (focL-step pf In Sp) | inj₁ refl 
   = {!!}
 ... | inj₂ X = {!!} --focL-step pf {!!} (∧-context-loading-adm Sp)
 ∧-context-loading-adm {Γ1} (focL-end pf Sp) = focL-end pf (∧-context-adm {Γ1} Sp)
-
+-}
 
 ∧-context-adm {Γ1} (id⁺ v) with fromctx Γ1 v 
 ∧-context-adm (id⁺ v) | inj₁ ()
@@ -106,6 +107,8 @@ unload-all-l [] pf Sp In = Sp
 unload-all-l (x ∷ L) pf Sp In = unload-all-l L pf (focL-step pf (In (here refl)) Sp) (λ {x₁} z → In (there z))
 
 
+
+
 unload-all-term : ∀{Γ U} 
   → (L : List (Type ⁻)) 
   → (pf : stable U) 
@@ -114,6 +117,9 @@ unload-all-term : ∀{Γ U}
   → Term Γ [] U 
 unload-all-term L- pf Sp In = focL-init pf (unload-all-l L-  pf (focL-end pf Sp) In) 
 
+
+{- 
+TODO !!!!
 unload-one-adm : ∀{Γ X Y L- L+ U} 
   → (pf : stable U) 
   → Spine Γ (Y ∷ L-) (X ∷ L+) U 
@@ -121,7 +127,7 @@ unload-one-adm : ∀{Γ X Y L- L+ U}
   → Spine Γ L- (X ∷ L+) U 
 unload-one-adm {Y = a Q .⁻} pf () Sub
 unload-one-adm {Y = ↑ x} {[]} pf (↑L-cons pf₁ N) Sub = {!!}
-unload-one-adm {Y = ↑ x} {x₁ ∷ L-} pf (↑L-cons pf₁ N) Sub = {!!}
+unload-one-adm {Y = ↑ x} {x₁ ∷ L- } pf (↑L-cons pf₁ N) Sub = {!!}
 unload-one-adm {Y = A ⊃ B} pf (⊃L V Sp) Sub = {!!}
 unload-one-adm {Y = ⊤⁻} pf () Sub
 unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₁ Sp) Sub = {!!}
@@ -154,7 +160,8 @@ unload-all-adm : ∀{Γ X L- L+ U}
   → Data.List.map Pers L- ⊆ Γ 
   → Spine Γ [] (X ∷ L+) U 
 unload-all-adm {L- = []} pf Sp Sub = Sp
-unload-all-adm {L- = x ∷ L-} pf Sp Sub = unload-all-adm pf (unload-one-adm pf Sp Sub) (λ {x₁} z → Sub (there z))
+unload-all-adm {L- = x ∷ L- } pf Sp Sub = unload-all-adm pf (unload-one-adm pf Sp Sub) (λ {x₁} z → Sub (there z))
+-}
 
 
 spine-init : ∀{Γ Q LA U L+}
