@@ -391,6 +391,34 @@ postulate
 
 
 
+fuse-gen : List ((List (Type ⁻) × List (Type ⁺)) ⊎ List (Type ⁺))
+  → List (Type ⁺) → List (Type ⁻) × List (Type ⁺) 
+fuse-gen [] LL+ = ([] , LL+)
+fuse-gen (inj₁ (L- , L+) ∷ L) LL+ = L- ++ proj₁ (fuse-gen L LL+) , L+ ++ proj₂ (fuse-gen L LL+)
+fuse-gen (inj₂ L+ ∷ L) LL+ = proj₁ (fuse-gen L LL+) , L+ ++ proj₂ (fuse-gen L LL+)
+
+
+fuse-gen-expand : ∀{LL L+} → fuse-gen LL L+ ≡ proj₁ (fuse-gen LL L+) , proj₂ (fuse-gen LL L+)
+fuse-gen-expand = refl
+
+fuse-gen-proj₁ : ∀{LL L+ L'+} →  proj₁ (fuse-gen LL (L+ ++ L'+)) ≡ proj₁ (fuse-gen LL L+)
+fuse-gen-proj₁ {[]} = λ {L+} {L'+} → refl
+fuse-gen-proj₁ {inj₁ x ∷ LL} {L+} {L'+} with fuse-gen-proj₁ {LL = LL} {L+ = L+} {L'+ = L'+}
+... | Eq rewrite Eq = refl
+fuse-gen-proj₁ {inj₂ y ∷ LL} = fuse-gen-proj₁ {LL = LL}
+
+
+fuse-gen-proj₂  : ∀{LL L+ RA} 
+  → proj₂ (fuse-gen LL (L+ ++ RA)) ≡ 
+    proj₂ (fuse-gen LL L+) ++ RA 
+fuse-gen-proj₂ {LL = []} = refl
+fuse-gen-proj₂ {LL = inj₁ x ∷ LL} {L+} {RA} with fuse-gen-proj₂ {LL} {L+} {RA}
+... | Eq rewrite Eq | assoc (proj₂ x)  (proj₂ (fuse-gen LL L+)) (RA) = refl
+fuse-gen-proj₂ {LL = inj₂ y ∷ LL} {L+} {RA} with fuse-gen-proj₂ {LL} {L+} {RA}
+... | Eq rewrite Eq  | assoc y  (proj₂ (fuse-gen LL L+)) (RA) = refl
+
+
+
 
 
 

@@ -121,32 +121,6 @@ gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁻L₂ {L- = L-} {L+ = L+} Sp 
 
 
 
-fuse-gen : List ((List (Type ⁻) × List (Type ⁺)) ⊎ List (Type ⁺))
-  → List (Type ⁺) → List (Type ⁻) × List (Type ⁺) 
-fuse-gen [] LL+ = ([] , LL+)
-fuse-gen (inj₁ (L- , L+) ∷ L) LL+ = L- ++ proj₁ (fuse-gen L LL+) , L+ ++ proj₂ (fuse-gen L LL+)
-fuse-gen (inj₂ L+ ∷ L) LL+ = proj₁ (fuse-gen L LL+) , L+ ++ proj₂ (fuse-gen L LL+)
-
-
-fuse-gen-expand : ∀{LL L+} → fuse-gen LL L+ ≡ proj₁ (fuse-gen LL L+) , proj₂ (fuse-gen LL L+)
-fuse-gen-expand = refl
-
-fuse-gen-proj₁ : ∀{LL L+ L'+} →  proj₁ (fuse-gen LL (L+ ++ L'+)) ≡ proj₁ (fuse-gen LL L+)
-fuse-gen-proj₁ {[]} = λ {L+} {L'+} → refl
-fuse-gen-proj₁ {inj₁ x ∷ LL} {L+} {L'+} with fuse-gen-proj₁ {LL = LL} {L+ = L+} {L'+ = L'+}
-... | Eq rewrite Eq = refl
-fuse-gen-proj₁ {inj₂ y ∷ LL} = fuse-gen-proj₁ {LL = LL}
-
-
-fuse-gen-proj₂  : ∀{LL L+ RA} 
-  → proj₂ (fuse-gen LL (L+ ++ RA)) ≡ 
-    proj₂ (fuse-gen LL L+) ++ RA 
-fuse-gen-proj₂ {LL = []} = refl
-fuse-gen-proj₂ {LL = inj₁ x ∷ LL} {L+} {RA} with fuse-gen-proj₂ {LL} {L+} {RA}
-... | Eq rewrite Eq | assoc (proj₂ x)  (proj₂ (fuse-gen LL L+)) (RA) = refl
-fuse-gen-proj₂ {LL = inj₂ y ∷ LL} {L+} {RA} with fuse-gen-proj₂ {LL} {L+} {RA}
-... | Eq rewrite Eq  | assoc y  (proj₂ (fuse-gen LL L+)) (RA) = refl
-
 
 
 suc-foldr-eq : ∀{b} {c} {B : Set b} {C : Set c} (LL : List B) (LA : List C)
@@ -214,36 +188,37 @@ gsubst-more-gen-single-neg-lit pf (x ∷ LA) Exps Eq Sp (there In) = ⊥-elim (s
     Exp Γ (Left (inj₁ (proj₁ (fuse-gen LL L+) , ⊥⁺ ∷ Ω ++ proj₂ (fuse-gen LL L+))) U)
 
 
-gsubst-more-gen : ∀{Γ LL L+ U}
-  → stable U
-  → (LA : List (Type ⁻))
-  → All (\x →  Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (Data.List.zip LL  LA)
-  → length LL ≡ length LA
-  → Spine Γ LA L+ U
-  → Exp Γ (Left (inj₁ (fuse-gen LL L+)) U)
-
-
-
-
 ⊥⁺-admm {LL = []} pf Eq Sp Exps = ↑L-nil pf ⊥L
 -- We have a spine 
 ⊥⁺-admm {LL = inj₁ (proj₁ , proj₂) ∷ LL} {[]} pf () Sp Exps
 ⊥⁺-admm {LL = inj₁ (L'- , L'+) ∷ LL} {x ∷ LA} pf Eq Sp (px ∷ Exps) = {!⊥⁺-admm {LL = LL} pf ? Exps!}
-
 -- We have a term
-{- ⊥⁺-admm {LL = inj₂ [] ∷ LL} {[]} pf () SP Exps
-⊥⁺-admm {LL = inj₂ [] ∷ LL} {a Q .⁻ ∷ .[]} pf Eq id⁻ (px ∷ Exps) 
-  rewrite length-cons-nil {X = inj₂ []} {Y = a Q ⁻} {L = LL} Eq = ↑L-nil tt ⊥L
-⊥⁺-admm {LL = inj₂ [] ∷ LL} {↑ x ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ⊃ x₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ [] ∷ LL} {⊤⁻ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∧⁻ x₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!} -}
-
 ⊥⁺-admm {LL = inj₂ [] ∷ LL} {[]} pf () SP Exps
-⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} pf Eq SP (focL-init pf₁ Sp ∷ Exps) 
-  with loading-done Sp
-⊥⁺-admm {Γ} {inj₂ [] ∷ LL} {x ∷ LA} pf Eq SP (focL-init pf₁ Sp ∷ Exps) 
-  | L' , Sub , Sp' , H = {!unload-all L' pf ? Sub!}
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
+  with loading-done Sp2
+⊥⁺-admm {Γ} {inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
+  | L' , Sub , Sp' , H = {!unload-all-term ? pf (⊥⁺-admm pf Eq Sp1 (Sp' ∷ Exps)) !}
+
+-- Requires a generalization to unload a Spine even when the positive list is not nil
+
+{-
+Exp Γ
+(Left
+ (inj₁
+  ((L' ++ []) ++ proj₁ (fuse-gen LL .L+) ,
+   ⊥⁺ ∷
+   _Ω_1330 x Sp2 L' Sub Sp' H LL LA pf Eq Sp1 pf₁ Exps ++
+   proj₂ (fuse-gen LL .L+)))
+ .U)
+
+Exp Γ
+      (Left
+       (inj₁
+        (proj₁ (fuse-gen LL .L+) , ⊥⁺ ∷ .Ω ++ proj₂ (fuse-gen LL .L+)))
+       .U)
+-}
+
+
 
 
 ⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {[]} pf () Sp Exps
@@ -265,6 +240,15 @@ gsubst-more-gen : ∀{Γ LL L+ U}
 {-  with ⊥⁺-admm {LL = LL} {L+ = L+} {Ω = Ω ++ x ∷ y} {U = U} pf 
   (length-cons {X = inj₁ (LA , Ω)} {Y = x₁} LL LA Eq) {!!} Exps
 ... | Z rewrite assoc-cons-append ⊥⁺ Ω (x ∷ y) (proj₂ (fuse-gen LL L+)) = Z -}
+
+
+gsubst-more-gen : ∀{Γ LL L+ U}
+  → stable U
+  → (LA : List (Type ⁻))
+  → All (\x →  Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (Data.List.zip LL  LA)
+  → length LL ≡ length LA
+  → Spine Γ LA L+ U
+  → Exp Γ (Left (inj₁ (fuse-gen LL L+)) U)
 
 
 

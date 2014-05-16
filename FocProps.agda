@@ -118,8 +118,7 @@ unload-all-term : ∀{Γ U}
 unload-all-term L- pf Sp In = focL-init pf (unload-all-l L-  pf (focL-end pf Sp) In) 
 
 
-{- 
-TODO !!!!
+{-
 unload-one-adm : ∀{Γ X Y L- L+ U} 
   → (pf : stable U) 
   → Spine Γ (Y ∷ L-) (X ∷ L+) U 
@@ -133,6 +132,8 @@ unload-one-adm {Y = ⊤⁻} pf () Sub
 unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₁ Sp) Sub = {!!}
 unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₂ Sp) Sub = {!!}
 
+
+
 unload-all-adm-bis : ∀{Γ X L- L+ U} 
   → (pf : stable U) 
   → Spine Γ L- (X ∷ L+) U 
@@ -141,7 +142,7 @@ unload-all-adm-bis : ∀{Γ X L- L+ U}
 unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (↑L-cons pf₁ N) Sub = {!unload-all-adm-bis pf N ?!}
 unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (↑L-nil pf₁ N) Sub = {!!}
 unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (⊃L V Sp) Sub = {!!}
-unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (∧⁻L₁ Sp) Sub = {!!}
+unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (∧⁻L₁ Sp) Sub = unload-all-adm-bis pf Sp {!!}
 unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (∧⁻L₂ Sp) Sub = {!!}
 unload-all-adm-bis {X = ↓ X} {L+ = []} pf Sp Sub = {!!}
 unload-all-adm-bis {X = ⊥⁺} {L+ = []} pf Sp Sub = {!!}
@@ -162,6 +163,8 @@ unload-all-adm : ∀{Γ X L- L+ U}
 unload-all-adm {L- = []} pf Sp Sub = Sp
 unload-all-adm {L- = x ∷ L- } pf Sp Sub = unload-all-adm pf (unload-one-adm pf Sp Sub) (λ {x₁} z → Sub (there z))
 -}
+
+
 
 
 spine-init : ∀{Γ Q LA U L+}
@@ -342,11 +345,77 @@ spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
 η+-inv-all (x ∷ xs) (px ∷ Ts) = (η+-inv px) ∷ (η+-inv-all xs Ts)
 
 
+{- 
+⊥⁺-admm : ∀{Γ LL LA L+ Ω U} → 
+  stable U → 
+  length LL ≡ length LA →
+  Spine Γ LA L+ U →
+  All (λ x → Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (zipWith _,_ LL LA) → 
+    Exp Γ (Left (inj₁ (proj₁ (fuse-gen LL L+) , ⊥⁺ ∷ Ω ++ proj₂ (fuse-gen LL L+))) U)
+
+
+⊥⁺-admm {LL = []} pf Eq Sp Exps = ↑L-nil pf ⊥L
+-- We have a spine 
+⊥⁺-admm {LL = inj₁ (proj₁ , proj₂) ∷ LL} {[]} pf () Sp Exps
+⊥⁺-admm {LL = inj₁ (L'- , L'+) ∷ LL} {x ∷ LA} pf Eq Sp (px ∷ Exps) = {!⊥⁺-admm {LL = LL} pf ? Exps!}
+-- We have a term
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {[]} pf () SP Exps
+⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
+  with loading-done Sp2
+⊥⁺-admm {Γ} {inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
+  | L' , Sub , Sp' , H = {!unload-all-term ? pf (⊥⁺-admm pf Eq Sp1 (Sp' ∷ Exps)) !}
+
+-- Requires a generalization to unload a Spine even when the positive list is not nil
+
+{-
+Exp Γ
+(Left
+ (inj₁
+  ((L' ++ []) ++ proj₁ (fuse-gen LL .L+) ,
+   ⊥⁺ ∷
+   _Ω_1330 x Sp2 L' Sub Sp' H LL LA pf Eq Sp1 pf₁ Exps ++
+   proj₂ (fuse-gen LL .L+)))
+ .U)
+
+Exp Γ
+      (Left
+       (inj₁
+        (proj₁ (fuse-gen LL .L+) , ⊥⁺ ∷ .Ω ++ proj₂ (fuse-gen LL .L+)))
+       .U)
+-}
+
+
+
+
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {[]} pf () Sp Exps
+⊥⁺-admm {LL = inj₂ (a Q .⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (η⁺ N ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (↓ x ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (⊥⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∨ x₁ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (⊤⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∧⁺ x₁ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+{-
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {a Q .⁻ ∷ .[]} pf Eq id⁻ (px ∷ Exps) 
+  rewrite length-cons-nil {X = inj₂ (x ∷ y)} {Y = a Q ⁻} {L = LL} Eq = ↑L-nil tt ⊥L
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {↑ x₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {x₁ ⊃ x₂ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {⊤⁻ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {x₁ ∧⁻ x₂ ∷ .[]} pf Eq id⁻ (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {A ∧⁻ x₂ ∷ LA} pf Eq (∧⁻L₁ Sp) (px ∷ Exps) = {!!}
+⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {A ∧⁻ x₂ ∷ LA} pf Eq (∧⁻L₂ Sp) (px ∷ Exps) = {!!} -}
+{-  with ⊥⁺-admm {LL = LL} {L+ = L+} {Ω = Ω ++ x ∷ y} {U = U} pf 
+  (length-cons {X = inj₁ (LA , Ω)} {Y = x₁} LL LA Eq) {!!} Exps
+... | Z rewrite assoc-cons-append ⊥⁺ Ω (x ∷ y) (proj₂ (fuse-gen LL L+)) = Z -}
+
+
+-}
+
+
+
 
 {- *************
  IMPOSSIBILITIES 
 -}
-
 
 
 
@@ -384,3 +453,6 @@ spine-cons-neg-lit-absurd {X = ⊤⁻} id⁻ ()
 spine-cons-neg-lit-absurd {X = X ∧⁻ X₁} id⁻ ()
 spine-cons-neg-lit-absurd {X = A ∧⁻ X₁} (∧⁻L₁ Sp) In = spine-cons-neg-lit-absurd Sp In
 spine-cons-neg-lit-absurd {X = A ∧⁻ X₁} (∧⁻L₂ Sp) In = spine-cons-neg-lit-absurd Sp In 
+
+
+
