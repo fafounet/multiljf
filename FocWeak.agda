@@ -8,10 +8,9 @@ open Membership-≡
 open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 
 open import Foc
-open import FocSimpleProps
 open import Subset
 
-module Weak where
+module FocWeak where
 
 wk : ∀{Γ Γ' Form} → Γ ⊆ Γ' → Exp Γ Form → Exp Γ' Form
 

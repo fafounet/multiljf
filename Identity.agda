@@ -8,8 +8,8 @@ open Membership-≡
 
 
 open import Foc
-open import FocSubst
-open import Weak
+open import FocSimpleSubst
+open import FocWeak
 
 
 module Identity where

@@ -11,7 +11,9 @@ open import Data.List.Any
 open Membership-≡
 
 open import Foc
-open import Weak
+open import FocWeak
+open import FocCntr
+
 open import NatExtra
 open import ListExtra
 open import Subset
@@ -131,30 +133,29 @@ unload-one-adm {Y = A ⊃ B} pf (⊃L V Sp) Sub = {!!}
 unload-one-adm {Y = ⊤⁻} pf () Sub
 unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₁ Sp) Sub = {!!}
 unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₂ Sp) Sub = {!!}
+-}
 
-
-
+{-
+ TODO 
 unload-all-adm-bis : ∀{Γ X L- L+ U} 
   → (pf : stable U) 
   → Spine Γ L- (X ∷ L+) U 
   → Data.List.map Pers L- ⊆ Γ 
   → Spine Γ [] (X ∷ L+) U 
-unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (↑L-cons pf₁ N) Sub = {!unload-all-adm-bis pf N ?!}
-unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (↑L-nil pf₁ N) Sub = {!!}
-unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (⊃L V Sp) Sub = {!!}
-unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (∧⁻L₁ Sp) Sub = unload-all-adm-bis pf Sp {!!}
-unload-all-adm-bis {X = a Q .⁺} {L+ = []} pf (∧⁻L₂ Sp) Sub = {!!}
-unload-all-adm-bis {X = ↓ X} {L+ = []} pf Sp Sub = {!!}
-unload-all-adm-bis {X = ⊥⁺} {L+ = []} pf Sp Sub = {!!}
-unload-all-adm-bis {X = X ∨ X₁} {L+ = []} pf Sp Sub = {!!}
-unload-all-adm-bis {X = ⊤⁺} {L+ = []} pf Sp Sub = {!!}
-unload-all-adm-bis {X = X ∧⁺ X₁} {L+ = []} pf Sp Sub = {!!}
+unload-all-adm-bis {L+ = []} pf (↑L-cons {y} pf₁ N) Sub = 
+  cntr-+-[]-spine pf (y) (unload-all-adm-bis pf₁ N (λ {x} z → Sub (there z)) ) (Sub (here refl)) 
+unload-all-adm-bis {L+ = []} pf (↑L-nil pf₁ N) Sub = ↑L-nil pf₁ N
+unload-all-adm-bis {L+ = []} pf (⊃L V Sp) Sub = {!!}
+unload-all-adm-bis {L+ = []} pf (∧⁻L₁ Sp) Sub = 
+  -- An immediate recursive call fails
+  {!!}
+unload-all-adm-bis {L+ = []} pf (∧⁻L₂ Sp) Sub = {!!}
 unload-all-adm-bis {L+ = x ∷ L+} pf Sp Sub = {!!}
+-}
 
 
 
-
-
+{-
 unload-all-adm : ∀{Γ X L- L+ U} 
   → (pf : stable U) 
   → Spine Γ L- (X ∷ L+) U 
