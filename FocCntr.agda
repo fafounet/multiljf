@@ -15,8 +15,6 @@ module FocCntr where
 
 
 
-
-
 postulate
   value-term-∧⁺R-absurd :  ∀{Q R} 
     → Q ≢ R

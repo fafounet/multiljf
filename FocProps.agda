@@ -12,7 +12,6 @@ open Membership-≡
 
 open import Foc
 open import FocWeak
-open import FocCntr
 
 open import NatExtra
 open import ListExtra
@@ -231,9 +230,8 @@ postulate
 postulate 
   spine-↑-adm : ∀{Γ L- L1 L2 A U} → Spine Γ L- ((L1 ++ [ A ]) ++ L2) U → Spine Γ (↑ A ∷ L-) (L1 ++ L2) U
 
-postulate
-  spine-⊤⁺-adm :  ∀{Γ L- L+ U} → Spine Γ L- L+  U → Spine Γ L- (⊤⁺ ∷ L+) U
-
+-- The following is NOT admissible, if L- is an atom
+-- spine-⊤⁺-adm :  ∀{Γ L- L+ U} → Spine Γ L- L+  U → Spine Γ L- (⊤⁺ ∷ L+) U
 
 
 
@@ -245,7 +243,7 @@ has-atomic-residual ⊤⁻ = false
 has-atomic-residual (x ∧⁻ x₁) = {!!} --has-atomic-residual x  || has-atomic-residual x₁
 -}
 
-{-
+
 spine-⊥ : ∀{Γ L- L+ U} → stable U →  (Spine Γ L- (⊥⁺ ∷ L+) U ⊎ ∃ λ Q → (a Q ⁻ ∈ L-))
 spine-⊥ {L- = []} pf = inj₁ (↑L-nil pf ⊥L)
 spine-⊥ {L- = a Q .⁻ ∷ L- } pf = inj₂ (Q , here refl)
@@ -253,13 +251,16 @@ spine-⊥ {L- = ↑ x ∷ L- } pf = {!!}
 spine-⊥ {L- = x ⊃ x₁ ∷ L- } pf = {!!}
 spine-⊥ {L- = ⊤⁻ ∷ L- } pf = {!!}
 spine-⊥ {Γ} {x ∧⁻ x₁ ∷ L- } {L+} {U} pf with spine-⊥ {Γ} {L- } {L+} {U} pf  
-spine-⊥ {Γ} {x₁ ∧⁻ x₂ ∷ L- } pf | inj₁ x = {!inj!}
-spine-⊥ {Γ} {x ∧⁻ x₁ ∷ L- } pf | inj₂ y = {!!}
+spine-⊥ {Γ} {x₁ ∧⁻ x₂ ∷ L- } pf | inj₁ x = {!!}
+spine-⊥ {Γ} {x ∧⁻ x₁ ∷ L-} pf | inj₂ (Q , In) =  inj₂ (Q , there In)
 
--}
-
-
-
+spine'-⊥ : ∀{Γ L- L+ U} → stable U →  All (λ x → ∀{Q} → x ≢ a Q ⁻) L- → Spine Γ L- (⊥⁺ ∷ L+) U 
+spine'-⊥ {L- = []} pf All = ↑L-nil pf ⊥L
+spine'-⊥ {L- = a Q .⁻ ∷ xs} pf (px ∷ All) = ⊥-elim (px refl)
+spine'-⊥ {L- = ↑ x ∷ L-} pf All = {!!}
+spine'-⊥ {L- = x ⊃ x₁ ∷ L-} pf All = {!!}
+spine'-⊥ {L- = ⊤⁻ ∷ L-} pf All = {!!}
+spine'-⊥ {L- = x ∧⁻ x₁ ∷ L-} pf (px ∷ All) = {!spine'-⊥ pf All!}
 
 
 
@@ -368,7 +369,6 @@ spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
 
 -- Requires a generalization to unload a Spine even when the positive list is not nil
 
-{-
 Exp Γ
 (Left
  (inj₁
@@ -383,32 +383,6 @@ Exp Γ
        (inj₁
         (proj₁ (fuse-gen LL .L+) , ⊥⁺ ∷ .Ω ++ proj₂ (fuse-gen LL .L+)))
        .U)
--}
-
-
-
-
-⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {[]} pf () Sp Exps
-⊥⁺-admm {LL = inj₂ (a Q .⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (η⁺ N ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (↓ x ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (⊥⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (x ∨ x₁ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (⊤⁺ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (x ∧⁺ x₁ ∷ y) ∷ LL} {A₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-{-
-⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {a Q .⁻ ∷ .[]} pf Eq id⁻ (px ∷ Exps) 
-  rewrite length-cons-nil {X = inj₂ (x ∷ y)} {Y = a Q ⁻} {L = LL} Eq = ↑L-nil tt ⊥L
-⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {↑ x₁ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {x₁ ⊃ x₂ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {⊤⁻ ∷ LA} pf Eq Sp (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {x₁ ∧⁻ x₂ ∷ .[]} pf Eq id⁻ (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {A ∧⁻ x₂ ∷ LA} pf Eq (∧⁻L₁ Sp) (px ∷ Exps) = {!!}
-⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {A ∧⁻ x₂ ∷ LA} pf Eq (∧⁻L₂ Sp) (px ∷ Exps) = {!!} -}
-{-  with ⊥⁺-admm {LL = LL} {L+ = L+} {Ω = Ω ++ x ∷ y} {U = U} pf 
-  (length-cons {X = inj₁ (LA , Ω)} {Y = x₁} LL LA Eq) {!!} Exps
-... | Z rewrite assoc-cons-append ⊥⁺ Ω (x ∷ y) (proj₂ (fuse-gen LL L+)) = Z -}
-
-
 -}
 
 

@@ -1,6 +1,7 @@
 open import Data.List
 open import Data.Nat
 open import Data.List.Any
+open import Data.List.All hiding (_∷_)
 open Membership-≡
 open import Data.Sum
 open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
@@ -54,3 +55,19 @@ postulate
 
 postulate
   in-append-double-weak : ∀{b} {B : Set b} {X Y Z : B} {L1 L2} → X ∈ (L1 ++ L2) → X ∈ (L1 ++ Y ∷ Z ∷ L2)
+
+postulate
+  all-append : ∀{a p} {A : Set a} {P : A → Set p} {x xs} (px : P x) (pxs : All P xs) → All P (xs ++ [ x ])
+
+
+all-disjoint-sum-r : ∀{a b c} {A : Set a}  {xs : List A} {M : A → Set b} {M' : A → Set c}
+  → All (λ n → M n) xs 
+  → All (λ w → _⊎_ {b = c} (M w) (M' w)) xs
+all-disjoint-sum-r {xs = []} A₁ = []
+all-disjoint-sum-r  {xs = e ∷ xs} {M = M} {M' = M'} (px All.∷ A₁) = inj₁ px All.∷ all-disjoint-sum-r A₁
+
+all-disjoint-sum-l : ∀{a b c} {A : Set a}  {xs : List A} {M : A → Set b} {M' : A → Set c}
+  → All (λ n → M n) xs 
+  → All (λ w → _⊎_ {b = b} (M' w) (M w)) xs
+all-disjoint-sum-l {xs = []} A₁ = []
+all-disjoint-sum-l  {xs = e ∷ xs} {M = M} {M' = M'} (px All.∷ A₁) = inj₂ px All.∷ all-disjoint-sum-l A₁

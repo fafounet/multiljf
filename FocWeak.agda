@@ -176,5 +176,12 @@ weak+-[]-spine : ∀{Γ L+ U} → (X : Type ⁺) → Spine Γ [] L+ U →  Spine
 weak+-[]-spine {L+ = []} X ()
 weak+-[]-spine {L+ = X₁ ∷ L+} X (↑L-nil pf N) = ↑L-nil pf (weak+-term X N)
 
-
-
+{-
+weak-spine : ∀{Γ X L- S L+} → All (λ x → x ≢ S) L- → Spine Γ L- L+ (Susp S) → Spine Γ (X ∷ L-) L+ (Susp S)
+weak-spine (px ∷ []) (id⁻ {X})  = ⊥-elim (px refl)
+weak-spine All (↑L-cons pf N) = {!!}
+weak-spine All (↑L-nil pf N) = {!!}
+weak-spine All (⊃L V Sp) = {!!}
+weak-spine All (∧⁻L₁ Sp) = {!!}
+weak-spine (px ∷ All) (∧⁻L₂ Sp) = {!∧⁻L₂ (weak-spine ? Sp)!}
+-}
