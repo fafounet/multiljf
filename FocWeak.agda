@@ -7,6 +7,8 @@ open import Data.Empty
 open Membership-≡
 open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 
+open import ListExtra
+
 open import Foc
 open import Subset
 
@@ -103,6 +105,10 @@ wkex2 {Γ} {A} {B} {Form} = wk (sub-cons-congr (sub-wkex {ys = Γ}))
 
 cntr : ∀{A Form} → (Γ : Ctx) → A ∈ Γ → Exp (A ∷ Γ) Form → Exp Γ Form
 cntr Γ In Exp = wk (sub-cntr Γ In) Exp
+
+postulate
+  cntr-there : ∀{A Γ' Form} → (Γ : Ctx) → Exp (A ∷ Γ ++ A ∷ Γ') Form → Exp (A ∷ Γ ++ Γ') Form
+
 
 
 {- The following is not true:

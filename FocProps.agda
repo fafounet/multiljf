@@ -262,67 +262,6 @@ spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
 
 
 
-∧+-inv : ∀{Γ U Ω A B} → Term Γ (A ∧⁺ B ∷ Ω) U → Term Γ (A ∷ B ∷ Ω) U
-∧+-inv (∧⁺L N) = N
-
-∨+l-inv : ∀{Γ U Ω A B} → Term Γ (A ∨ B ∷ Ω) U → Term Γ (A ∷ Ω) U
-∨+l-inv (∨L N₁ N₂) = N₁
-
-∨+r-inv : ∀{Γ U Ω A B} → Term Γ (A ∨ B ∷ Ω) U → Term Γ (B ∷ Ω) U
-∨+r-inv (∨L N₁ N₂) = N₂
-
-⊤+-inv : ∀{Γ U Ω} → Term Γ (⊤⁺ ∷ Ω) U → Term Γ Ω U
-⊤+-inv (⊤⁺L N) = N
-
-↓-inv : ∀{Γ A U Ω} → Term Γ (↓ A ∷ Ω) U → Term (Pers A ∷ Γ) Ω U
-↓-inv (↓L N) = N
-
-η+-inv : ∀{Γ Q U Ω} → Term Γ (a Q ⁺ ∷ Ω) U → Term (HSusp (a Q ⁺) ∷ Γ) Ω U
-η+-inv (η⁺ N) = N
-
-
-
-∧+-inv-all : ∀{Γ Ω A B} 
-  → (L : List (Type ⁻))
-  → All (\x → Term Γ (A ∧⁺ B ∷ Ω) (Susp x)) L
-  → All (\x → Term Γ (A ∷ B ∷ Ω) (Susp x)) L
-∧+-inv-all [] Ts = []
-∧+-inv-all (x ∷ xs) (px ∷ Ts) = (∧+-inv px) ∷ (∧+-inv-all xs Ts)
-
-⊤+-inv-all : ∀{Γ Ω} 
-  → (L : List (Type ⁻))
-  → All (\x → Term Γ (⊤⁺ ∷ Ω) (Susp x)) L
-  → All (\x → Term Γ (Ω) (Susp x)) L
-⊤+-inv-all [] Ts = []
-⊤+-inv-all (x ∷ xs) (px ∷ Ts) = (⊤+-inv px) ∷ (⊤+-inv-all xs Ts)
-
-∨+l-inv-all : ∀{Γ A B Ω} 
-  → (L : List (Type ⁻))
-  → All (\x → Term Γ (A ∨ B ∷ Ω) (Susp x)) L
-  → All (\x → Term Γ (A ∷ Ω) (Susp x)) L
-∨+l-inv-all [] Ts = []
-∨+l-inv-all (x ∷ xs) (px ∷ Ts) = (∨+l-inv px) ∷ (∨+l-inv-all xs Ts)
-
-∨+r-inv-all : ∀{Γ A B Ω} 
-  → (L : List (Type ⁻))
-  → All (\x → Term Γ (A ∨ B ∷ Ω) (Susp x)) L
-  → All (\x → Term Γ (B ∷ Ω) (Susp x)) L
-∨+r-inv-all [] Ts = []
-∨+r-inv-all (x ∷ xs) (px ∷ Ts) = (∨+r-inv px) ∷ (∨+r-inv-all xs Ts)
-
-↓-inv-all : ∀{Γ A Ω} 
-  → (L : List (Type ⁻))
-  → All (\x → Term Γ (↓ A ∷ Ω) (Susp x)) L
-  → All (\x → Term (Pers A ∷ Γ) Ω (Susp x)) L
-↓-inv-all [] Ts = []
-↓-inv-all (x ∷ xs) (px ∷ Ts) = (↓-inv px) ∷ (↓-inv-all xs Ts)
-
-η+-inv-all : ∀{Γ Q Ω} 
-  → (L : List (Type ⁻))
-  → All (\x → Term Γ (a Q ⁺ ∷ Ω) (Susp x)) L
-  → All (\x → Term (HSusp (a Q ⁺) ∷ Γ) Ω (Susp x)) L
-η+-inv-all [] Ts = []
-η+-inv-all (x ∷ xs) (px ∷ Ts) = (η+-inv px) ∷ (η+-inv-all xs Ts)
 
 
 {- 

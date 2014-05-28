@@ -58,6 +58,10 @@ cntr-pers-term {L+ = ⊤⁺ ∷ L+} pf (⊤⁺L N) In =
 cntr-pers-term {L+ = Z ∧⁺ Z₁ ∷ L+} pf (∧⁺L N) In = ∧⁺L (cntr-pers-term pf N In) 
 
 
+cntr-pers-term-bis : ∀{Γ A L+ U} → Term (Pers A ∷ Γ) (↓ A ∷ L+) U → Term Γ (↓ A ∷ L+) U
+cntr-pers-term-bis {Γ} {A} (↓L N) =  ↓L (cntr (Pers A ∷ Γ) (here refl) N)  
+
+
 
 
 cntr-+-[]-spine : ∀{Γ Y L+ U}
@@ -70,6 +74,21 @@ cntr-+-[]-spine : ∀{Γ Y L+ U}
 cntr-+-[]-spine pf X (↑L-nil pf₁ N) In = ↑L-nil pf₁ (cntr-pers-term pf₁ N In)
 
 
+
+cntr-+-spine : ∀{Γ X L- L+ U} → Spine Γ L- ( X ∷ X ∷ L+) U → Spine Γ L- (X ∷ L+) U
+cntr-+-spine (↑L-cons pf N) = ↑L-cons pf (cntr-+-spine N)
+cntr-+-spine (↑L-nil pf N) = {!!}
+cntr-+-spine (⊃L V Sp) = ⊃L V (cntr-+-spine Sp)
+cntr-+-spine (∧⁻L₁ Sp) = ∧⁻L₁ (cntr-+-spine Sp)
+cntr-+-spine (∧⁻L₂ Sp) = ∧⁻L₂ (cntr-+-spine Sp) 
+
+
+cntr-⁻-spine : ∀{Γ X L- L+ U} → Spine Γ (X ∷ X ∷ L-) L+ U → Spine Γ (X ∷ L-) L+ U
+cntr-⁻-spine {X = ↑ x} {L+ = []} (↑L-cons pf (↑L-cons pf₁ N)) = {!!}
+cntr-⁻-spine {X = ↑ X} {L+ = x ∷ L+} (↑L-cons pf N) = {!!}
+cntr-⁻-spine (⊃L V Sp) = {!!}
+cntr-⁻-spine (∧⁻L₁ Sp) = {!!}
+cntr-⁻-spine (∧⁻L₂ Sp) = {!!} 
 
 -- The following is not true:
 -- cntr-hsusp-term : ∀{Γ X L+ U} → Term Γ (X ∷ L+) U → HSusp X ∈ Γ → Term Γ L+ U

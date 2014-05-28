@@ -50,6 +50,14 @@ postulate
   in-append-in : ∀{b} {B : Set b} {X : B} {L1 L2} →  X ∈ (L1 ++ X ∷ L2)
 
 postulate
+  in-append-left : ∀{b} {B : Set b} {X : B} {L1 L2} →  X ∈ L1 → X ∈ (L1 ++ L2)
+
+postulate
+  in-append-right : ∀{b} {B : Set b} {X : B} {L1 L2} →  X ∈ L2 → X ∈ (L1 ++ L2)
+
+
+
+postulate
   in-append-weak : ∀{b} {B : Set b} {X Y : B} {L1 L2} → X ∈ (L1 ++ L2) → X ∈ (L1 ++ Y ∷ L2)
 
 
