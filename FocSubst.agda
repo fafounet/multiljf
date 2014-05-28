@@ -10,6 +10,7 @@ open Membership-≡
 
 open import Foc
 open import FocProps
+open import FocAdmissible
 open import ListExtra
 
 
@@ -96,8 +97,8 @@ gsubst-gen {LL = .(inj₂ []) ∷ LL} pf (x₁ ∷ LA) (focL-init pf₁ Sp ∷ E
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (η⁺ N ∷ Exps) Eq Sp = {!!}
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (↓L N ∷ Exps) Eq Sp = {!!}
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊥L ∷ Exps) Eq Sp = {!!}
-gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∨L N₁ N₂ ∷ Exps) Eq Sp = 
-  spine-∨-adm (gsubst-gen pf (x₁ ∷ LA) (N₁ ∷ Exps) Eq Sp) (gsubst-gen pf (x₁ ∷ LA) (N₂ ∷ Exps) Eq Sp ) 
+gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∨L N₁ N₂ ∷ Exps) Eq Sp = {!!}
+  -- spine-∨-adm (gsubst-gen pf (x₁ ∷ LA) (N₁ ∷ Exps) Eq Sp) (gsubst-gen pf (x₁ ∷ LA) (N₂ ∷ Exps) Eq Sp ) 
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊤⁺L N ∷ Exps) Eq Sp = 
  {!!}
 gsubst-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∧⁺L N ∷ Exps) Eq Sp = 
@@ -268,8 +269,8 @@ gsubst-more-gen {Γ} {._ ∷ LL} pf (x₁ ∷ LA) (⊥L ∷ Exps) Eq Sp
   | inj₂ (RA , Sp' , R) = {!gsubst-more-gen pf LA Exps ? Sp'!} 
   -- Here it's not possible to use ⊥⁺L admissibility simply because it's not true! -}
 
-gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∨L N₁ N₂ ∷ Exps) Eq Sp = 
-  spine-∨-adm (gsubst-more-gen pf (x₁ ∷ LA) (N₁ ∷ Exps) Eq Sp) (gsubst-more-gen pf (x₁ ∷ LA) (N₂ ∷ Exps) Eq Sp ) 
+gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (∨L N₁ N₂ ∷ Exps) Eq Sp = {!!}
+  --spine-∨-adm (gsubst-more-gen pf (x₁ ∷ LA) (N₁ ∷ Exps) Eq Sp) (gsubst-more-gen pf (x₁ ∷ LA) (N₂ ∷ Exps) Eq Sp ) 
 gsubst-more-gen {LL = ._ ∷ LL} pf (x₁ ∷ LA) (⊤⁺L N ∷ Exps) Eq Sp = 
  {!!}
 gsubst-more-gen {LL = inj₂ (A ∧⁺ B ∷ Ω) ∷ LL} pf (x₁ ∷ LA) (∧⁺L N ∷ Exps) Eq Sp = 

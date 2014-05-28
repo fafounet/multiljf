@@ -49,6 +49,7 @@ load-inv-step-adm {Γ1} {X = X} pf Sp = focL-step pf (in-append-in {X = Pers X} 
   → Exp (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
 
 postulate
+  -- TODO : PROBABLY WRONG!!!!
   ∧-context-loading-adm : ∀{Γ1 Γ2 A B L} 
     → Exp-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L 
     → Exp-l (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
@@ -173,8 +174,7 @@ spine-init : ∀{Γ Q LA U L+}
 spine-init id⁻ = refl , refl
 
 
-spine-possib-phases : ∀{Γ LA U L+}
-  → (A : Type ⁻)
+spine-possib-phases : ∀{Γ LA U L+ A}
   → Spine Γ (A ∷ LA) L+ U 
   → ((LA ≡ []) × (L+ ≡ []))
          ⊎
@@ -183,55 +183,31 @@ spine-possib-phases : ∀{Γ LA U L+}
       -- It's important to be able to reconstruct the negative multifocused part
       -- for ANY spine, 
        (∀{LA' L'+ U'} → stable U' → Spine Γ LA' (L'+ ++ RA) U' →  Spine Γ (A ∷ LA') L'+ U'))
-spine-possib-phases (a Q .⁻) id⁻ = inj₁ (refl , refl)
-spine-possib-phases (↑ A) id⁻ = inj₁ (refl , refl)
-spine-possib-phases {Γ} {[]} {U} {L+} (↑ x) (↑L-cons pf N) = 
+spine-possib-phases id⁻ = inj₁ (refl , refl)
+spine-possib-phases {Γ} {[]} {U} {L+} {↑ x} (↑L-cons pf N) = 
   inj₂ (x ∷ [] , N , ↑L-cons)
-spine-possib-phases {Γ} {x ∷ LA} (↑ x₁) (↑L-cons pf N) with spine-possib-phases _ N
-spine-possib-phases {Γ} {x ∷ LA} (↑ x₁) (↑L-cons pf N) | inj₁ x₂ = inj₂ (x₁ ∷ [] , N , ↑L-cons)
-spine-possib-phases {Γ} {x ∷ LA} (↑ x₁) (↑L-cons pf N) | inj₂ y = inj₂ (x₁ ∷ [] , N , ↑L-cons)
+spine-possib-phases {Γ} {x ∷ LA} {A = ↑ x₁} (↑L-cons pf N) with spine-possib-phases N
+spine-possib-phases {Γ} {x ∷ LA} {A = ↑ x₁} (↑L-cons pf N) | inj₁ x₂ = inj₂ (x₁ ∷ [] , N , ↑L-cons)
+spine-possib-phases {Γ} {x ∷ LA} {A = ↑ x₁} (↑L-cons pf N) | inj₂ y = inj₂ (x₁ ∷ [] , N , ↑L-cons)
 
-spine-possib-phases (A ⊃ A₁) id⁻ = inj₁ (refl , refl)
-spine-possib-phases (A ⊃ B) (⊃L V Sp) with spine-possib-phases B Sp
-spine-possib-phases (A ⊃ B) (⊃L V Sp) | inj₁ x = inj₁ x
-spine-possib-phases (A ⊃ B) (⊃L V Sp) | inj₂ (RA  , Sp' , R)  = 
+spine-possib-phases (⊃L V Sp) with spine-possib-phases Sp
+spine-possib-phases (⊃L V Sp) | inj₁ x = inj₁ x
+spine-possib-phases (⊃L V Sp) | inj₂ (RA  , Sp' , R)  = 
   inj₂ (RA , Sp' , (λ {x₁} {x₂} {x₃} pf x₄  → ⊃L V (R pf x₄)))
 
-spine-possib-phases ⊤⁻ id⁻ = inj₁ (refl , refl)
-spine-possib-phases (A ∧⁻ A₁) id⁻ = inj₁ (refl , refl)
-spine-possib-phases (A ∧⁻ A₁) (∧⁻L₁ Sp) with spine-possib-phases A Sp
-spine-possib-phases (A ∧⁻ A₁) (∧⁻L₁ Sp) | inj₁ x = inj₁ x
-spine-possib-phases (A ∧⁻ A₁) (∧⁻L₁ Sp) | inj₂ (RA , Sp' , R) = 
+spine-possib-phases (∧⁻L₁ Sp) with spine-possib-phases Sp
+spine-possib-phases (∧⁻L₁ Sp) | inj₁ x = inj₁ x
+spine-possib-phases (∧⁻L₁ Sp) | inj₂ (RA , Sp' , R) = 
   inj₂ (RA  , Sp' , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₁ (R pf x₄)))
-spine-possib-phases (A ∧⁻ A₁) (∧⁻L₂ Sp) with spine-possib-phases A₁ Sp
-spine-possib-phases (A ∧⁻ A₁) (∧⁻L₂ Sp) | inj₁ x = inj₁ x
-spine-possib-phases (A ∧⁻ A₁) (∧⁻L₂ Sp) | inj₂ (RA , Sp' , R) = 
+spine-possib-phases (∧⁻L₂ Sp) with spine-possib-phases Sp
+spine-possib-phases (∧⁻L₂ Sp) | inj₁ x = inj₁ x
+spine-possib-phases (∧⁻L₂ Sp) | inj₂ (RA , Sp' , R) = 
   inj₂ (RA , Sp' , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₂ (R pf x₄)))
 
 
 
 
-{- Is there a way to derive this for all rules???? -}
-term-∧⁺-adm : ∀{Γ L2 A B U} → (L1 : List (Type ⁺)) → Term Γ (L1 ++ A ∷ B ∷ L2) U → Term Γ (L1 ++ A ∧⁺ B ∷ L2) U
-term-∧⁺-adm [] T = ∧⁺L T
-term-∧⁺-adm (._ ∷ xs) (η⁺ N) = η⁺ (term-∧⁺-adm xs N)
-term-∧⁺-adm (._ ∷ xs) (↓L N) = ↓L (term-∧⁺-adm xs N)
-term-∧⁺-adm (.⊥⁺ ∷ xs) ⊥L = ⊥L
-term-∧⁺-adm (._ ∷ xs) (∨L {A₁} {B₁} N₁ N₂) = ∨L (term-∧⁺-adm (A₁ ∷ xs) N₁) (term-∧⁺-adm (B₁ ∷ xs) N₂)
-term-∧⁺-adm (.⊤⁺ ∷ xs) (⊤⁺L N) = ⊤⁺L (term-∧⁺-adm xs N)
-term-∧⁺-adm (._ ∷ xs) (∧⁺L {A = A₁} {B = B₁} N) = ∧⁺L (term-∧⁺-adm (A₁ ∷ B₁ ∷ xs) N)
 
-postulate
-  spine-∧⁺-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ B ∷ L+) U → Spine Γ L- (A ∧⁺ B ∷ L+) U
-
-postulate
-  spine-∨-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ L+) U → Spine Γ L- (B ∷ L+) U → Spine Γ L- (A ∨ B ∷ L+) U
-  
-postulate 
-  spine-↑-adm : ∀{Γ L- L1 L2 A U} → Spine Γ L- ((L1 ++ [ A ]) ++ L2) U → Spine Γ (↑ A ∷ L-) (L1 ++ L2) U
-
--- The following is NOT admissible, if L- is an atom
--- spine-⊤⁺-adm :  ∀{Γ L- L+ U} → Spine Γ L- L+  U → Spine Γ L- (⊤⁺ ∷ L+) U
 
 
 
@@ -244,6 +220,8 @@ has-atomic-residual (x ∧⁻ x₁) = {!!} --has-atomic-residual x  || has-atomi
 -}
 
 
+{-
+--TODO: Generalize with suspended formula and residuals, otherwise this is not true
 spine-⊥ : ∀{Γ L- L+ U} → stable U →  (Spine Γ L- (⊥⁺ ∷ L+) U ⊎ ∃ λ Q → (a Q ⁻ ∈ L-))
 spine-⊥ {L- = []} pf = inj₁ (↑L-nil pf ⊥L)
 spine-⊥ {L- = a Q .⁻ ∷ L- } pf = inj₂ (Q , here refl)
@@ -251,17 +229,17 @@ spine-⊥ {L- = ↑ x ∷ L- } pf = {!!}
 spine-⊥ {L- = x ⊃ x₁ ∷ L- } pf = {!!}
 spine-⊥ {L- = ⊤⁻ ∷ L- } pf = {!!}
 spine-⊥ {Γ} {x ∧⁻ x₁ ∷ L- } {L+} {U} pf with spine-⊥ {Γ} {L- } {L+} {U} pf  
-spine-⊥ {Γ} {x₁ ∧⁻ x₂ ∷ L- } pf | inj₁ x = {!!}
-spine-⊥ {Γ} {x ∧⁻ x₁ ∷ L-} pf | inj₂ (Q , In) =  inj₂ (Q , there In)
+spine-⊥ {Γ} {x₁ ∧⁻ x₂ ∷ L- } pf | inj₁ x = {!!} --TODO: Weaken
+spine-⊥ {Γ} {x ∧⁻ x₁ ∷ L- } pf | inj₂ (Q , In) =  inj₂ (Q , there In)
 
 spine'-⊥ : ∀{Γ L- L+ U} → stable U →  All (λ x → ∀{Q} → x ≢ a Q ⁻) L- → Spine Γ L- (⊥⁺ ∷ L+) U 
 spine'-⊥ {L- = []} pf All = ↑L-nil pf ⊥L
 spine'-⊥ {L- = a Q .⁻ ∷ xs} pf (px ∷ All) = ⊥-elim (px refl)
-spine'-⊥ {L- = ↑ x ∷ L-} pf All = {!!}
-spine'-⊥ {L- = x ⊃ x₁ ∷ L-} pf All = {!!}
-spine'-⊥ {L- = ⊤⁻ ∷ L-} pf All = {!!}
-spine'-⊥ {L- = x ∧⁻ x₁ ∷ L-} pf (px ∷ All) = {!spine'-⊥ pf All!}
-
+spine'-⊥ {L- = ↑ x ∷ L- } pf All = {!!}
+spine'-⊥ {L- = x ⊃ x₁ ∷ L- } pf All = {!!}
+spine'-⊥ {L- = ⊤⁻ ∷ L- } pf All = {!!}
+spine'-⊥ {L- = x ∧⁻ x₁ ∷ L- } pf (px ∷ All) = {!spine'-⊥ pf All!}
+-}
 
 
 spine-[]-[] : ∀{Γ U} → Spine Γ [] [] U → ⊥

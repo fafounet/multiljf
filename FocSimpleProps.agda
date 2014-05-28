@@ -115,13 +115,6 @@ spinel-and-notand-absurd (focL-end pf Sp) In A =
 
 ----
 ----
-----
-----
-
-
-
-
-
 
 
 
