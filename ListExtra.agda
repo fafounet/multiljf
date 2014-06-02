@@ -1,5 +1,6 @@
 open import Data.List
 open import Data.Nat
+open import Data.Product
 open import Data.List.Any
 open import Data.List.All hiding (_∷_)
 open Membership-≡
@@ -72,10 +73,16 @@ all-disjoint-sum-r : ∀{a b c} {A : Set a}  {xs : List A} {M : A → Set b} {M'
   → All (λ n → M n) xs 
   → All (λ w → _⊎_ {b = c} (M w) (M' w)) xs
 all-disjoint-sum-r {xs = []} A₁ = []
-all-disjoint-sum-r  {xs = e ∷ xs} {M = M} {M' = M'} (px All.∷ A₁) = inj₁ px All.∷ all-disjoint-sum-r A₁
+all-disjoint-sum-r  (px All.∷ A₁) = inj₁ px All.∷ all-disjoint-sum-r A₁
 
 all-disjoint-sum-l : ∀{a b c} {A : Set a}  {xs : List A} {M : A → Set b} {M' : A → Set c}
   → All (λ n → M n) xs 
   → All (λ w → _⊎_ {b = b} (M' w) (M w)) xs
 all-disjoint-sum-l {xs = []} A₁ = []
-all-disjoint-sum-l  {xs = e ∷ xs} {M = M} {M' = M'} (px All.∷ A₁) = inj₂ px All.∷ all-disjoint-sum-l A₁
+all-disjoint-sum-l (px All.∷ A₁) = inj₂ px All.∷ all-disjoint-sum-l A₁
+
+
+in-split : ∀{a} {A : Set a} {X : A} {L : List A}  → X ∈ L → ∃ λ L1 → ∃ λ L2 → L ≡ (L1 ++ X ∷ L2)
+in-split (here {xs = xs} refl) = [] , xs , refl
+in-split (there In) with in-split In
+in-split {X = X} (there {x} {xs} In) | L1 , L2 , Eq = x ∷ L1 , L2 , cons-equiv xs (L1 ++ X ∷ L2) Eq   

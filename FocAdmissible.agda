@@ -11,6 +11,8 @@ module FocAdmissible where
 open import Foc
 open import FocWeak
 open import FocProps
+open import ListExtra
+open import NatExtra
 
 
 ∧+-inv : ∀{Γ U Ω A B} → Term Γ (A ∧⁺ B ∷ Ω) U → Term Γ (A ∷ B ∷ Ω) U
@@ -89,15 +91,49 @@ term-∧⁺-adm {L1 = ._ ∷ L1} (∨L {A1} {B1} N₁ N₂) =  ∨L (term-∧⁺
 term-∧⁺-adm {L1 = .⊤⁺ ∷ L1} (⊤⁺L N) = ⊤⁺L (term-∧⁺-adm {L1 = L1} N)
 term-∧⁺-adm {L1 = ._ ∷ L1} (∧⁺L {A = A1} {B = B1} N) = ∧⁺L (term-∧⁺-adm {L1 = A1 ∷ B1 ∷ L1}  N)
 
-term-∧⁺-inv-adm : ∀{Γ L1 L2 A B U} → Term Γ (L1 ++ A ∧⁺ B ∷ L2) U → Term Γ (L1 ++ A ∷ B ∷ L2) U
-term-∧⁺-inv-adm {L1 = []} (∧⁺L N) = N
-term-∧⁺-inv-adm {L1 = ._ ∷ L1} (η⁺ N) = η⁺ (term-∧⁺-inv-adm {L1 = L1} N)
-term-∧⁺-inv-adm {L1 = ._ ∷ L1} (↓L N) = ↓L (term-∧⁺-inv-adm {L1 = L1} N)
-term-∧⁺-inv-adm {L1 = .⊥⁺ ∷ L1} ⊥L = ⊥L
-term-∧⁺-inv-adm {L1 = ._ ∷ L1} (∨L {A = A₁} {B = B₁} N₁ N₂) = 
-  ∨L (term-∧⁺-inv-adm {L1 = A₁ ∷ L1} N₁) (term-∧⁺-inv-adm {L1 = B₁ ∷ L1} N₂) 
-term-∧⁺-inv-adm {L1 = .⊤⁺ ∷ L1} (⊤⁺L N) = ⊤⁺L (term-∧⁺-inv-adm {L1 = L1} N)
-term-∧⁺-inv-adm {L1 = ._ ∷ L1} (∧⁺L {A = A₁} {B = B₁} N) = ∧⁺L (term-∧⁺-inv-adm {L1 = A₁ ∷ B₁ ∷ L1} N )  
+term-∧⁺-inv : ∀{Γ L1 L2 A B U} → Term Γ (L1 ++ A ∧⁺ B ∷ L2) U → Term Γ (L1 ++ A ∷ B ∷ L2) U
+term-∧⁺-inv {L1 = []} (∧⁺L N) = N
+term-∧⁺-inv {L1 = ._ ∷ L1} (η⁺ N) = η⁺ (term-∧⁺-inv {L1 = L1} N)
+term-∧⁺-inv {L1 = ._ ∷ L1} (↓L N) = ↓L (term-∧⁺-inv {L1 = L1} N)
+term-∧⁺-inv {L1 = .⊥⁺ ∷ L1} ⊥L = ⊥L
+term-∧⁺-inv {L1 = ._ ∷ L1} (∨L {A = A₁} {B = B₁} N₁ N₂) = 
+  ∨L (term-∧⁺-inv {L1 = A₁ ∷ L1} N₁) (term-∧⁺-inv {L1 = B₁ ∷ L1} N₂) 
+term-∧⁺-inv {L1 = .⊤⁺ ∷ L1} (⊤⁺L N) = ⊤⁺L (term-∧⁺-inv {L1 = L1} N)
+term-∧⁺-inv {L1 = ._ ∷ L1} (∧⁺L {A = A₁} {B = B₁} N) = ∧⁺L (term-∧⁺-inv {L1 = A₁ ∷ B₁ ∷ L1} N )  
+
+
+term-∨L-adm : ∀{Γ L1 L2 A B U} → Term Γ (L1 ++ A ∷ L2) U → Term Γ (L1 ++ B ∷ L2) U → Term Γ (L1 ++ A ∨ B ∷ L2) U
+term-∨L-adm {L1 = []} T1 T2 = ∨L T1 T2
+term-∨L-adm {L1 = ._ ∷ L1} (η⁺ N) (η⁺ N₁) = η⁺ (term-∨L-adm {L1 = L1} N N₁)
+term-∨L-adm {L1 = ._ ∷ L1} (↓L N) (↓L N₁) = ↓L (term-∨L-adm {L1 = L1} N N₁)
+term-∨L-adm {L1 = .⊥⁺ ∷ L1} ⊥L ⊥L = ⊥L
+term-∨L-adm {L1 = ._ ∷ L1} (∨L {A₁} {B₁} N₁ N₂) (∨L N₃ N₄) = 
+  ∨L (term-∨L-adm {L1 = A₁ ∷ L1} N₁ N₃) (term-∨L-adm {L1 = B₁ ∷ L1} N₂ N₄) 
+term-∨L-adm {L1 = .⊤⁺ ∷ L1} (⊤⁺L N) (⊤⁺L N₁) = ⊤⁺L (term-∨L-adm {L1 = L1} N N₁)
+term-∨L-adm {L1 = ._ ∷ L1} (∧⁺L {A = A₁} {B = B₁} N) (∧⁺L N₁) = ∧⁺L (term-∨L-adm {L1 = A₁ ∷ B₁ ∷ L1} N N₁) 
+
+term-∨L-inv : ∀{Γ L1 L2 A B U} → Term Γ (L1 ++ A ∨ B ∷ L2) U →  Term Γ (L1 ++ A ∷ L2) U × Term Γ (L1 ++ B ∷ L2) U
+term-∨L-inv {L1 = []} (∨L N₁ N₂) = N₁ , N₂
+term-∨L-inv {L1 = ._ ∷ L1} (η⁺ N) with term-∨L-inv {L1 = L1} N 
+...  | T1 , T2  = η⁺ T1 , η⁺ T2 
+term-∨L-inv {L1 = ._ ∷ L1} (↓L N) with term-∨L-inv {L1 = L1} N 
+... | T1 , T2  = ↓L T1 , ↓L T2
+term-∨L-inv {L1 = .⊥⁺ ∷ L1} ⊥L = ⊥L , ⊥L
+term-∨L-inv {L1 = ._ ∷ L1} (∨L {A₁} {B₁} N₁ N₂) with (term-∨L-inv {L1 = A₁ ∷ L1} N₁) | (term-∨L-inv {L1 = B₁ ∷ L1} N₂)
+... | (T1 , T2) | (T'1 , T'2) = (∨L T1 T'1) , (∨L T2 T'2) 
+term-∨L-inv {L1 = .⊤⁺ ∷ L1} (⊤⁺L N)   with term-∨L-inv {L1 = L1} N 
+term-∨L-inv {Γ} {.⊤⁺ ∷ L1} (⊤⁺L N) | T1 , T2 = ⊤⁺L T1 , ⊤⁺L T2
+term-∨L-inv {L1 = ._ ∷ L1} (∧⁺L {A = A₁} {B = B₁} N) 
+  with term-∨L-inv {L1 = A₁ ∷ B₁ ∷ L1}  N 
+term-∨L-inv {Γ} {._ ∷ L1} {L2 = L2}  (∧⁺L N) | T1 , T2 = (∧⁺L T1) , (∧⁺L T2)
+
+
+
+
+term-⊥-adm : ∀{Γ L+ U} → ⊥⁺ ∈ L+ → Term Γ L+ U
+term-⊥-adm (here refl) = ⊥L
+term-⊥-adm (there {x} In) = weak+-term x (term-⊥-adm In)  
+
 
 
 cntr-pers-term-bis : ∀{Γ A L+ U} → Term (Pers A ∷ Γ) (↓ A ∷ L+) U → Term Γ (↓ A ∷ L+) U
@@ -116,24 +152,41 @@ cntr-pers-term-bis-gen {Γ' = Γ'} (⊤⁺L N) (there In) = ⊤⁺L (cntr-pers-t
 cntr-pers-term-bis-gen {Γ' = Γ'} (∧⁺L N) (there In) = ∧⁺L (cntr-pers-term-bis-gen {Γ' = Γ'} N (there (there In))) 
 
 
-cntr-+-term-gen : ∀{Γ X L+ U} → Term Γ (X ∷ L+) U → X ∈ L+ → Term Γ L+ U
-cntr-+-term-gen (η⁺ N) In = {!!}
-cntr-+-term-gen {L+ = []} (↓L N) ()
-cntr-+-term-gen {L+ = ._ ∷ L+} (↓L N) (here refl) = cntr-pers-term-bis N
-cntr-+-term-gen {L+ = x ∷ L+} (↓L N) (there In) = {!cntr-pers-term-bis N In!}
-cntr-+-term-gen ⊥L In = {!!}
-cntr-+-term-gen (∨L N₁ N₂) In = {!!}
-cntr-+-term-gen (⊤⁺L N) In = N
-cntr-+-term-gen (∧⁺L N) In = {!!} 
 
 
-cntr-+-term : ∀{Γ X L+ U} → Term Γ (X ∷ X ∷ L+) U → Term Γ (X ∷ L+) U
-cntr-+-term (η⁺ N) = {!!}
-cntr-+-term (↓L N) = {!!}
-cntr-+-term ⊥L = ⊥L
-cntr-+-term (∨L N₁ N₂) = {!!}
-cntr-+-term (⊤⁺L N) = N
-cntr-+-term (∧⁺L N) = {!term-∧⁺-adm !} 
+cntr-+-term-gen-helper : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → N >′ size-list+-formulas (X ∷ L+)  → Term Γ L+ U
+
+cntr-+-term-gen : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → size-list+-formulas (X ∷ L+) ≡ N → Term Γ L+ U
+
+cntr-+-term-gen-helper T In (>′-refl m≡n) = cntr-+-term-gen T In refl 
+cntr-+-term-gen-helper T In (>′-step Ineq) = cntr-+-term-gen-helper T In Ineq 
+
+
+
+cntr-+-term-gen (η⁺ N) In S =  {!!}
+cntr-+-term-gen {L+ = []} (↓L N) () _
+cntr-+-term-gen {L+ = ._ ∷ L+} (↓L N) (here refl) S = cntr-pers-term-bis N
+cntr-+-term-gen {L+ = x ∷ L+} (↓L N) (there In) S = cntr-pers-term-bis-gen {Γ' = []} N (there In) 
+cntr-+-term-gen ⊥L In S = term-⊥-adm In 
+cntr-+-term-gen (∨L N₁ N₂) In S with in-split In
+... | L1 , L2 , Eq rewrite Eq = {!!} 
+cntr-+-term-gen (⊤⁺L N) In S = N
+cntr-+-term-gen (∧⁺L {A = A} {B = B} N) In S with in-split In
+... | L1 , L2 , Eq rewrite Eq = 
+  term-∧⁺-adm {L1 = L1}
+  (cntr-+-term-gen {N = {!!}}
+    (cntr-+-term-gen {N = {!!}} (term-∧⁺-inv {L1 = A ∷ B ∷ L1} N) ({!!}) {!!})
+    {!!} 
+    {!!})
+
+
+cntr-+-term : ∀{Γ X L+ N U} → Term Γ (X ∷ X ∷ L+) U → size-list+-formulas (X ∷ X ∷ L+) ≡ N → Term Γ (X ∷ L+) U
+cntr-+-term (η⁺ N) S = {!!}
+cntr-+-term (↓L N) S = {!!}
+cntr-+-term ⊥L S = ⊥L
+cntr-+-term (∨L N₁ N₂) S = {!!}
+cntr-+-term (⊤⁺L N) S = N
+cntr-+-term (∧⁺L N) S = {!!} --cntr-+-term (term-∧⁺-inv-adm N) {!!}  
 
 
 

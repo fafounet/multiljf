@@ -39,7 +39,7 @@ data Type : Polarity → Set where
   ⊤⁻ : Type ⁻
   _∧⁻_ : (A B : Type ⁻) → Type ⁻
 
-size-formula : ∀{p} → (Type p) → ℕ 
+size-formula : ∀{pol} → (Type pol) → ℕ 
 size-formula (a Q ⁼) = 1
 size-formula (↓ x) = 1 + size-formula x
 size-formula ⊥⁺ = 1
@@ -50,6 +50,10 @@ size-formula (↑ x) = 1 + size-formula x
 size-formula (x ⊃ x₁) = 1 + size-formula x + size-formula x₁
 size-formula ⊤⁻ = 1
 size-formula (x ∧⁻ x₁) = 1 + size-formula x + size-formula x₁
+
+
+size-list+-formulas : List (Type ⁺) → ℕ 
+size-list+-formulas L = Data.List.foldr (λ x → λ y → size-formula x + y) 0 L
 
 -- Judgmental infrastructure
 
