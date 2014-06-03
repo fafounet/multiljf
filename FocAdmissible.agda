@@ -13,6 +13,7 @@ open import FocWeak
 open import FocProps
 open import ListExtra
 open import NatExtra
+open import Identity
 
 
 ∧+-inv : ∀{Γ U Ω A B} → Term Γ (A ∧⁺ B ∷ Ω) U → Term Γ (A ∷ B ∷ Ω) U
@@ -81,6 +82,8 @@ open import NatExtra
 
 -----------
 -----------
+
+
 
 term-∧⁺-adm : ∀{Γ L1 L2 A B U} → Term Γ (L1 ++ A ∷ B ∷ L2) U → Term Γ (L1 ++ A ∧⁺ B ∷ L2) U
 term-∧⁺-adm {L1 = []} T = ∧⁺L T
@@ -163,13 +166,52 @@ cntr-+-term-gen-helper T In (>′-step Ineq) = cntr-+-term-gen-helper T In Ineq
 
 
 
-cntr-+-term-gen (η⁺ N) In S =  {!!}
+-- cntr-term-hsusp : ∀{Γ X L+ U} → Term (HSusp X ∷ Γ) L+ U → X ∈ L+ → Term Γ L+ U
+{-
+Could to be true ...
+hmm : ∀{Q R } → Term [ HSusp (a Q ⁺ ∧⁺  a R ⁺) ] [ a Q ⁺ ∧⁺  a R ⁺ ] (True ( a Q ⁺ ∧⁺  a R ⁺))
+hmm = λ {Q} {R} → ∧⁺L (η⁺ (η⁺ (focR (id⁺ (there (there (here refl))))))) 
+
+hmm2 : ∀{Q R } → Term [] [ a Q ⁺ ∧⁺  a R ⁺ ] (True ( a Q ⁺ ∧⁺  a R ⁺))
+hmm2 = λ {Q} {R} →
+           ∧⁺L
+           (η⁺ (η⁺ (focR (∧⁺R (id⁺ (there (here refl))) (id⁺ (here refl)))))) 
+-}
+
+cntr-term-hsusp-lit : ∀{Γ1 Γ2 Q L+ U} → Term (Γ1 ++ HSusp (a Q ⁺) ∷ Γ2) L+ U → (a Q ⁺) ∈ L+ → Term (Γ1 ++ Γ2) L+ U
+cntr-term-hsusp-lit (focR V) ()
+cntr-term-hsusp-lit (focL-init pf Sp) ()
+cntr-term-hsusp-lit {Γ1} (η⁺ {Q} N) (here refl) = η⁺ (cntr-there Γ1 N)
+cntr-term-hsusp-lit {Γ1} (η⁺ {Q₁} N) (there In) = η⁺ (cntr-term-hsusp-lit {Γ1 = HSusp (a Q₁ ⁺) ∷ Γ1} N In)
+cntr-term-hsusp-lit (↓L N) (here ())
+cntr-term-hsusp-lit {Γ1} (↓L {A} N) (there In) =  ↓L (cntr-term-hsusp-lit {Γ1 = Pers A ∷ Γ1} N In)
+cntr-term-hsusp-lit ⊥L In = ⊥L
+cntr-term-hsusp-lit (∨L N₁ N₂) (here ())
+cntr-term-hsusp-lit {Γ1} (∨L N₁ N₂) (there In) = 
+  ∨L (cntr-term-hsusp-lit {Γ1} N₁ (there In)) (cntr-term-hsusp-lit {Γ1}  N₂ (there In) ) 
+cntr-term-hsusp-lit (⊤⁺L N) (here ())
+cntr-term-hsusp-lit {Γ1}  (⊤⁺L N) (there In) = ⊤⁺L (cntr-term-hsusp-lit {Γ1}  N In)
+cntr-term-hsusp-lit (∧⁺L N) (here ())
+cntr-term-hsusp-lit {Γ1}  (∧⁺L N) (there In) = ∧⁺L (cntr-term-hsusp-lit {Γ1}  N (there (there In))) 
+cntr-term-hsusp-lit {Γ1}  (η⁻ N) In = η⁻ (cntr-term-hsusp-lit {Γ1}  N In)
+cntr-term-hsusp-lit {Γ1}  (↑R N) In = ↑R (cntr-term-hsusp-lit {Γ1}  N In)
+cntr-term-hsusp-lit {Γ1}  (⊃R N) In = ⊃R (cntr-term-hsusp-lit {Γ1}  N (there In))
+cntr-term-hsusp-lit ⊤⁻R In = ⊤⁻R
+cntr-term-hsusp-lit {Γ1}  (∧⁻R N₁ N₂) In = ∧⁻R (cntr-term-hsusp-lit {Γ1}  N₁ In) (cntr-term-hsusp-lit {Γ1}  N₂ In) 
+
+
+
+cntr-+-term-gen (η⁺ N) In S =  cntr-term-hsusp-lit {Γ1 = []} N In  
 cntr-+-term-gen {L+ = []} (↓L N) () _
 cntr-+-term-gen {L+ = ._ ∷ L+} (↓L N) (here refl) S = cntr-pers-term-bis N
 cntr-+-term-gen {L+ = x ∷ L+} (↓L N) (there In) S = cntr-pers-term-bis-gen {Γ' = []} N (there In) 
 cntr-+-term-gen ⊥L In S = term-⊥-adm In 
-cntr-+-term-gen (∨L N₁ N₂) In S with in-split In
-... | L1 , L2 , Eq rewrite Eq = {!!} 
+cntr-+-term-gen (∨L {A} {B} N₁ N₂) In S with in-split In
+... | L1 , L2 , Eq rewrite Eq with term-∨L-inv {L1 = A ∷ L1} N₁ | term-∨L-inv {L1 = B ∷ L1} N₂
+... | T1 , T2 | T'1 , T'2 = 
+  term-∨L-adm {L1 = L1} 
+    (cntr-+-term-gen {N = {!!}} T1 {!!} {!!}) 
+    (cntr-+-term-gen {N = {!!}} T2 {!!} {!!}) 
 cntr-+-term-gen (⊤⁺L N) In S = N
 cntr-+-term-gen (∧⁺L {A = A} {B = B} N) In S with in-split In
 ... | L1 , L2 , Eq rewrite Eq = 
@@ -179,19 +221,27 @@ cntr-+-term-gen (∧⁺L {A = A} {B = B} N) In S with in-split In
     {!!} 
     {!!})
 
+{- Those lemmas are not true 
+value-hsusp : ∀{Γ A B U} →  Value (HSusp (A ∧⁺ B) ∷ Γ) U → Value (HSusp A ∷ HSusp B ∷ Γ) U
+term-hsusp-∧⁺ : ∀{Γ Ω A B U} → Term (HSusp (A ∧⁺ B) ∷ Γ) Ω U →  Term (HSusp A ∷ HSusp B ∷ Γ) Ω U
+-}
 
-cntr-+-term : ∀{Γ X L+ N U} → Term Γ (X ∷ X ∷ L+) U → size-list+-formulas (X ∷ X ∷ L+) ≡ N → Term Γ (X ∷ L+) U
-cntr-+-term (η⁺ N) S = {!!}
-cntr-+-term (↓L N) S = {!!}
-cntr-+-term ⊥L S = ⊥L
-cntr-+-term (∨L N₁ N₂) S = {!!}
-cntr-+-term (⊤⁺L N) S = N
-cntr-+-term (∧⁺L N) S = {!!} --cntr-+-term (term-∧⁺-inv-adm N) {!!}  
+{-
+cntr-term-hsusp (η⁺ N) (here refl) = {!!}
+cntr-term-hsusp (↓L N) (here refl) = {!!}
+cntr-term-hsusp ⊥L (here refl) = ⊥L
+cntr-term-hsusp (∨L N₁ N₂) (here refl) = {!!}
+cntr-term-hsusp (⊤⁺L N) (here refl) = {!!}
+cntr-term-hsusp (∧⁺L N) (here refl) = {!!}
+cntr-term-hsusp T (there In) = {!!} -- expand⁺ 
+-}
+
 
 
 
 postulate
   spine-∧⁺-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ B ∷ L+) U → Spine Γ L- (A ∧⁺ B ∷ L+) U
+
 
 
 

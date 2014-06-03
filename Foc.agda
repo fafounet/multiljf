@@ -350,8 +350,9 @@ end-inv pf L (∧⁻L₂ Sp) | inj₂ y = inj₂ (⊥⁺ ∷ [] , ↑L-nil pf �
 
 
 
-postulate exch-cons : ∀{Γ Γ' LA C x} → Term (x ∷ Γ ++ Γ') LA C → Term (Γ ++ x ∷ Γ') LA C
+postulate exch-cons : ∀{Γ Γ' Δ x} → Exp (x ∷ Γ ++ Γ') Δ → Exp (Γ ++ x ∷ Γ') Δ
 
+postulate exch : ∀{Γ X Y Δ} → Exp (X ∷ Y ∷ Γ) Δ → Exp (Y ∷ X ∷ Γ) Δ
 
 
 -- I should use a lemma from the stdlib instead

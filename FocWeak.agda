@@ -109,6 +109,11 @@ cntr Γ In Exp = wk (sub-cntr Γ In) Exp
 postulate
   cntr-there : ∀{A Γ' Form} → (Γ : Ctx) → Exp (A ∷ Γ ++ A ∷ Γ') Form → Exp (A ∷ Γ ++ Γ') Form
 
+postulate
+  cntr-there-bis : ∀{A Γ1 Γ2 Γ3 Form} →  Exp (Γ1 ++ A ∷ Γ2 ++ A ∷ Γ3) Form → Exp (Γ1 ++ Γ2 ++ A ∷ Γ3) Form
+
+
+
 
 
 {- The following is not true:
