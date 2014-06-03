@@ -1,10 +1,12 @@
 open import Data.List
 open import Data.Sum
+open import Data.Nat hiding ( _>′_ )
 open import Data.List.All
 open import Data.List.Any
 open Membership-≡
 open import Data.Product
 open import Relation.Binary.Core
+open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 
 module FocAdmissible where
 
@@ -157,12 +159,6 @@ cntr-pers-term-bis-gen {Γ' = Γ'} (∧⁺L N) (there In) = ∧⁺L (cntr-pers-t
 
 
 
-cntr-+-term-gen-helper : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → N >′ size-list+-formulas (X ∷ L+)  → Term Γ L+ U
-
-cntr-+-term-gen : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → size-list+-formulas (X ∷ L+) ≡ N → Term Γ L+ U
-
-cntr-+-term-gen-helper T In (>′-refl m≡n) = cntr-+-term-gen T In refl 
-cntr-+-term-gen-helper T In (>′-step Ineq) = cntr-+-term-gen-helper T In Ineq 
 
 
 
@@ -201,6 +197,12 @@ cntr-term-hsusp-lit {Γ1}  (∧⁻R N₁ N₂) In = ∧⁻R (cntr-term-hsusp-lit
 
 
 
+cntr-+-term-gen : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → size-list+-formulas (X ∷ L+) ≡ N → Term Γ L+ U
+cntr-+-term-gen-helper : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → N >′ size-list+-formulas (X ∷ L+)  → Term Γ L+ U
+--
+cntr-+-term-gen-helper T In (>′-refl m≡n) = cntr-+-term-gen T In refl 
+cntr-+-term-gen-helper T In (>′-step Ineq) = cntr-+-term-gen-helper T In Ineq 
+--
 cntr-+-term-gen (η⁺ N) In S =  cntr-term-hsusp-lit {Γ1 = []} N In  
 cntr-+-term-gen {L+ = []} (↓L N) () _
 cntr-+-term-gen {L+ = ._ ∷ L+} (↓L N) (here refl) S = cntr-pers-term-bis N
@@ -210,8 +212,8 @@ cntr-+-term-gen (∨L {A} {B} N₁ N₂) In S with in-split In
 ... | L1 , L2 , Eq rewrite Eq with term-∨L-inv {L1 = A ∷ L1} N₁ | term-∨L-inv {L1 = B ∷ L1} N₂
 ... | T1 , T2 | T'1 , T'2 = 
   term-∨L-adm {L1 = L1} 
-    (cntr-+-term-gen {N = {!!}} T1 {!!} {!!}) 
-    (cntr-+-term-gen {N = {!!}} T2 {!!} {!!}) 
+    (cntr-+-term-gen-helper T1 (in-append-cons {L1 = L1}) (size-list-helper1 {A = A} {L1 = L1}  S)) 
+    (cntr-+-term-gen-helper T'2 (in-append-cons {L1 = L1}) (size-list-helper2 {A = A} {L1 = L1} S)) 
 cntr-+-term-gen (⊤⁺L N) In S = N
 cntr-+-term-gen (∧⁺L {A = A} {B = B} N) In S with in-split In
 ... | L1 , L2 , Eq rewrite Eq = 

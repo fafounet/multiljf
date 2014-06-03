@@ -41,7 +41,7 @@ load-inv-step-adm : ∀{Γ1 Γ2 X L U}
   → stable U 
   → Spine-l (Γ1 ++ Pers X ∷ Γ2) (X ∷ L) U 
   → Spine-l (Γ1 ++ Pers X ∷ Γ2) (L) U
-load-inv-step-adm {Γ1} {X = X} pf Sp = focL-step pf (in-append-in {X = Pers X} {L1 = Γ1})  Sp
+load-inv-step-adm {Γ1} {X = X} pf Sp = focL-step pf (in-append-cons {X = Pers X} {L1 = Γ1})  Sp
 
 
 ∧-context-adm : ∀{Γ1 Γ2 A B L} 

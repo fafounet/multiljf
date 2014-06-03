@@ -48,7 +48,7 @@ postulate
   assoc-cons-append : ∀{b} {B : Set b} (X : B) (L1 L2 L3 : List B) → X ∷ (L1 ++ L2) ++ L3 ≡ X ∷ L1 ++ L2 ++ L3
 
 postulate
-  in-append-in : ∀{b} {B : Set b} {X : B} {L1 L2} →  X ∈ (L1 ++ X ∷ L2)
+  in-append-cons : ∀{b} {B : Set b} {X : B} {L1 L2} →  X ∈ (L1 ++ X ∷ L2)
 
 postulate
   in-append-left : ∀{b} {B : Set b} {X : B} {L1 L2} →  X ∈ L1 → X ∈ (L1 ++ L2)
