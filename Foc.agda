@@ -69,19 +69,44 @@ size-formula-suc {A = A ∧⁻ A₁} = size-formula A + size-formula A₁ , refl
 size-list+-formulas : List (Type ⁺) → ℕ 
 size-list+-formulas L = Data.List.foldr (λ x → λ y → size-formula x + y) 0 L
 
+
+size-list+-cons : ∀{X L} → size-list+-formulas (X ∷ L) ≡ size-formula X + size-list+-formulas L
+size-list+-cons = refl
+
+size-list+-append : ∀{L1 L2} → size-list+-formulas (L1 ++ L2) ≡  size-list+-formulas L1 +  size-list+-formulas L2
+size-list+-append {[]} = λ {L2} → refl
+size-list+-append {x ∷ L1} {L2} 
+  rewrite size-list+-append 
+            {L1 = L1} 
+            {L2 = L2} 
+  | assoc-nat {X = size-formula x} 
+              {Y = foldr (λ x₁ → _+_ (size-formula x₁)) 0 L1} 
+              {Z = foldr (λ x₁ → _+_ (size-formula x₁)) 0 L2} = refl 
+
+
 size-list+-append-cons : ∀{L1 L2 X} 
   → size-list+-formulas (L1 ++ X ∷ L2) ≡ size-list+-formulas L1 + size-formula X + size-list+-formulas L2
-size-list+-append-cons {[]} = λ {L2} {X} → refl
-size-list+-append-cons {x ∷ L1} {L2} {X} 
-  rewrite (size-list+-append-cons {L1} {L2} {X}) 
-    | assoc-nat {X = size-formula x} 
-                {Y = foldr (λ x₁ → _+_ (size-formula x₁)) 0 L1 + size-formula X} 
-                {Z =  foldr (λ x₁ → _+_ (size-formula x₁)) 0 L2} 
-    | assoc-nat {X = size-formula x} 
-                {Y = foldr (λ x₁ → _+_ (size-formula x₁)) 0 L1}
-                {Z = size-formula X}
-  = refl 
+size-list+-append-cons {L1} {L2} {X} 
+  rewrite size-list+-append {L1 = L1} {L2 = X ∷ L2} 
+  | assoc-nat {X =  foldr (λ x → _+_ (size-formula x)) 0 L1}
+              {Y = size-formula X} 
+              {Z = foldr (λ x → _+_ (size-formula x)) 0 L2} = refl 
 
+size-list+-append-cons-cons : ∀{L1 L2 X Y} 
+  → size-list+-formulas (L1 ++ X ∷ Y ∷ L2) ≡ size-list+-formulas L1 + size-formula X + size-formula Y + size-list+-formulas L2
+size-list+-append-cons-cons {L1} {L2} {X} {Y} 
+   rewrite size-list+-append {L1 = L1} {L2 = X ∷ Y ∷ L2}  
+   | assoc-nat {X =  foldr (λ x → _+_ (size-formula x)) 0 L1} 
+                    {Y = size-formula X}
+                    {Z = size-formula Y + foldr (λ x → _+_ (size-formula x)) 0 L2} 
+   | assoc-nat {X =  foldr (λ x → _+_ (size-formula x)) 0 L1 + size-formula X} 
+                    {Y = size-formula Y}
+                    {Z = foldr (λ x → _+_ (size-formula x)) 0 L2} = refl 
+
+-----------------------
+-- Many similar lemmas
+-- So far it was faster to just copy paste but I should generalize them at some point
+----------------------
 
 -- Boring ad-hoc trivial lemma for cntr-+-term-gen
 size-list-helper1 : ∀{A B L1 L2 N}
@@ -144,6 +169,69 @@ size-list-helper2 {A} {B} {L1} {L2} refl
             (>′-step (suc-+-refl->′ {N = N}) )) )) ) 
 
 
+-- Boring ad-hoc trivial lemma for cntr-+-term-gen
+size-list-helper3 : ∀{A B L1 L2 N}
+ → suc (size-formula A + size-formula B + Data.List.foldr (λ x → _+_ (size-formula x)) 0 (L1 ++ A ∧⁺ B ∷ L2)) ≡ N
+ → N >′ size-list+-formulas (A ∷ B ∷ L1 ++ A ∷ B ∷ L2)
+size-list-helper3 {A} {B} {L1} {L2} refl 
+  rewrite size-list+-append-cons-cons {L1} {L2} {A} {B} 
+  | size-list+-append-cons {L1} {L2} {A ∧⁺ B}
+  | sym (assoc-nat {X = size-formula A} 
+                   {Y = size-formula B} 
+                   {Z = 
+                    foldr (λ x → _+_ (size-formula x)) 0 L1 + 
+                    suc (size-formula A + size-formula B) + 
+                    foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  | sym (assoc-nat {X = foldr (λ x → _+_ (size-formula x)) 0 L1 + size-formula A} 
+                   {Y = size-formula B} 
+                   {Z = foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  | sym (assoc-nat {X = foldr (λ x → _+_ (size-formula x)) 0 L1} 
+                   {Y = size-formula A} 
+                   {Z = size-formula B + foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  | sym (assoc-nat {X = foldr (λ x → _+_ (size-formula x)) 0 L1} 
+                   {Y = suc (size-formula A + size-formula B)} 
+                   {Z = foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  | sym (assoc-nat {X = size-formula A} 
+                   {Y = size-formula B} 
+                   {Z = foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  = 
+     >′-step (
+       +-n-n->′ {n = size-formula A} 
+         ( +-n-n->′ {n = size-formula B} 
+           (+-n-n->′ {n = foldr (λ x → _+_ (size-formula x)) 0 L1} 
+             (>′-refl refl) )) )  
+
+
+-- Boring ad-hoc trivial lemma for cntr-+-term-gen
+size-list-helper4 : ∀{A B L1 L2 N}
+ → suc (size-formula A + size-formula B + Data.List.foldr (λ x → _+_ (size-formula x)) 0 (L1 ++ A ∧⁺ B ∷ L2)) ≡ N
+ → N >′ size-list+-formulas (B ∷ L1 ++ A ∷ B ∷ L2)
+size-list-helper4 {A} {B} {L1} {L2} refl 
+  rewrite size-list+-append-cons-cons {L1} {L2} {A} {B} 
+  | size-list+-append-cons {L1} {L2} {A ∧⁺ B}
+  | sym (assoc-nat {X = size-formula A} 
+                   {Y = size-formula B} 
+                   {Z = 
+                    foldr (λ x → _+_ (size-formula x)) 0 L1 + 
+                    suc (size-formula A + size-formula B) + 
+                    foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  | sym (assoc-nat {X = foldr (λ x → _+_ (size-formula x)) 0 L1 + size-formula A} 
+                   {Y = size-formula B} 
+                   {Z = foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  | sym (assoc-nat {X = foldr (λ x → _+_ (size-formula x)) 0 L1} 
+                   {Y = size-formula A} 
+                   {Z = size-formula B + foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  | sym (assoc-nat {X = foldr (λ x → _+_ (size-formula x)) 0 L1} 
+                   {Y = suc (size-formula A + size-formula B)} 
+                   {Z = foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  | sym (assoc-nat {X = size-formula A} 
+                   {Y = size-formula B} 
+                   {Z = foldr (λ x → _+_ (size-formula x)) 0 L2}) 
+  = >′-step 
+    (+-n->′ {n = size-formula A} 
+      (+-n-n->′ {n = size-formula B} 
+        (+-n-n->′ {n = foldr (λ x → _+_ (size-formula x)) 0 L1} 
+          (>′-refl refl) ))) 
 
 
 

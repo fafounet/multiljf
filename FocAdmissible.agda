@@ -218,10 +218,16 @@ cntr-+-term-gen (⊤⁺L N) In S = N
 cntr-+-term-gen (∧⁺L {A = A} {B = B} N) In S with in-split In
 ... | L1 , L2 , Eq rewrite Eq = 
   term-∧⁺-adm {L1 = L1}
-  (cntr-+-term-gen {N = {!!}}
-    (cntr-+-term-gen {N = {!!}} (term-∧⁺-inv {L1 = A ∷ B ∷ L1} N) ({!!}) {!!})
-    {!!} 
-    {!!})
+  (cntr-+-term-gen-helper 
+    (cntr-+-term-gen-helper
+        (term-∧⁺-inv {L1 = A ∷ B ∷ L1} N) 
+        (there (in-append-right {L1 = L1} (here refl) ) ) 
+        (size-list-helper3 {A = A} {B = B} {L1 = L1} S))
+    (in-append-right {L1 = L1} (there (here refl))) 
+    (size-list-helper4 {A = A} {L1 = L1}  S))
+
+
+
 
 {- Those lemmas are not true 
 value-hsusp : ∀{Γ A B U} →  Value (HSusp (A ∧⁺ B) ∷ Γ) U → Value (HSusp A ∷ HSusp B ∷ Γ) U
