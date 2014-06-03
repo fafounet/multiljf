@@ -12,10 +12,8 @@ module FocAdmissible where
 
 open import Foc
 open import FocWeak
-open import FocProps
 open import ListExtra
 open import NatExtra
-open import Identity
 
 
 ∧+-inv : ∀{Γ U Ω A B} → Term Γ (A ∧⁺ B ∷ Ω) U → Term Γ (A ∷ B ∷ Ω) U
@@ -133,98 +131,10 @@ term-∨L-inv {L1 = ._ ∷ L1} (∧⁺L {A = A₁} {B = B₁} N)
 term-∨L-inv {Γ} {._ ∷ L1} {L2 = L2}  (∧⁺L N) | T1 , T2 = (∧⁺L T1) , (∧⁺L T2)
 
 
-
-
 term-⊥-adm : ∀{Γ L+ U} → ⊥⁺ ∈ L+ → Term Γ L+ U
 term-⊥-adm (here refl) = ⊥L
 term-⊥-adm (there {x} In) = weak+-term x (term-⊥-adm In)  
 
-
-
-cntr-pers-term-bis : ∀{Γ A L+ U} → Term (Pers A ∷ Γ) (↓ A ∷ L+) U → Term Γ (↓ A ∷ L+) U
-cntr-pers-term-bis {Γ} {A} (↓L N) =  ↓L (cntr (Pers A ∷ Γ) (here refl) N)
-
-cntr-pers-term-bis-gen : ∀{Γ Γ' A L+ U} → Term (Γ' ++ Pers A ∷ Γ) L+ U → ↓ A ∈ L+ → Term (Γ' ++ Γ) L+ U
-cntr-pers-term-bis-gen {Γ' = Γ'} (↓L N) (here refl) = ↓L (cntr-there Γ' N)   
-cntr-pers-term-bis-gen {Γ' = Γ'} (η⁺ {Q} N) (there In) = 
-  η⁺ (cntr-pers-term-bis-gen {Γ' = HSusp (a Q ⁺) ∷ Γ'} N In)
-cntr-pers-term-bis-gen {Γ' = Γ'} (↓L {A₁} N) (there In) = 
-  ↓L (cntr-pers-term-bis-gen {Γ' = Pers A₁ ∷ Γ'} N In)
-cntr-pers-term-bis-gen ⊥L (there In) = ⊥L
-cntr-pers-term-bis-gen {Γ' = Γ'} (∨L N₁ N₂) (there In) = 
-  ∨L (cntr-pers-term-bis-gen {Γ' = Γ'} N₁ (there In) ) (cntr-pers-term-bis-gen {Γ' = Γ'} N₂ (there In)) 
-cntr-pers-term-bis-gen {Γ' = Γ'} (⊤⁺L N) (there In) = ⊤⁺L (cntr-pers-term-bis-gen {Γ' = Γ'} N In)
-cntr-pers-term-bis-gen {Γ' = Γ'} (∧⁺L N) (there In) = ∧⁺L (cntr-pers-term-bis-gen {Γ' = Γ'} N (there (there In))) 
-
-
-
-
-
-
-
--- cntr-term-hsusp : ∀{Γ X L+ U} → Term (HSusp X ∷ Γ) L+ U → X ∈ L+ → Term Γ L+ U
-{-
-Could to be true ...
-hmm : ∀{Q R } → Term [ HSusp (a Q ⁺ ∧⁺  a R ⁺) ] [ a Q ⁺ ∧⁺  a R ⁺ ] (True ( a Q ⁺ ∧⁺  a R ⁺))
-hmm = λ {Q} {R} → ∧⁺L (η⁺ (η⁺ (focR (id⁺ (there (there (here refl))))))) 
-
-hmm2 : ∀{Q R } → Term [] [ a Q ⁺ ∧⁺  a R ⁺ ] (True ( a Q ⁺ ∧⁺  a R ⁺))
-hmm2 = λ {Q} {R} →
-           ∧⁺L
-           (η⁺ (η⁺ (focR (∧⁺R (id⁺ (there (here refl))) (id⁺ (here refl)))))) 
--}
-
-cntr-term-hsusp-lit : ∀{Γ1 Γ2 Q L+ U} → Term (Γ1 ++ HSusp (a Q ⁺) ∷ Γ2) L+ U → (a Q ⁺) ∈ L+ → Term (Γ1 ++ Γ2) L+ U
-cntr-term-hsusp-lit (focR V) ()
-cntr-term-hsusp-lit (focL-init pf Sp) ()
-cntr-term-hsusp-lit {Γ1} (η⁺ {Q} N) (here refl) = η⁺ (cntr-there Γ1 N)
-cntr-term-hsusp-lit {Γ1} (η⁺ {Q₁} N) (there In) = η⁺ (cntr-term-hsusp-lit {Γ1 = HSusp (a Q₁ ⁺) ∷ Γ1} N In)
-cntr-term-hsusp-lit (↓L N) (here ())
-cntr-term-hsusp-lit {Γ1} (↓L {A} N) (there In) =  ↓L (cntr-term-hsusp-lit {Γ1 = Pers A ∷ Γ1} N In)
-cntr-term-hsusp-lit ⊥L In = ⊥L
-cntr-term-hsusp-lit (∨L N₁ N₂) (here ())
-cntr-term-hsusp-lit {Γ1} (∨L N₁ N₂) (there In) = 
-  ∨L (cntr-term-hsusp-lit {Γ1} N₁ (there In)) (cntr-term-hsusp-lit {Γ1}  N₂ (there In) ) 
-cntr-term-hsusp-lit (⊤⁺L N) (here ())
-cntr-term-hsusp-lit {Γ1}  (⊤⁺L N) (there In) = ⊤⁺L (cntr-term-hsusp-lit {Γ1}  N In)
-cntr-term-hsusp-lit (∧⁺L N) (here ())
-cntr-term-hsusp-lit {Γ1}  (∧⁺L N) (there In) = ∧⁺L (cntr-term-hsusp-lit {Γ1}  N (there (there In))) 
-cntr-term-hsusp-lit {Γ1}  (η⁻ N) In = η⁻ (cntr-term-hsusp-lit {Γ1}  N In)
-cntr-term-hsusp-lit {Γ1}  (↑R N) In = ↑R (cntr-term-hsusp-lit {Γ1}  N In)
-cntr-term-hsusp-lit {Γ1}  (⊃R N) In = ⊃R (cntr-term-hsusp-lit {Γ1}  N (there In))
-cntr-term-hsusp-lit ⊤⁻R In = ⊤⁻R
-cntr-term-hsusp-lit {Γ1}  (∧⁻R N₁ N₂) In = ∧⁻R (cntr-term-hsusp-lit {Γ1}  N₁ In) (cntr-term-hsusp-lit {Γ1}  N₂ In) 
-
-
-
-cntr-+-term-gen : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → size-list+-formulas (X ∷ L+) ≡ N → Term Γ L+ U
-cntr-+-term-gen-helper : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → N >′ size-list+-formulas (X ∷ L+)  → Term Γ L+ U
---
-cntr-+-term-gen-helper T In (>′-refl m≡n) = cntr-+-term-gen T In refl 
-cntr-+-term-gen-helper T In (>′-step Ineq) = cntr-+-term-gen-helper T In Ineq 
---
-cntr-+-term-gen (η⁺ N) In S =  cntr-term-hsusp-lit {Γ1 = []} N In  
-cntr-+-term-gen {L+ = []} (↓L N) () _
-cntr-+-term-gen {L+ = ._ ∷ L+} (↓L N) (here refl) S = cntr-pers-term-bis N
-cntr-+-term-gen {L+ = x ∷ L+} (↓L N) (there In) S = cntr-pers-term-bis-gen {Γ' = []} N (there In) 
-cntr-+-term-gen ⊥L In S = term-⊥-adm In 
-cntr-+-term-gen (∨L {A} {B} N₁ N₂) In S with in-split In
-... | L1 , L2 , Eq rewrite Eq with term-∨L-inv {L1 = A ∷ L1} N₁ | term-∨L-inv {L1 = B ∷ L1} N₂
-... | T1 , T2 | T'1 , T'2 = 
-  term-∨L-adm {L1 = L1} 
-    (cntr-+-term-gen-helper T1 (in-append-cons {L1 = L1}) (size-list-helper1 {A = A} {L1 = L1}  S)) 
-    (cntr-+-term-gen-helper T'2 (in-append-cons {L1 = L1}) (size-list-helper2 {A = A} {L1 = L1} S)) 
-cntr-+-term-gen (⊤⁺L N) In S = N
-cntr-+-term-gen (∧⁺L {A = A} {B = B} N) In S with in-split In
-... | L1 , L2 , Eq rewrite Eq = 
-  term-∧⁺-adm {L1 = L1}
-  (cntr-+-term-gen-helper 
-    (cntr-+-term-gen-helper
-        (term-∧⁺-inv {L1 = A ∷ B ∷ L1} N) 
-        (there (in-append-right {L1 = L1} (here refl) ) ) 
-        (size-list-helper3 {A = A} {B = B} {L1 = L1} S))
-    (in-append-right {L1 = L1} (there (here refl))) 
-    (size-list-helper4 {A = A} {L1 = L1}  S))
 
 
 
@@ -253,7 +163,7 @@ postulate
 
 
 
-
+{-
 
 {-
  TODO: Prove/ HARD!! -}
@@ -314,6 +224,9 @@ spine-∧⁻L₂-adm {L' = A₁ ∧⁻ x₁ ∷ x₂ ∷ L'} (∧⁻L₂ Sp) = �
 
 spine-∧⁻-adm : ∀{Γ L- L+ A B U} → Spine Γ (A ∷ B ∷ L-) L+ U → Spine Γ (A ∧⁻ B ∷ L-) L+ U
 spine-∧⁻-adm {A = A} {B = B} Sp = {!∧⁻L₁ (spine-∧⁻L₂-adm {L' = [ A ]} Sp) !} 
+
+
+-}
 
 
   

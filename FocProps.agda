@@ -12,6 +12,7 @@ open Membership-≡
 
 open import Foc
 open import FocWeak
+open import FocCntr
 
 open import NatExtra
 open import ListExtra
@@ -135,8 +136,8 @@ unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₁ Sp) Sub = {!!}
 unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₂ Sp) Sub = {!!}
 -}
 
+
 {-
- TODO 
 unload-all-adm-bis : ∀{Γ X L- L+ U} 
   → (pf : stable U) 
   → Spine Γ L- (X ∷ L+) U 
@@ -152,7 +153,6 @@ unload-all-adm-bis {L+ = []} pf (∧⁻L₁ Sp) Sub =
 unload-all-adm-bis {L+ = []} pf (∧⁻L₂ Sp) Sub = {!!}
 unload-all-adm-bis {L+ = x ∷ L+} pf Sp Sub = {!!}
 -}
-
 
 
 {-
