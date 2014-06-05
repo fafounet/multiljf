@@ -31,9 +31,6 @@ suc-+-refl->′ : ∀{N m} → suc (N + m)  >′ m
 suc-+-refl->′ {zero} = λ {m} → >′-refl refl
 suc-+-refl->′ {suc N} {m} = >′-step (suc-+-refl->′ {N = N})
 
---suc-+-refl->′ : ∀{N m} → m + suc N  >′ m
---suc-+-refl->′ {zero} = λ {m} → >′-refl refl
---suc-+-refl->′ {suc N} {m} = >′-step (suc-+-refl->′ {N = N})
 
 +-n-n->′ : ∀{n m k} → k >′ m → n + k >′ n + m
 +-n-n->′ {zero} Ieq = Ieq

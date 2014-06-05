@@ -103,20 +103,11 @@ spine-possib-phases (∧⁻L₂ Sp) | inj₂ (RA , Sp' , R) =
 no-neg-helper1 : ∀{N x L} → N ≡ size-list-formulas (↑ x ∷ L) → N >′ size-list-formulas L
 no-neg-helper1 {x = x} refl = suc-+-refl->′ {N = size-formula x} 
 
-no-neg-helper2 : ∀{N L} → N ≡ size-list-formulas (⊤⁻ ∷ L) → N >′ size-list-formulas L
-no-neg-helper2  refl = suc-+-refl->′ {N = zero}
 
-no-neg-helper3 : ∀{N x x₁ L} → N ≡ size-list-formulas (x ∧⁻ x₁ ∷ L) → N >′ size-list-formulas (x ∷ x₁ ∷ L)
-no-neg-helper3 {N} {x} {x₁} {L}  Eq 
-  rewrite assoc-nat
-          {X = size-formula x} 
-          {Y = size-formula x₁} 
-          {Z = foldr (λ x → _+_ (size-formula x)) 0 L} 
-  | Eq = >′-refl refl 
 
-no-neg-helper4 : ∀{N x x₁ L} → N ≡ size-list-formulas (x ⊃ x₁  ∷ L) → N >′ size-list-formulas (x₁ ∷ L)
-no-neg-helper4 {N} {x} {x₁} {L} Eq  with size-formula-suc {⁺} {x} 
-no-neg-helper4 {N} {x} {x₁} {L} Eq | N' , Eq' 
+no-neg-helper2 : ∀{N x x₁ L} → N ≡ size-list-formulas (x ⊃ x₁  ∷ L) → N >′ size-list-formulas (x₁ ∷ L)
+no-neg-helper2 {N} {x} {x₁} {L} Eq  with size-formula-suc {⁺} {x} 
+no-neg-helper2 {N} {x} {x₁} {L} Eq | N' , Eq' 
   rewrite Eq | Eq' 
           | sym (assoc-nat 
               {X = N'}
@@ -133,25 +124,41 @@ no-neg-lit-as-residual-helper L (>′-refl Eq) = no-neg-lit-as-residual L Eq
 no-neg-lit-as-residual-helper L (>′-step Ieq) = no-neg-lit-as-residual-helper L Ieq
 
 no-neg-lit-as-residual [] _ = ⊤
-no-neg-lit-as-residual (a Q .⁻ ∷ L) _ = ⊥
-no-neg-lit-as-residual {N = N} (↑ x ∷ L) Eq = 
-  no-neg-lit-as-residual-helper L (no-neg-helper1 {N = N} {x = x} {L = L} Eq)
-no-neg-lit-as-residual {N} (x ⊃ x₁ ∷ L) Eq = 
-  no-neg-lit-as-residual-helper (x₁ ∷ L) (no-neg-helper4 {N = N} {x = x} {x₁ = x₁} {L = L}  Eq)
-no-neg-lit-as-residual (⊤⁻ ∷ L) Eq = no-neg-lit-as-residual-helper L (no-neg-helper2 {L = L} Eq)
-no-neg-lit-as-residual {N} (x ∧⁻ x₁ ∷ L) Eq = 
-  no-neg-lit-as-residual-helper (x ∷ x₁ ∷ L) (no-neg-helper3 {N} {x} {x₁} {L} Eq)
+no-neg-lit-as-residual {zero} (x ∷ L) Eq
+  with size-formula-suc {⁻} {x}
+no-neg-lit-as-residual {zero} (x ∷ L) Eq | N' , Eq' rewrite Eq' 
+  with Eq 
+... | () 
+no-neg-lit-as-residual {suc N} (a Q .⁻ ∷ L) x₁ = ⊥
+no-neg-lit-as-residual {suc N} (↑ x ∷ L) Eq =  
+  no-neg-lit-as-residual-helper L (no-neg-helper1 {N = suc N} {x = x} {L = L} Eq) 
+no-neg-lit-as-residual {suc N} (x ⊃ x₁ ∷ L) Eq = 
+  no-neg-lit-as-residual-helper (x₁ ∷ L) (no-neg-helper2 {N = suc N} {x = x} {x₁ = x₁} {L = L} Eq ) 
+no-neg-lit-as-residual {suc N} (⊤⁻ ∷ L) Eq = no-neg-lit-as-residual L (suc-inj Eq) 
+no-neg-lit-as-residual {suc N} (x ∧⁻ x₁ ∷ L) Eq 
+  rewrite sym (assoc-nat
+            {X = size-formula x}
+            {Y = size-formula x₁}
+            {Z = foldr (λ x₂ → _+_ (size-formula x₂)) 0 L}) = 
+  no-neg-lit-as-residual (x ∷ x₁ ∷ L) (suc-inj Eq) 
+
+
+no-neg-list-std-helper : ∀{L- N} 
+  → no-neg-lit-as-residual-helper L- (suc-+-refl->′ {N})
+  → no-neg-lit-as-residual L- refl
+no-neg-list-std-helper  A = {!!} 
 
 
 -- Compute the positive list of residuals
 -- i.e. what will be stored from the negative list to the positive list
-pos-residuals : (L- : List (Type ⁻)) → (no-neg-lit-as-residual L- refl) → List (Type ⁺)
-pos-residuals [] _ = []
-pos-residuals (a Q .⁻ ∷ L-) N = {!!} 
-pos-residuals (↑ x ∷ L-) NIn = pos-residuals L- {!!}
-pos-residuals (x ⊃ x₁ ∷ L-) NIn = pos-residuals (x₁ ∷ L-) {!!} 
-pos-residuals (⊤⁻ ∷ L-) NIn = pos-residuals L- {!!}
-pos-residuals (x ∧⁻ x₁ ∷ L-) NIn = pos-residuals (x ∷ L-) {!!} 
+pos-residuals : (L- : List (Type ⁻)) → (∀{N Eq} → (no-neg-lit-as-residual {N} L- Eq)) → List (Type ⁺)
+pos-residuals [] NN = []
+pos-residuals (a Q .⁻ ∷ L-) NN = ⊥-elim (NN {_} {refl})
+pos-residuals (↑ x ∷ L-) NN = x ∷ (pos-residuals L- (λ {N} {Eq} → no-neg-list-std-helper {N = {!!}} (NN {_} {refl})))
+pos-residuals (x ⊃ x₁ ∷ L-) NN = {!!}
+pos-residuals (⊤⁻ ∷ L-) NN = {!!}
+pos-residuals (x ∧⁻ x₁ ∷ L-) NN = {!!} 
+
 
 {-
 spine-access-element : ∀{Γ L1 X L2 U L+}
@@ -173,10 +180,16 @@ spine-access-element : ∀{Γ L1 X L2 U L+}
 
 
 
-∧-context-loading-adm : ∀{Γ1 Γ2 A B L- U} 
-    → Spine-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L- U 
-    → suspnormal U 
-    → Spine-l (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L- U
+postulate
+  ∧-context-loading-adm : ∀{Γ1 Γ2 A B L- U} 
+                        → Spine-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L- U 
+                        → suspnormal U 
+                        → Spine-l (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L- U
+{-
+ TODO 
+ TODO 
+ TODO
+ TODO 
 -- Even though this lemma is wrong:
 --spine-∧-adm : ∀{Γ A B L1 L2 L+ U} → Spine Γ (L1 ++ (A ∧⁻ B) ∷ L2) L+ U → suspnormal U → Spine Γ (L1 ++ A ∷ B ∷ L2) L+ U
 -- this one is true.
@@ -192,7 +205,7 @@ spine-access-element : ∀{Γ L1 X L2 U L+}
 ∧-context-loading-adm (focL-step pf In Sp) pf' | inj₂ y = {!!} 
 ∧-context-loading-adm (focL-end pf Sp) pf' = {!!} 
 
-
+-}
 
 
 ∧-context-adm {Γ1} (id⁺ v) pf with fromctx Γ1 v 
@@ -263,7 +276,10 @@ unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₂ Sp) Sub = {!!}
 -}
 
 
-
+{- TODO
+TODO
+TODO
+TODO
 unload-all-adm-bis : ∀{Γ X L- L+ U} 
   → (pf : stable U) 
   → Spine Γ L- (X ∷ L+) U 
@@ -278,7 +294,7 @@ unload-all-adm-bis {L+ = []} pf (∧⁻L₁ Sp) Sub =
   {!!}
 unload-all-adm-bis {L+ = []} pf (∧⁻L₂ Sp) Sub = {!!}
 unload-all-adm-bis {L+ = x ∷ L+} pf Sp Sub = {!!}
-
+-}
 
 
 {-
@@ -362,7 +378,11 @@ spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
 
 
 
-
+{-
+TODO
+TODO 
+TODO 
+TODO
 ⊥⁺-admm : ∀{Γ LL LA L+ Ω U} → 
   stable U → 
   length LL ≡ length LA →
@@ -370,6 +390,8 @@ spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
   All (λ x → Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (zipWith _,_ LL LA) → 
     Exp Γ (Left (inj₁ (proj₁ (fuse-gen LL L+) , ⊥⁺ ∷ Ω ++ proj₂ (fuse-gen LL L+))) U)
 ⊥⁺-admm pf Eq Sp Exps = {!!} 
+
+-}
 
 {-
 ⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
