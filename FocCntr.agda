@@ -118,8 +118,8 @@ cntr-term-hsusp-lit {Γ1}  (∧⁻R N₁ N₂) In = ∧⁻R (cntr-term-hsusp-lit
 
 
 
-cntr-+-term-gen : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → size-list+-formulas (X ∷ L+) ≡ N → Term Γ L+ U
-cntr-+-term-gen-helper : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → N >′ size-list+-formulas (X ∷ L+)  → Term Γ L+ U
+cntr-+-term-gen : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → size-list-formulas (X ∷ L+) ≡ N → Term Γ L+ U
+cntr-+-term-gen-helper : ∀{Γ X L+ U N } → Term Γ (X ∷ L+) U → X ∈ L+ → N >′ size-list-formulas (X ∷ L+)  → Term Γ L+ U
 --
 cntr-+-term-gen-helper T In (>′-refl m≡n) = cntr-+-term-gen T In refl 
 cntr-+-term-gen-helper T In (>′-step Ineq) = cntr-+-term-gen-helper T In Ineq 
@@ -157,7 +157,6 @@ cntr-+-[]-spine : ∀{Γ Y L+ U}
   → Spine Γ [] ((Y ∷ L+) ++ [ X ]) U 
   → Pers (↑ X) ∈ Γ
   → Spine Γ [] (Y ∷ L+) U
-
 cntr-+-[]-spine pf X (↑L-nil pf₁ N) In = ↑L-nil pf₁ (cntr-pers-term pf₁ N In)
 
 

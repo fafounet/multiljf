@@ -27,6 +27,7 @@ term-⊥-context pf (there In) =
 
 ALL THOSE LEMMAS ARE WRONG
 C.F. ahmm at the end of this file
+unless U is suspnormal !
 
 value-∧⁺-context : ∀{Γ' Γ A B U} 
   → Value (Γ' ++ Pers (↑ (A ∧⁺ B)) ∷ Γ) U 

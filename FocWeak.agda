@@ -187,6 +187,18 @@ weak+-[]-spine : ∀{Γ L+ U} → (X : Type ⁺) → Spine Γ [] L+ U →  Spine
 weak+-[]-spine {L+ = []} X ()
 weak+-[]-spine {L+ = X₁ ∷ L+} X (↑L-nil pf N) = ↑L-nil pf (weak+-term X N)
 
+{-
+weak-⁻-spine : ∀{Γ L1 L2 X L+ U} → Spine Γ (L1 ++ L2) L+ U → suspnormal U → Spine Γ (L1 ++ X ∷ L2) L+ U 
+weak-⁻-spine {L1 = []} id⁻ pf = {!!}
+weak-⁻-spine {L1 = []} (↑L-cons pf N) pf₁ = {!!}
+weak-⁻-spine {L1 = []} (↑L-nil pf N) pf₁ = {!!}
+weak-⁻-spine {L1 = []} (⊃L V Sp) pf = {!!}
+weak-⁻-spine {L1 = []} (∧⁻L₁ Sp) pf = {!!}
+weak-⁻-spine {L1 = []} (∧⁻L₂ Sp) pf = {!!}
+weak-⁻-spine {L1 = x ∷ L1} Sp pf = {!!} 
+-}
+
+
 -- This is only true if we consider residuals
 {-
 weak-spine : ∀{Γ X L- S L+} → All (λ x → x ≢ S) L- → Spine Γ L- L+ (Susp S) → Spine Γ (X ∷ L-) L+ (Susp S)

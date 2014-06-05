@@ -2,7 +2,8 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 open import Data.Product
 open import Data.Unit
 open import Data.Bool renaming (_∨_ to _or_)
-open import Data.Sum
+open import Data.Sum 
+open import Data.Nat hiding (_≤′_; module _≤′_; _<′_; _≥′_; _>′_)
 open import Data.Product
 open import Data.Empty
 open import Data.List
@@ -44,58 +45,10 @@ load-inv-step-adm : ∀{Γ1 Γ2 X L U}
   → Spine-l (Γ1 ++ Pers X ∷ Γ2) (L) U
 load-inv-step-adm {Γ1} {X = X} pf Sp = focL-step pf (in-append-cons {X = Pers X} {L1 = Γ1})  Sp
 
-
-∧-context-adm : ∀{Γ1 Γ2 A B L} 
-  → Exp (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L 
-  → Exp (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
-
-postulate
-  -- TODO : PROBABLY WRONG!!!!
-  ∧-context-loading-adm : ∀{Γ1 Γ2 A B L} 
-    → Exp-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L 
-    → Exp-l (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
-{-∧-context-loading-adm {Γ1} (focL-step pf In Sp) with fromctx Γ1 In
-∧-context-loading-adm {Γ1} {Γ2} {A} {B} (focL-step pf In Sp) | inj₁ refl 
-  = {!!}
-... | inj₂ X = {!!} --focL-step pf {!!} (∧-context-loading-adm Sp)
-∧-context-loading-adm {Γ1} (focL-end pf Sp) = focL-end pf (∧-context-adm {Γ1} Sp)
--}
-
-∧-context-adm {Γ1} (id⁺ v) with fromctx Γ1 v 
-∧-context-adm (id⁺ v) | inj₁ ()
-... | inj₂ X = id⁺ (in-append-double-weak {L1 = Γ1} X)
-∧-context-adm {Γ1} (↓R N) = ↓R (∧-context-adm {Γ1} N)
-∧-context-adm {Γ1}  (∨R₁ V) = ∨R₁ (∧-context-adm {Γ1}  V)
-∧-context-adm {Γ1}  (∨R₂ V) = ∨R₂ (∧-context-adm {Γ1}  V)
-∧-context-adm {Γ1}  ⊤⁺R = ⊤⁺R
-∧-context-adm {Γ1}  (∧⁺R V₁ V₂) = ∧⁺R (∧-context-adm {Γ1}  V₁) (∧-context-adm {Γ1}  V₂)
-∧-context-adm {Γ1}  (focR V) = focR (∧-context-adm {Γ1}  V)
-∧-context-adm {Γ1} {Γ2} {A = A} {B = B} (focL-init pf Sp) 
-  = load-std {Γ = Γ1 ++ Pers A ∷ Pers B ∷ Γ2} (∧-context-loading-adm {Γ1} {Γ2} {A = A} {B = B} Sp)
-∧-context-adm {Γ1}  (η⁺ {Q} N) = η⁺ (∧-context-adm {Γ1 = HSusp (a Q ⁺) ∷ Γ1}  N)
-∧-context-adm {Γ1}  (↓L {A₁} N) = ↓L (∧-context-adm {Γ1 = Pers A₁ ∷ Γ1}  N)
-∧-context-adm {Γ1}  ⊥L = ⊥L
-∧-context-adm {Γ1}  (∨L N₁ N₂) = ∨L (∧-context-adm {Γ1}  N₁) (∧-context-adm {Γ1}  N₂)
-∧-context-adm {Γ1}  (⊤⁺L N) = ⊤⁺L (∧-context-adm {Γ1}  N)
-∧-context-adm {Γ1}  (∧⁺L N) = ∧⁺L (∧-context-adm {Γ1}  N)
-∧-context-adm {Γ1}  (η⁻ N) = η⁻ (∧-context-adm {Γ1}  N)
-∧-context-adm {Γ1}  (↑R N) = ↑R (∧-context-adm {Γ1}  N)
-∧-context-adm {Γ1}  (⊃R N) = ⊃R (∧-context-adm {Γ1}  N)
-∧-context-adm {Γ1}  ⊤⁻R = ⊤⁻R
-∧-context-adm {Γ1}  (∧⁻R N₁ N₂) = ∧⁻R (∧-context-adm {Γ1}  N₁) (∧-context-adm {Γ1}  N₂)
-∧-context-adm {Γ1}  id⁻ = id⁻
-∧-context-adm {Γ1}  (↑L-cons pf N) = ↑L-cons pf (∧-context-adm {Γ1}  N)
-∧-context-adm {Γ1}  (↑L-nil pf N) = ↑L-nil pf (∧-context-adm {Γ1}  N)
-∧-context-adm {Γ1}  (⊃L V Sp) = ⊃L (∧-context-adm {Γ1}  V) (∧-context-adm {Γ1}  Sp)
-∧-context-adm {Γ1}  (∧⁻L₁ Sp) = ∧⁻L₁ (∧-context-adm {Γ1}  Sp)
-∧-context-adm {Γ1}  (∧⁻L₂ Sp) = ∧⁻L₂ (∧-context-adm {Γ1}  Sp)
-
-
 loading-done : ∀{Γ L U}
   → (s : Spine-l Γ L U)
   → ∃ λ L' →  (Data.List.map Pers L') ⊆ Γ ×
     Σ (Spine Γ (L' ++ L) [] U)  (\s' → height-l s >′ height s')
-
 
 loading-done {L = L} (focL-step {A = A} pf In Sp)  with loading-done Sp 
 loading-done {L = L} (focL-step {A = A} pf In Sp) | [] , Sub , Sp' , IEq = 
@@ -104,6 +57,179 @@ loading-done {L = L} (focL-step {A = A} pf In Sp) | x ∷ C , Sub , Sp' , IEq
   rewrite cons-nil-cons-concat {x = x} {C = C} {A = A} {L = L}  = 
      x ∷ C ++ A ∷ [] , (cons-sub-in-append Sub In , (Sp' , >′-step IEq))
 loading-done {Γ} (focL-end pf Sp) = [] , (λ {x} → λ ()) ,  Sp , >′-refl refl 
+
+
+
+loading-done-unprecise : ∀{Γ L- U}
+  → Spine-l Γ L- U 
+  → 
+  (∃ λ L' → 
+    ((Data.List.map Pers L') ⊆ Γ)
+    × Spine Γ (L' ++ L-) [] U)
+loading-done-unprecise Sp  with loading-done Sp 
+... | L' , Sub , Sp' , _ = L' , Sub , Sp' 
+
+spine-possib-phases : ∀{Γ LA U L+ A}
+  → Spine Γ (A ∷ LA) L+ U 
+  → ((LA ≡ []) × (L+ ≡ []))
+         ⊎
+  (∃ λ RA → 
+     (Spine Γ LA (L+ ++ RA) U) × 
+      -- It's important to be able to reconstruct the negative multifocused part
+      -- for ANY spine, 
+       (∀{LA' L'+ U'} → stable U' → Spine Γ LA' (L'+ ++ RA) U' →  Spine Γ (A ∷ LA') L'+ U'))
+spine-possib-phases id⁻ = inj₁ (refl , refl)
+spine-possib-phases {Γ} {[]} {U} {L+} {↑ x} (↑L-cons pf N) = 
+  inj₂ (x ∷ [] , N , ↑L-cons)
+spine-possib-phases {Γ} {x ∷ LA} {A = ↑ x₁} (↑L-cons pf N) with spine-possib-phases N
+spine-possib-phases {Γ} {x ∷ LA} {A = ↑ x₁} (↑L-cons pf N) | inj₁ x₂ = inj₂ (x₁ ∷ [] , N , ↑L-cons)
+spine-possib-phases {Γ} {x ∷ LA} {A = ↑ x₁} (↑L-cons pf N) | inj₂ y = inj₂ (x₁ ∷ [] , N , ↑L-cons)
+
+spine-possib-phases (⊃L V Sp) with spine-possib-phases Sp
+spine-possib-phases (⊃L V Sp) | inj₁ x = inj₁ x
+spine-possib-phases (⊃L V Sp) | inj₂ (RA  , Sp' , R)  = 
+  inj₂ (RA , Sp' , (λ {x₁} {x₂} {x₃} pf x₄  → ⊃L V (R pf x₄)))
+
+spine-possib-phases (∧⁻L₁ Sp) with spine-possib-phases Sp
+spine-possib-phases (∧⁻L₁ Sp) | inj₁ x = inj₁ x
+spine-possib-phases (∧⁻L₁ Sp) | inj₂ (RA , Sp' , R) = 
+  inj₂ (RA  , Sp' , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₁ (R pf x₄)))
+spine-possib-phases (∧⁻L₂ Sp) with spine-possib-phases Sp
+spine-possib-phases (∧⁻L₂ Sp) | inj₁ x = inj₁ x
+spine-possib-phases (∧⁻L₂ Sp) | inj₂ (RA , Sp' , R) = 
+  inj₂ (RA , Sp' , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₂ (R pf x₄)))
+
+
+no-neg-helper1 : ∀{N x L} → N ≡ size-list-formulas (↑ x ∷ L) → N >′ size-list-formulas L
+no-neg-helper1 {x = x} refl = suc-+-refl->′ {N = size-formula x} 
+
+no-neg-helper2 : ∀{N L} → N ≡ size-list-formulas (⊤⁻ ∷ L) → N >′ size-list-formulas L
+no-neg-helper2  refl = suc-+-refl->′ {N = zero}
+
+no-neg-helper3 : ∀{N x x₁ L} → N ≡ size-list-formulas (x ∧⁻ x₁ ∷ L) → N >′ size-list-formulas (x ∷ x₁ ∷ L)
+no-neg-helper3 {N} {x} {x₁} {L}  Eq 
+  rewrite assoc-nat
+          {X = size-formula x} 
+          {Y = size-formula x₁} 
+          {Z = foldr (λ x → _+_ (size-formula x)) 0 L} 
+  | Eq = >′-refl refl 
+
+no-neg-helper4 : ∀{N x x₁ L} → N ≡ size-list-formulas (x ⊃ x₁  ∷ L) → N >′ size-list-formulas (x₁ ∷ L)
+no-neg-helper4 {N} {x} {x₁} {L} Eq  with size-formula-suc {⁺} {x} 
+no-neg-helper4 {N} {x} {x₁} {L} Eq | N' , Eq' 
+  rewrite Eq | Eq' 
+          | sym (assoc-nat 
+              {X = N'}
+              {Y = size-formula x₁} 
+              {Z = foldr (λ x₂ → _+_ (size-formula x₂)) 0 L}) = 
+  >′-step (suc-+-refl->′ {N = N'}) 
+
+-- Check that no negative literal can appear in the decomposition of the
+-- negative multifocused list (we don't care if it appears under a ↑)
+no-neg-lit-as-residual : ∀{N} → (L : List (Type ⁻)) → N ≡ size-list-formulas L → Set
+no-neg-lit-as-residual-helper : ∀{N} → (L : List (Type ⁻)) → N >′ size-list-formulas L → Set
+
+no-neg-lit-as-residual-helper L (>′-refl Eq) = no-neg-lit-as-residual L Eq 
+no-neg-lit-as-residual-helper L (>′-step Ieq) = no-neg-lit-as-residual-helper L Ieq
+
+no-neg-lit-as-residual [] _ = ⊤
+no-neg-lit-as-residual (a Q .⁻ ∷ L) _ = ⊥
+no-neg-lit-as-residual {N = N} (↑ x ∷ L) Eq = 
+  no-neg-lit-as-residual-helper L (no-neg-helper1 {N = N} {x = x} {L = L} Eq)
+no-neg-lit-as-residual {N} (x ⊃ x₁ ∷ L) Eq = 
+  no-neg-lit-as-residual-helper (x₁ ∷ L) (no-neg-helper4 {N = N} {x = x} {x₁ = x₁} {L = L}  Eq)
+no-neg-lit-as-residual (⊤⁻ ∷ L) Eq = no-neg-lit-as-residual-helper L (no-neg-helper2 {L = L} Eq)
+no-neg-lit-as-residual {N} (x ∧⁻ x₁ ∷ L) Eq = 
+  no-neg-lit-as-residual-helper (x ∷ x₁ ∷ L) (no-neg-helper3 {N} {x} {x₁} {L} Eq)
+
+
+-- Compute the positive list of residuals
+-- i.e. what will be stored from the negative list to the positive list
+pos-residuals : (L- : List (Type ⁻)) → (no-neg-lit-as-residual L- refl) → List (Type ⁺)
+pos-residuals [] _ = []
+pos-residuals (a Q .⁻ ∷ L-) N = {!!} 
+pos-residuals (↑ x ∷ L-) NIn = pos-residuals L- {!!}
+pos-residuals (x ⊃ x₁ ∷ L-) NIn = pos-residuals (x₁ ∷ L-) {!!} 
+pos-residuals (⊤⁻ ∷ L-) NIn = pos-residuals L- {!!}
+pos-residuals (x ∧⁻ x₁ ∷ L-) NIn = pos-residuals (x ∷ L-) {!!} 
+
+{-
+spine-access-element : ∀{Γ L1 X L2 U L+}
+  → Spine Γ (L1 ++ X ∷ L2) L+ U 
+  → ((L1 ≡ []) × (L2 ≡ []) × (L+ ≡ []))
+         ⊎
+  (∃ λ L'1 → 
+     (Spine Γ (X ∷ L2) (L+ ++ L'1) U) × 
+      -- It's important to be able to reconstruct the negative multifocused part
+      -- for ANY spine, 
+       (∀{LA' L'+ U'} → stable U' → Spine Γ LA' (L'+ ++ L'1) U' →  Spine Γ (L1 ∷ LA') L'+ U'))
+-}
+
+
+∧-context-adm : ∀{Γ1 Γ2 A B L} 
+  → Exp (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L
+  → suspnormalF L -- needed for the case focL-init 
+  → Exp (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
+
+
+
+∧-context-loading-adm : ∀{Γ1 Γ2 A B L- U} 
+    → Spine-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L- U 
+    → suspnormal U 
+    → Spine-l (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L- U
+-- Even though this lemma is wrong:
+--spine-∧-adm : ∀{Γ A B L1 L2 L+ U} → Spine Γ (L1 ++ (A ∧⁻ B) ∷ L2) L+ U → suspnormal U → Spine Γ (L1 ++ A ∷ B ∷ L2) L+ U
+-- this one is true.
+-- The trick is to go up in the proof to the place where one of the two  ∧⁻ rules
+-- is used so we can single focused on the useful component
+∧-context-loading-adm {Γ1} (focL-step pf In Sp) pf' with fromctx Γ1 In 
+∧-context-loading-adm {A = A} {B = B} (focL-step pf In Sp) pf' | inj₁ refl 
+  with loading-done-unprecise Sp 
+  -- The loading phase is done.
+  -- However the conjunction is in the middle of list
+  -- We thus have to take care of the first elements preceding the conjunction
+... | L' , (Sub , Sp') = {!!} 
+∧-context-loading-adm (focL-step pf In Sp) pf' | inj₂ y = {!!} 
+∧-context-loading-adm (focL-end pf Sp) pf' = {!!} 
+
+
+
+
+∧-context-adm {Γ1} (id⁺ v) pf with fromctx Γ1 v 
+∧-context-adm (id⁺ v) pf | inj₁ ()
+... | inj₂ X = id⁺ (in-append-double-weak {L1 = Γ1} X)
+∧-context-adm {Γ1} (↓R N) pf = ↓R (∧-context-adm {Γ1} N pf)
+∧-context-adm {Γ1} (∨R₁ V) pf = ∨R₁ (∧-context-adm {Γ1} V pf)
+∧-context-adm {Γ1} (∨R₂ V) pf = ∨R₂ (∧-context-adm {Γ1} V pf)
+∧-context-adm {Γ1} ⊤⁺R _ = ⊤⁺R
+∧-context-adm {Γ1} (∧⁺R V₁ V₂) pf = ∧⁺R (∧-context-adm {Γ1}  V₁ pf) (∧-context-adm {Γ1}  V₂ pf)
+∧-context-adm {Γ1} (focR V) pf = focR (∧-context-adm {Γ1}  V pf)
+∧-context-adm {Γ1} {Γ2} {A = A} {B = B} (focL-init pf Sp) pf'
+  = load-std {Γ = Γ1 ++ Pers A ∷ Pers B ∷ Γ2} (∧-context-loading-adm {Γ1} {Γ2} {A = A} {B = B} Sp pf')
+∧-context-adm {Γ1} (η⁺ {Q} N) pf = η⁺ (∧-context-adm {Γ1 = HSusp (a Q ⁺) ∷ Γ1}  N pf)
+∧-context-adm {Γ1} (↓L {A₁} N) pf = ↓L (∧-context-adm {Γ1 = Pers A₁ ∷ Γ1}  N pf)
+∧-context-adm {Γ1} ⊥L _ = ⊥L
+∧-context-adm {Γ1} (∨L N₁ N₂) pf = ∨L (∧-context-adm {Γ1} N₁ pf) (∧-context-adm {Γ1} N₂ pf)
+∧-context-adm {Γ1} (⊤⁺L N) pf = ⊤⁺L (∧-context-adm {Γ1} N pf)
+∧-context-adm {Γ1} (∧⁺L N) pf = ∧⁺L (∧-context-adm {Γ1} N pf)
+∧-context-adm {Γ1} (η⁻ N) pf = η⁻ (∧-context-adm {Γ1} N pf)
+∧-context-adm {Γ1} (↑R N) pf = ↑R (∧-context-adm {Γ1} N pf)
+∧-context-adm {Γ1} (⊃R N) pf = ⊃R (∧-context-adm {Γ1} N pf)
+∧-context-adm {Γ1} ⊤⁻R pf = ⊤⁻R
+∧-context-adm {Γ1} (∧⁻R N₁ N₂) pf = ∧⁻R (∧-context-adm {Γ1}  N₁ pf) (∧-context-adm {Γ1}  N₂ pf)
+∧-context-adm {Γ1} id⁻ pf = id⁻
+∧-context-adm {Γ1} (↑L-cons pf N) pf' = ↑L-cons pf (∧-context-adm {Γ1}  N pf')
+∧-context-adm {Γ1} (↑L-nil pf N) pf' = ↑L-nil pf (∧-context-adm {Γ1}  N pf')
+∧-context-adm {Γ1} (⊃L V Sp) pf = ⊃L (∧-context-adm {Γ1} V tt) (∧-context-adm {Γ1}  Sp pf)
+∧-context-adm {Γ1} (∧⁻L₁ Sp) pf = ∧⁻L₁ (∧-context-adm {Γ1}  Sp pf)
+∧-context-adm {Γ1} (∧⁻L₂ Sp) pf = ∧⁻L₂ (∧-context-adm {Γ1}  Sp pf)
+
+
+
+
+
+
+
 
 unload-all-l : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine-l Γ L U → Data.List.map Pers L ⊆ Γ → Spine-l Γ [] U 
 unload-all-l [] pf Sp In = Sp
@@ -137,7 +263,7 @@ unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₂ Sp) Sub = {!!}
 -}
 
 
-{-
+
 unload-all-adm-bis : ∀{Γ X L- L+ U} 
   → (pf : stable U) 
   → Spine Γ L- (X ∷ L+) U 
@@ -152,7 +278,7 @@ unload-all-adm-bis {L+ = []} pf (∧⁻L₁ Sp) Sub =
   {!!}
 unload-all-adm-bis {L+ = []} pf (∧⁻L₂ Sp) Sub = {!!}
 unload-all-adm-bis {L+ = x ∷ L+} pf Sp Sub = {!!}
--}
+
 
 
 {-
@@ -174,35 +300,7 @@ spine-init : ∀{Γ Q LA U L+}
 spine-init id⁻ = refl , refl
 
 
-spine-possib-phases : ∀{Γ LA U L+ A}
-  → Spine Γ (A ∷ LA) L+ U 
-  → ((LA ≡ []) × (L+ ≡ []))
-         ⊎
-  (∃ λ RA → 
-     (Spine Γ LA (L+ ++ RA) U) × 
-      -- It's important to be able to reconstruct the negative multifocused part
-      -- for ANY spine, 
-       (∀{LA' L'+ U'} → stable U' → Spine Γ LA' (L'+ ++ RA) U' →  Spine Γ (A ∷ LA') L'+ U'))
-spine-possib-phases id⁻ = inj₁ (refl , refl)
-spine-possib-phases {Γ} {[]} {U} {L+} {↑ x} (↑L-cons pf N) = 
-  inj₂ (x ∷ [] , N , ↑L-cons)
-spine-possib-phases {Γ} {x ∷ LA} {A = ↑ x₁} (↑L-cons pf N) with spine-possib-phases N
-spine-possib-phases {Γ} {x ∷ LA} {A = ↑ x₁} (↑L-cons pf N) | inj₁ x₂ = inj₂ (x₁ ∷ [] , N , ↑L-cons)
-spine-possib-phases {Γ} {x ∷ LA} {A = ↑ x₁} (↑L-cons pf N) | inj₂ y = inj₂ (x₁ ∷ [] , N , ↑L-cons)
 
-spine-possib-phases (⊃L V Sp) with spine-possib-phases Sp
-spine-possib-phases (⊃L V Sp) | inj₁ x = inj₁ x
-spine-possib-phases (⊃L V Sp) | inj₂ (RA  , Sp' , R)  = 
-  inj₂ (RA , Sp' , (λ {x₁} {x₂} {x₃} pf x₄  → ⊃L V (R pf x₄)))
-
-spine-possib-phases (∧⁻L₁ Sp) with spine-possib-phases Sp
-spine-possib-phases (∧⁻L₁ Sp) | inj₁ x = inj₁ x
-spine-possib-phases (∧⁻L₁ Sp) | inj₂ (RA , Sp' , R) = 
-  inj₂ (RA  , Sp' , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₁ (R pf x₄)))
-spine-possib-phases (∧⁻L₂ Sp) with spine-possib-phases Sp
-spine-possib-phases (∧⁻L₂ Sp) | inj₁ x = inj₁ x
-spine-possib-phases (∧⁻L₂ Sp) | inj₂ (RA , Sp' , R) = 
-  inj₂ (RA , Sp' , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₂ (R pf x₄)))
 
 
 
@@ -264,28 +362,24 @@ spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
 
 
 
-{- 
+
 ⊥⁺-admm : ∀{Γ LL LA L+ Ω U} → 
   stable U → 
   length LL ≡ length LA →
   Spine Γ LA L+ U →
   All (λ x → Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (zipWith _,_ LL LA) → 
     Exp Γ (Left (inj₁ (proj₁ (fuse-gen LL L+) , ⊥⁺ ∷ Ω ++ proj₂ (fuse-gen LL L+))) U)
+⊥⁺-admm pf Eq Sp Exps = {!!} 
 
-
-⊥⁺-admm {LL = []} pf Eq Sp Exps = ↑L-nil pf ⊥L
--- We have a spine 
-⊥⁺-admm {LL = inj₁ (proj₁ , proj₂) ∷ LL} {[]} pf () Sp Exps
-⊥⁺-admm {LL = inj₁ (L'- , L'+) ∷ LL} {x ∷ LA} pf Eq Sp (px ∷ Exps) = {!⊥⁺-admm {LL = LL} pf ? Exps!}
--- We have a term
-⊥⁺-admm {LL = inj₂ [] ∷ LL} {[]} pf () SP Exps
+{-
 ⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
   with loading-done Sp2
 ⊥⁺-admm {Γ} {inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
   | L' , Sub , Sp' , H = {!unload-all-term ? pf (⊥⁺-admm pf Eq Sp1 (Sp' ∷ Exps)) !}
 
+-}
 -- Requires a generalization to unload a Spine even when the positive list is not nil
-
+{-
 Exp Γ
 (Left
  (inj₁
