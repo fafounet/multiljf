@@ -140,7 +140,7 @@ size-list-helper1 {A} {B} {L1} {L2} refl
           (+-n-n->′ {n = foldr (λ x → _+_ (size-formula x)) 0 L1} 
             (>′-step 
               (+-n-n->′ {n = size-formula A} 
-                (suc-+-refl->′ {N = N}))))))
+                (suc-+-refl->′ N))))))
 
 -- Boring ad-hoc trivial lemma for cntr-+-term-gen
 size-list-helper2 : ∀{A B L1 L2 N}
@@ -170,7 +170,7 @@ size-list-helper2 {A} {B} {L1} {L2} refl
       (+-n->′ {n = N} 
         (+-n-n->′ {n = size-formula B} 
           (+-n-n->′ {n = foldr (λ x → _+_ (size-formula x)) 0 L1} 
-            (>′-step (suc-+-refl->′ {N = N}) )) )) ) 
+            (>′-step (suc-+-refl->′ N) )) )) ) 
 
 
 -- Boring ad-hoc trivial lemma for cntr-+-term-gen

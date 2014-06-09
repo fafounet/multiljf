@@ -101,7 +101,7 @@ spine-possib-phases (∧⁻L₂ Sp) | inj₂ (RA , Sp' , R) =
 
 
 no-neg-helper1 : ∀{N x L} → N ≡ size-list-formulas (↑ x ∷ L) → N >′ size-list-formulas L
-no-neg-helper1 {x = x} refl = suc-+-refl->′ {N = size-formula x} 
+no-neg-helper1 {x = x} refl = suc-+-refl->′ (size-formula x)
 
 
 
@@ -113,7 +113,7 @@ no-neg-helper2 {N} {x} {x₁} {L} Eq | N' , Eq'
               {X = N'}
               {Y = size-formula x₁} 
               {Z = foldr (λ x₂ → _+_ (size-formula x₂)) 0 L}) = 
-  >′-step (suc-+-refl->′ {N = N'}) 
+  >′-step (suc-+-refl->′ N') 
 
 -- Check that no negative literal can appear in the decomposition of the
 -- negative multifocused list (we don't care if it appears under a ↑)
@@ -143,10 +143,12 @@ no-neg-lit-as-residual {suc N} (x ∧⁻ x₁ ∷ L) Eq
   no-neg-lit-as-residual (x ∷ x₁ ∷ L) (suc-inj Eq) 
 
 
-no-neg-list-std-helper : ∀{L- N} 
-  → no-neg-lit-as-residual-helper L- (suc-+-refl->′ {N})
-  → no-neg-lit-as-residual L- refl
-no-neg-list-std-helper  A = {!!} 
+no-neg-list-std-helper : ∀{L N N' P P'} 
+  → no-neg-lit-as-residual-helper {N} L P
+  → no-neg-lit-as-residual {N'} L P'
+no-neg-list-std-helper {P = >′-refl refl} {refl} NN = NN
+no-neg-list-std-helper {L} {N = suc N} {P = >′-step P} NN = no-neg-list-std-helper {L = L}  {P = P} NN 
+
 
 
 -- Compute the positive list of residuals
@@ -154,7 +156,15 @@ no-neg-list-std-helper  A = {!!}
 pos-residuals : (L- : List (Type ⁻)) → (∀{N Eq} → (no-neg-lit-as-residual {N} L- Eq)) → List (Type ⁺)
 pos-residuals [] NN = []
 pos-residuals (a Q .⁻ ∷ L-) NN = ⊥-elim (NN {_} {refl})
-pos-residuals (↑ x ∷ L-) NN = x ∷ (pos-residuals L- (λ {N} {Eq} → no-neg-list-std-helper {N = {!!}} (NN {_} {refl})))
+pos-residuals (↑ x ∷ L-) NN = 
+  x ∷ (pos-residuals L- 
+                     (λ {N} {Eq} → 
+                        no-neg-list-std-helper
+                          {L = L-} 
+                          {N = suc (size-formula x + foldr (λ z → _+_ (size-formula z)) zero L-)}
+                          {P = suc-+-refl->′ (size-formula x)}
+                          (NN {_} {refl})
+                      ))
 pos-residuals (x ⊃ x₁ ∷ L-) NN = {!!}
 pos-residuals (⊤⁻ ∷ L-) NN = {!!}
 pos-residuals (x ∧⁻ x₁ ∷ L-) NN = {!!} 

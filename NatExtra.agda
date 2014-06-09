@@ -27,9 +27,9 @@ suc->′-suc : ∀{m n} → m >′ n → suc m >′ suc n
 suc->′-suc (>′-refl refl) = >′-refl refl
 suc->′-suc (>′-step Ineq) =  >′-step (suc->′-suc Ineq)
 
-suc-+-refl->′ : ∀{N m} → suc (N + m)  >′ m
-suc-+-refl->′ {zero} = λ {m} → >′-refl refl
-suc-+-refl->′ {suc N} {m} = >′-step (suc-+-refl->′ {N = N})
+suc-+-refl->′ : ∀{m} → (N : ℕ) → suc (N + m)  >′ m
+suc-+-refl->′ {m} zero = >′-refl refl 
+suc-+-refl->′ {m} (suc N) = >′-step (suc-+-refl->′ N)
 
 
 +-n-n->′ : ∀{n m k} → k >′ m → n + k >′ n + m
