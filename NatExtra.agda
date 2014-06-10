@@ -12,7 +12,8 @@ assoc-nat {suc X} {Y} {Z} rewrite assoc-nat {X} {Y} {Z} = refl
 suc-inj : ∀{x x' : ℕ} → suc x ≡ suc x' → x ≡ x'
 suc-inj refl = refl
 
-
+suc-≡ : ∀{x x' : ℕ} → x ≡ x' → suc x ≡ suc x'
+suc-≡ refl = refl 
 
 
 

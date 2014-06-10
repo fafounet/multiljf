@@ -14,6 +14,7 @@ open import Foc
 open import FocWeak
 open import ListExtra
 open import NatExtra
+open import FocProps
 
 
 ∧+-inv : ∀{Γ U Ω A B} → Term Γ (A ∧⁺ B ∷ Ω) U → Term Γ (A ∷ B ∷ Ω) U
@@ -163,10 +164,10 @@ postulate
 
 
 
-{-
 
-{-
- TODO: Prove/ HARD!! -}
+
+
+-- TODO: Prove/ HARD!! 
 spine-∨-adm : ∀{Γ L- L+ A B U} 
     → Spine Γ L- (A ∷ L+) U 
     → Spine Γ L- (B ∷ L+) U 
@@ -205,7 +206,7 @@ spine-∨-adm {L- = C ∧⁻ D ∷ L- } (∧⁻L₂ Sp) (∧⁻L₁ Sp₁) = {!!
 spine-∨-adm {L- = C ∧⁻ D ∷ L- } (∧⁻L₂ Sp) (∧⁻L₂ Sp₁) = ∧⁻L₂ (spine-∨-adm Sp Sp₁ ) 
 
 
-
+{-
 
 spine-∧⁻L₂-adm :  ∀{Γ L' L- L+ A B U}  → Spine Γ (L' ++ (B ∷ L-)) L+ U → Spine Γ (L' ++ (A ∧⁻ B) ∷ L-) L+ U
 spine-∧⁻L₂-adm {L' = []} Sp = ∧⁻L₂ Sp

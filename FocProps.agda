@@ -4,16 +4,17 @@ open import Data.Unit
 open import Data.Bool renaming (_∨_ to _or_)
 open import Data.Sum 
 open import Data.Nat hiding (_≤′_; module _≤′_; _<′_; _≥′_; _>′_)
+
 open import Data.Product
 open import Data.Empty
 open import Data.List
 open import Data.List.All
 open import Data.List.Any
 open Membership-≡
+open import Function
 
 open import Foc
 open import FocWeak
-open import FocCntr
 
 open import NatExtra
 open import ListExtra
@@ -134,7 +135,7 @@ no-neg-lit-as-residual {suc N} (↑ x ∷ L) Eq =
   no-neg-lit-as-residual-helper L (no-neg-helper1 {N = suc N} {x = x} {L = L} Eq) 
 no-neg-lit-as-residual {suc N} (x ⊃ x₁ ∷ L) Eq = 
   no-neg-lit-as-residual-helper (x₁ ∷ L) (no-neg-helper2 {N = suc N} {x = x} {x₁ = x₁} {L = L} Eq ) 
-no-neg-lit-as-residual {suc N} (⊤⁻ ∷ L) Eq = no-neg-lit-as-residual L (suc-inj Eq) 
+no-neg-lit-as-residual {suc N} (⊤⁻ ∷ L) Eq = no-neg-lit-as-residual {N} L (suc-inj Eq) 
 no-neg-lit-as-residual {suc N} (x ∧⁻ x₁ ∷ L) Eq 
   rewrite sym (assoc-nat
             {X = size-formula x}
@@ -143,30 +144,62 @@ no-neg-lit-as-residual {suc N} (x ∧⁻ x₁ ∷ L) Eq
   no-neg-lit-as-residual (x ∷ x₁ ∷ L) (suc-inj Eq) 
 
 
-no-neg-list-std-helper : ∀{L N N' P P'} 
+
+no-neg-lit-helper-std : ∀{L N N' P P'} 
   → no-neg-lit-as-residual-helper {N} L P
   → no-neg-lit-as-residual {N'} L P'
-no-neg-list-std-helper {P = >′-refl refl} {refl} NN = NN
-no-neg-list-std-helper {L} {N = suc N} {P = >′-step P} NN = no-neg-list-std-helper {L = L}  {P = P} NN 
+
+no-neg-lit-std-helper : ∀{L N N' P P'} 
+  → no-neg-lit-as-residual {N} L P
+  → no-neg-lit-as-residual-helper {N'} L P'
+
+no-neg-lit-std-helper-3 : ∀{L N N' P P'} 
+  → no-neg-lit-as-residual-helper {N} L P
+  → no-neg-lit-as-residual-helper {N'} L P'
+
+no-neg-lit-std-std : ∀{L N P N' P'} 
+   → no-neg-lit-as-residual {N} L P
+   → no-neg-lit-as-residual {N'} L P'
+
+no-neg-lit-helper-std {P = >′-refl refl} {refl} NN = NN
+no-neg-lit-helper-std {L = L} {N = suc N} {P = >′-step P} NN = no-neg-lit-helper-std {L = L} {P = P} NN
+
+no-neg-lit-std-helper {P = refl} {>′-refl m≡n} NN = {!!}
+no-neg-lit-std-helper {P = refl} {>′-step P'} NN = {!!} 
+
+no-neg-lit-std-helper-3 {P = >′-refl refl} {>′-refl refl} NN = NN
+no-neg-lit-std-helper-3 {P = >′-refl refl} {>′-step P'} NN = {!!}
+no-neg-lit-std-helper-3 {P = >′-step P} NN = {!!} 
+
+no-neg-lit-std-std {P = refl} {P' = refl} NN = NN 
 
 
+postulate 
+  suc-size-list-⊤⁻ : ∀{N L-} → suc N ≡ size-list-formulas L- → suc (suc N) ≡ size-list-formulas (⊤⁻ ∷ L-) 
 
 -- Compute the positive list of residuals
 -- i.e. what will be stored from the negative list to the positive list
 pos-residuals : (L- : List (Type ⁻)) → (∀{N Eq} → (no-neg-lit-as-residual {N} L- Eq)) → List (Type ⁺)
+
 pos-residuals [] NN = []
 pos-residuals (a Q .⁻ ∷ L-) NN = ⊥-elim (NN {_} {refl})
 pos-residuals (↑ x ∷ L-) NN = 
   x ∷ (pos-residuals L- 
                      (λ {N} {Eq} → 
-                        no-neg-list-std-helper
-                          {L = L-} 
+                        no-neg-lit-helper-std
+                          {L = L- } 
                           {N = suc (size-formula x + foldr (λ z → _+_ (size-formula z)) zero L-)}
                           {P = suc-+-refl->′ (size-formula x)}
                           (NN {_} {refl})
                       ))
 pos-residuals (x ⊃ x₁ ∷ L-) NN = {!!}
-pos-residuals (⊤⁻ ∷ L-) NN = {!!}
+pos-residuals (⊤⁻ ∷ L-) NN  = 
+  pos-residuals L- (λ { 
+    {zero} → 
+      λ {Eq} → {!!} ; 
+    {suc N} → 
+      λ {Eq} → {!NN {suc _} {suc-size-list-⊤⁻ Eq}!}
+    } )
 pos-residuals (x ∧⁻ x₁ ∷ L-) NN = {!!} 
 
 
