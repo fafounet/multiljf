@@ -118,67 +118,71 @@ no-neg-helper2 {N} {x} {x₁} {L} Eq | N' , Eq'
 
 -- Check that no negative literal can appear in the decomposition of the
 -- negative multifocused list (we don't care if it appears under a ↑)
-no-neg-lit-as-residual : ∀{N} → (L : List (Type ⁻)) → N ≡ size-list-formulas L → Set
-no-neg-lit-as-residual-helper : ∀{N} → (L : List (Type ⁻)) → N >′ size-list-formulas L → Set
+no-neg-lit-as-residual' : ∀{N} → (L : List (Type ⁻)) → N ≡ size-list-formulas L → Set
+no-neg-lit-as-residual'-helper : ∀{N} → (L : List (Type ⁻)) → N >′ size-list-formulas L → Set
 
-no-neg-lit-as-residual-helper L (>′-refl Eq) = no-neg-lit-as-residual L Eq 
-no-neg-lit-as-residual-helper L (>′-step Ieq) = no-neg-lit-as-residual-helper L Ieq
+no-neg-lit-as-residual'-helper L (>′-refl Eq) = no-neg-lit-as-residual' L Eq 
+no-neg-lit-as-residual'-helper L (>′-step Ieq) = no-neg-lit-as-residual'-helper L Ieq
 
-no-neg-lit-as-residual [] _ = ⊤
-no-neg-lit-as-residual {zero} (x ∷ L) Eq
+no-neg-lit-as-residual' [] _ = ⊤
+no-neg-lit-as-residual' {zero} (x ∷ L) Eq
   with size-formula-suc {⁻} {x}
-no-neg-lit-as-residual {zero} (x ∷ L) Eq | N' , Eq' rewrite Eq' 
+no-neg-lit-as-residual' {zero} (x ∷ L) Eq | N' , Eq' rewrite Eq' 
   with Eq 
 ... | () 
-no-neg-lit-as-residual {suc N} (a Q .⁻ ∷ L) x₁ = ⊥
-no-neg-lit-as-residual {suc N} (↑ x ∷ L) Eq =  
-  no-neg-lit-as-residual-helper L (no-neg-helper1 {N = suc N} {x = x} {L = L} Eq) 
-no-neg-lit-as-residual {suc N} (x ⊃ x₁ ∷ L) Eq = 
-  no-neg-lit-as-residual-helper (x₁ ∷ L) (no-neg-helper2 {N = suc N} {x = x} {x₁ = x₁} {L = L} Eq ) 
-no-neg-lit-as-residual {suc N} (⊤⁻ ∷ L) Eq = no-neg-lit-as-residual {N} L (suc-inj Eq) 
-no-neg-lit-as-residual {suc N} (x ∧⁻ x₁ ∷ L) Eq 
+no-neg-lit-as-residual' {suc N} (a Q .⁻ ∷ L) x₁ = ⊥
+no-neg-lit-as-residual' {suc N} (↑ x ∷ L) Eq =  
+  no-neg-lit-as-residual'-helper L (no-neg-helper1 {N = suc N} {x = x} {L = L} Eq) 
+no-neg-lit-as-residual' {suc N} (x ⊃ x₁ ∷ L) Eq = 
+  no-neg-lit-as-residual'-helper (x₁ ∷ L) (no-neg-helper2 {N = suc N} {x = x} {x₁ = x₁} {L = L} Eq ) 
+no-neg-lit-as-residual' {suc N} (⊤⁻ ∷ L) Eq = no-neg-lit-as-residual' {N} L (suc-inj Eq) 
+no-neg-lit-as-residual' {suc N} (x ∧⁻ x₁ ∷ L) Eq 
   rewrite sym (assoc-nat
             {X = size-formula x}
             {Y = size-formula x₁}
             {Z = foldr (λ x₂ → _+_ (size-formula x₂)) 0 L}) = 
-  no-neg-lit-as-residual (x ∷ x₁ ∷ L) (suc-inj Eq) 
+          no-neg-lit-as-residual' (x ∷ x₁ ∷ L) (suc-inj Eq) 
+
+no-neg-lit-as-residual : (L : List (Type ⁻)) → Set
+no-neg-lit-as-residual L = no-neg-lit-as-residual' L refl 
 
 
 
 no-neg-lit-helper-std : ∀{L N N' P P'} 
-  → no-neg-lit-as-residual-helper {N} L P
-  → no-neg-lit-as-residual {N'} L P'
-
-no-neg-lit-std-helper : ∀{L N N' P P'} 
-  → no-neg-lit-as-residual {N} L P
-  → no-neg-lit-as-residual-helper {N'} L P'
-
-no-neg-lit-std-helper-3 : ∀{L N N' P P'} 
-  → no-neg-lit-as-residual-helper {N} L P
-  → no-neg-lit-as-residual-helper {N'} L P'
-
-no-neg-lit-std-std : ∀{L N P N' P'} 
-   → no-neg-lit-as-residual {N} L P
-   → no-neg-lit-as-residual {N'} L P'
+  → no-neg-lit-as-residual'-helper {N} L P
+  → no-neg-lit-as-residual' {N'} L P'
 
 no-neg-lit-helper-std {P = >′-refl refl} {refl} NN = NN
 no-neg-lit-helper-std {L = L} {N = suc N} {P = >′-step P} NN = no-neg-lit-helper-std {L = L} {P = P} NN
 
-no-neg-lit-std-helper {P = refl} {>′-refl m≡n} NN = {!!}
-no-neg-lit-std-helper {P = refl} {>′-step P'} NN = {!!} 
 
-no-neg-lit-std-helper-3 {P = >′-refl refl} {>′-refl refl} NN = NN
-no-neg-lit-std-helper-3 {P = >′-refl refl} {>′-step P'} NN = {!!}
-no-neg-lit-std-helper-3 {P = >′-step P} NN = {!!} 
+no-neg-lit'-std-std : ∀{L N P N' P'} 
+   → no-neg-lit-as-residual' {N} L P
+   → no-neg-lit-as-residual' {N'} L P'
+no-neg-lit'-std-std {P = refl} {P' = refl} NN = NN 
 
-no-neg-lit-std-std {P = refl} {P' = refl} NN = NN 
+no-neg-lit-↑ : ∀{x L} → no-neg-lit-as-residual (↑ x ∷ L) →  no-neg-lit-as-residual L
+no-neg-lit-↑ {x} {L} NN = 
+  no-neg-lit-helper-std 
+    {L = L} 
+    {N = suc (size-formula x + foldr (λ z → _+_ (size-formula z)) zero L)} 
+    {P = suc-+-refl->′ (size-formula x)} NN 
 
 
-postulate 
-  suc-size-list-⊤⁻ : ∀{N L-} → suc N ≡ size-list-formulas L- → suc (suc N) ≡ size-list-formulas (⊤⁻ ∷ L-) 
+-- Compute the (approx) positive list of residuals
+-- i.e. what can be stored from the negative list to the positive list
+pos-residuals : (L- : List (Type ⁻)) → no-neg-lit-as-residual L-  → List (Type ⁺)
+pos-residuals [] NN = []
+pos-residuals (a Q .⁻ ∷ L-) ()
+pos-residuals (↑ x ∷ L-) NN = 
+  x ∷ (pos-residuals L- (no-neg-lit-↑ {x} {L-} NN))
+pos-residuals (x ⊃ x₁ ∷ L-) NN = {!!}
+pos-residuals (⊤⁻ ∷ L-) NN  = 
+  pos-residuals L- NN
+pos-residuals (x ∧⁻ x₁ ∷ L-) NN = {!? ⊎ ?!} 
 
--- Compute the positive list of residuals
--- i.e. what will be stored from the negative list to the positive list
+
+{-
 pos-residuals : (L- : List (Type ⁻)) → (∀{N Eq} → (no-neg-lit-as-residual {N} L- Eq)) → List (Type ⁺)
 
 pos-residuals [] NN = []
@@ -195,21 +199,19 @@ pos-residuals (↑ x ∷ L-) NN =
 pos-residuals (x ⊃ x₁ ∷ L-) NN = {!!}
 pos-residuals (⊤⁻ ∷ L-) NN  = 
   pos-residuals L- (λ {N} {Eq} → no-neg-lit-std-std {L = L- } (NN {suc N} {suc-≡ Eq})) 
-pos-residuals (x ∧⁻ x₁ ∷ L-) NN = {!!} 
-
+pos-residuals (x ∧⁻ x₁ ∷ L-) NN = {!? ⊎ ?!} 
+-}
 
 {-
 spine-access-element : ∀{Γ L1 X L2 U L+}
   → Spine Γ (L1 ++ X ∷ L2) L+ U 
   → ((L1 ≡ []) × (L2 ≡ []) × (L+ ≡ []))
          ⊎
-  (∃ λ L'1 → 
-     (Spine Γ (X ∷ L2) (L+ ++ L'1) U) × 
-      -- It's important to be able to reconstruct the negative multifocused part
-      -- for ANY spine, 
-       (∀{LA' L'+ U'} → stable U' → Spine Γ LA' (L'+ ++ L'1) U' →  Spine Γ (L1 ∷ LA') L'+ U'))
+    (Spine Γ (X ∷ L2) (L+ ++ pos-residuals L1) U) × 
+       -- This could be generalized to a list...
+       (∀{Y} → Spine Γ (Y ∷ L2) (L+ ++ pos-residuals L1) U → Spine Γ (L1 ++ Y ∷ L2) L+ U)
+spine-access-element Sp = ? 
 -}
-
 
 ∧-context-adm : ∀{Γ1 Γ2 A B L} 
   → Exp (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L
