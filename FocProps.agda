@@ -194,12 +194,7 @@ pos-residuals (↑ x ∷ L-) NN =
                       ))
 pos-residuals (x ⊃ x₁ ∷ L-) NN = {!!}
 pos-residuals (⊤⁻ ∷ L-) NN  = 
-  pos-residuals L- (λ { 
-    {zero} → 
-      λ {Eq} → {!!} ; 
-    {suc N} → 
-      λ {Eq} → {!NN {suc _} {suc-size-list-⊤⁻ Eq}!}
-    } )
+  pos-residuals L- (λ {N} {Eq} → no-neg-lit-std-std {L = L- } (NN {suc N} {suc-≡ Eq})) 
 pos-residuals (x ∧⁻ x₁ ∷ L-) NN = {!!} 
 
 
