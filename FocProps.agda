@@ -181,25 +181,6 @@ postulate
 
 
 
-{- # NO_TERMINATION_CHECK #
--- Compute the (approx) positive list of residuals
--- i.e. what can be stored from the negative list to the positive list
-pos-residuals' : ∀{N} → (L : List (Type ⁻)) → no-neg-lit-as-residual L → N ≡ size-list-formulas L → List (Type ⁺)
-pos-residuals' [] NN _ = []
-pos-residuals' (a Q .⁻ ∷ L) () _
-pos-residuals' (↑ x ∷ L) NN Eq = 
-  x ∷ (pos-residuals' L (no-neg-lit-↑ {x} {L} NN) {!!})
-pos-residuals' (x ⊃ x₁ ∷ L) NN Eq = pos-residuals' (x₁ ∷ L) {!!} {!!} 
-pos-residuals' (⊤⁻ ∷ L) NN  Eq = 
-  pos-residuals' L NN {!!} 
-pos-residuals' (x ∧⁻ x₁ ∷ L) NN Eq = pos-residuals' (x ∷ x₁ ∷ L) {!!}  {!!} --is it enough to so?
-
-
-pos-residuals : (L : List (Type ⁻)) → no-neg-lit-as-residual L → List (Type ⁺)
-pos-residuals L NN = pos-residuals' L NN refl 
--}
-
-
 pos-residuals'' : ∀{Γ Y L2 L+ U}
   → (L1 : List (Type ⁻))
   → (Sp : Spine Γ (L1 ++ (Y ∷ L2)) L+ U)
