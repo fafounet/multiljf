@@ -23,6 +23,12 @@ postulate
   cons-nil-cons-concat : ∀{b} {B : Set b} {x : B} {C : List B} {A : B} {L : List B} 
     → _≡_ {A = List B} (x ∷ C ++ A ∷ L) (x ∷ (C ++ A ∷ []) ++ L)
 
+
+postulate
+  append-nil-cons : ∀{b} {B : Set b} {X : B} {L1 L2 : List B} 
+    → _≡_  ((L1 ++ X ∷ []) ++ L2) (L1 ++ X ∷ L2)
+
+
 length-cons-nil' : ∀{b c} {B : Set b} {C : Set c} {L : List B} 
   → suc (length (L)) ≡ suc (length {A = C} ([]))
   → L ≡ []
