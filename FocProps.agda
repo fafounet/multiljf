@@ -101,10 +101,11 @@ spine-possib-phases (∧⁻L₂ Sp) | inj₂ (RA , Sp' , R) =
   inj₂ (RA , Sp' , (λ {x₁} {x₂} {x₃} pf x₄ → ∧⁻L₂ (R pf x₄)))
 
 
+
+
+
 no-neg-helper1 : ∀{N x L} → N ≡ size-list-formulas (↑ x ∷ L) → N >′ size-list-formulas L
 no-neg-helper1 {x = x} refl = suc-+-refl->′ (size-formula x)
-
-
 
 no-neg-helper2 : ∀{N x x₁ L} → N ≡ size-list-formulas (x ⊃ x₁  ∷ L) → N >′ size-list-formulas (x₁ ∷ L)
 no-neg-helper2 {N} {x} {x₁} {L} Eq  with size-formula-suc {⁺} {x} 
@@ -148,6 +149,7 @@ no-neg-lit-as-residual L = no-neg-lit-as-residual' L refl
 
 
 
+
 no-neg-lit-helper-std : ∀{L N N' P P'} 
   → no-neg-lit-as-residual'-helper {N} L P
   → no-neg-lit-as-residual' {N'} L P'
@@ -168,50 +170,91 @@ no-neg-lit-↑ {x} {L} NN =
     {N = suc (size-formula x + foldr (λ z → _+_ (size-formula z)) zero L)} 
     {P = suc-+-refl->′ (size-formula x)} NN 
 
+postulate 
+  no-neg-lit-⊃ :  ∀{A B L} → no-neg-lit-as-residual (A ⊃ B ∷ L) →  no-neg-lit-as-residual (B ∷ L)
 
+postulate 
+  no-neg-lit-∧1 :  ∀{A B L} → no-neg-lit-as-residual (A ∧⁻ B ∷ L) →  no-neg-lit-as-residual (A ∷ L)
+
+
+
+{-# NO_TERMINATION_CHECK #-}
 -- Compute the (approx) positive list of residuals
 -- i.e. what can be stored from the negative list to the positive list
-pos-residuals : (L- : List (Type ⁻)) → no-neg-lit-as-residual L-  → List (Type ⁺)
-pos-residuals [] NN = []
-pos-residuals (a Q .⁻ ∷ L-) ()
-pos-residuals (↑ x ∷ L-) NN = 
-  x ∷ (pos-residuals L- (no-neg-lit-↑ {x} {L-} NN))
-pos-residuals (x ⊃ x₁ ∷ L-) NN = {!!}
-pos-residuals (⊤⁻ ∷ L-) NN  = 
-  pos-residuals L- NN
-pos-residuals (x ∧⁻ x₁ ∷ L-) NN = {!? ⊎ ?!} 
+pos-residuals' : ∀{N} → (L : List (Type ⁻)) → no-neg-lit-as-residual L → N ≡ size-list-formulas L → List (Type ⁺)
+pos-residuals' [] NN _ = []
+pos-residuals' (a Q .⁻ ∷ L) () _
+pos-residuals' (↑ x ∷ L) NN Eq = 
+  x ∷ (pos-residuals' L (no-neg-lit-↑ {x} {L} NN) {!!})
+pos-residuals' (x ⊃ x₁ ∷ L) NN Eq = pos-residuals' (x₁ ∷ L) {!!} {!!} 
+pos-residuals' (⊤⁻ ∷ L) NN  Eq = 
+  pos-residuals' L NN {!!} 
+pos-residuals' (x ∧⁻ x₁ ∷ L) NN Eq = pos-residuals' (x ∷ x₁ ∷ L) {!!}  {!!} --is it enough to so?
 
 
-{-
-pos-residuals : (L- : List (Type ⁻)) → (∀{N Eq} → (no-neg-lit-as-residual {N} L- Eq)) → List (Type ⁺)
+{-# NO_TERMINATION_CHECK #-}
+pos-residuals'' : ∀{Γ L1 Y L2 L+ U} 
+  → (Sp : Spine Γ (L1 ++ (Y ∷ L2)) L+ U)
+   → List (Type ⁺)
+pos-residuals'' {L1 = []} Sp = []
+pos-residuals'' {L1 = ._ ∷ []} (↑L-cons {X} pf N₁) = [ X ] 
+pos-residuals'' {L1 = ._ ∷ []} (⊃L V Sp) = pos-residuals'' {L1 = []} Sp 
+pos-residuals'' {L1 = ._ ∷ []} (∧⁻L₁ Sp) = pos-residuals'' {L1 = []} Sp 
+pos-residuals'' {L1 = ._ ∷ []} (∧⁻L₂ Sp) = pos-residuals'' {L1 = []} Sp 
+--
+pos-residuals'' {L1 = ._ ∷ x₁ ∷ L1} (↑L-cons {X} pf N₁) = X ∷ pos-residuals'' {L1 = x₁ ∷ L1} N₁
+pos-residuals'' {L1 = ._ ∷ x₁ ∷ L1} (⊃L {A} {B} V Sp) = pos-residuals'' {L1 = B ∷ x₁ ∷ L1} Sp 
+pos-residuals'' {L1 = ._ ∷ x₁ ∷ L1} (∧⁻L₁ {A} {B} Sp) = pos-residuals'' {L1 = A ∷ x₁ ∷ L1} Sp
+pos-residuals'' {L1 = ._ ∷ x₁ ∷ L1} (∧⁻L₂ {A} {B} Sp) = pos-residuals'' {L1 = B ∷ x₁ ∷ L1} Sp
 
-pos-residuals [] NN = []
-pos-residuals (a Q .⁻ ∷ L-) NN = ⊥-elim (NN {_} {refl})
-pos-residuals (↑ x ∷ L-) NN = 
-  x ∷ (pos-residuals L- 
-                     (λ {N} {Eq} → 
-                        no-neg-lit-helper-std
-                          {L = L- } 
-                          {N = suc (size-formula x + foldr (λ z → _+_ (size-formula z)) zero L-)}
-                          {P = suc-+-refl->′ (size-formula x)}
-                          (NN {_} {refl})
-                      ))
-pos-residuals (x ⊃ x₁ ∷ L-) NN = {!!}
-pos-residuals (⊤⁻ ∷ L-) NN  = 
-  pos-residuals L- (λ {N} {Eq} → no-neg-lit-std-std {L = L- } (NN {suc N} {suc-≡ Eq})) 
-pos-residuals (x ∧⁻ x₁ ∷ L-) NN = {!? ⊎ ?!} 
--}
 
-{-
+
+pos-residuals : (L : List (Type ⁻)) → no-neg-lit-as-residual L → List (Type ⁺)
+pos-residuals L NN = pos-residuals' L NN refl 
+
+
+
 spine-access-element : ∀{Γ L1 X L2 U L+}
   → Spine Γ (L1 ++ X ∷ L2) L+ U 
+  → (PNN : no-neg-lit-as-residual L1) 
   → ((L1 ≡ []) × (L2 ≡ []) × (L+ ≡ []))
          ⊎
-    (Spine Γ (X ∷ L2) (L+ ++ pos-residuals L1) U) × 
-       -- This could be generalized to a list...
-       (∀{Y} → Spine Γ (Y ∷ L2) (L+ ++ pos-residuals L1) U → Spine Γ (L1 ++ Y ∷ L2) L+ U)
-spine-access-element Sp = ? 
--}
+    (Spine Γ (X ∷ L2) (L+ ++ pos-residuals L1 PNN) U) × 
+       -- The element X could be generalized to a list...
+       (∀{Y} → Spine Γ (Y ∷ L2) (L+ ++ pos-residuals L1 PNN) U → Spine Γ (L1 ++ Y ∷ L2) L+ U)
+spine-access-element {L1 = []} id⁻ PNN = inj₁ (refl , refl , refl)
+spine-access-element {L1 = []} {L+ = L+} (↑L-cons pf N) PNN 
+  rewrite concat-nil L+ =
+    inj₂ (↑L-cons pf N , (λ {Y} z → z))  
+spine-access-element {L1 = []} {L+ = L+} (⊃L V Sp) PNN 
+  rewrite concat-nil L+ = 
+    inj₂ (⊃L V Sp , (λ {Y} z → z)) 
+spine-access-element {L1 = []} {L+ = L+} (∧⁻L₁ Sp) PNN 
+  rewrite concat-nil L+ = 
+    inj₂ (∧⁻L₁ Sp , (λ {x} x₁ → x₁))
+spine-access-element {L1 = []} {L+ = L+} (∧⁻L₂ Sp) PNN 
+  rewrite concat-nil L+ = 
+    inj₂ (∧⁻L₂ Sp , (λ {x} x₁ → x₁))
+--
+-- I have to do this stupid split otherwise Agda cannot pattern match
+-- directly on the spine
+spine-access-element {L1 = ._ ∷ []} {X} (↑L-cons pf N) PNN = inj₂ (N , (λ {x} → ↑L-cons pf)) 
+spine-access-element {L1 = A ⊃ B ∷ []} (⊃L V Sp) PNN 
+  with spine-access-element {L1 = B ∷ []} Sp (no-neg-lit-⊃ {A = A} {B = B} {L = []} PNN) 
+... | inj₁ (() , Q) 
+... | inj₂ (Sp' , H)  = inj₂ (Sp' , (λ {Y} Sp'' → ⊃L V (H {Y} Sp'')))
+spine-access-element {L1 = ._ ∷ []} (∧⁻L₁ {A} Sp) PNN 
+  with spine-access-element {L1 = A ∷ []} Sp (no-neg-lit-∧1 {A = A} {L = []} PNN)  
+... | inj₁ (() , x)
+... | inj₂ (Sp' , H) = inj₂ ({!∧⁻L₁ Sp'!} , {!!})  
+spine-access-element {L1 = ._ ∷ []} (∧⁻L₂ Sp) PNN = {!!}
+-----
+spine-access-element {L1 = ._ ∷ x ∷ L1} (↑L-cons pf N) PNN = {!!}
+spine-access-element {L1 = ._ ∷ x ∷ L1} (⊃L V Sp) PNN = {!!}
+spine-access-element {L1 = ._ ∷ x ∷ L1} (∧⁻L₁ Sp) PNN = {!!}
+spine-access-element {L1 = ._ ∷ x ∷ L1} (∧⁻L₂ Sp) PNN = {!!} 
+--
+
 
 ∧-context-adm : ∀{Γ1 Γ2 A B L} 
   → Exp (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L
