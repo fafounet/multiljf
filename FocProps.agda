@@ -28,6 +28,21 @@ load-std (focL-step pf In Sp) = focL-init pf (focL-step pf In Sp)
 load-std (focL-end pf Sp) = focL-init pf (focL-end pf Sp)
 
 
+unload-all-l : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine-l Γ L U → Data.List.map Pers L ⊆ Γ → Spine-l Γ [] U 
+unload-all-l [] pf Sp In = Sp
+unload-all-l (x ∷ L) pf Sp In = unload-all-l L pf (focL-step pf (In (here refl)) Sp) (λ {x₁} z → In (there z))
+
+
+unload-partial-l : ∀{Γ L2 U} 
+  → (L1 : List (Type ⁻)) 
+  → (pf : stable U) 
+  → Spine-l Γ (L1 ++ L2) U 
+  → Data.List.map Pers L1 ⊆ Γ 
+  → Spine-l Γ L2 U 
+unload-partial-l [] pf Sp In = Sp
+unload-partial-l (x ∷ L) pf Sp In = unload-partial-l L pf (focL-step pf (In (here refl)) Sp)
+                                      (λ {x₁} z → In (there z))
+
 
 {-
 ∧-residual-loading : ∀{Γ A B L1 L2 U} → 
@@ -60,7 +75,6 @@ loading-done {L = L} (focL-step {A = A} pf In Sp) | x ∷ C , Sub , Sp' , IEq
 loading-done {Γ} (focL-end pf Sp) = [] , (λ {x} → λ ()) ,  Sp , >′-refl refl 
 
 
-
 loading-done-unprecise : ∀{Γ L- U}
   → Spine-l Γ L- U 
   → 
@@ -69,6 +83,8 @@ loading-done-unprecise : ∀{Γ L- U}
     × Spine Γ (L' ++ L-) [] U)
 loading-done-unprecise Sp  with loading-done Sp 
 ... | L' , Sub , Sp' , _ = L' , Sub , Sp' 
+
+
 
 spine-possib-phases : ∀{Γ LA U L+ A}
   → Spine Γ (A ∷ LA) L+ U 
@@ -259,7 +275,7 @@ spine-access-element {L1 = ._ ∷ x ∷ L1} (∧⁻L₂ {A} {B} Sp)
   with spine-access-element {L1 = B ∷ x ∷ L1} Sp
 ... | inj₁ (() , _)
 ... | inj₂ (Sp' , H) = inj₂ (Sp' , (λ {Y} z → ∧⁻L₂ (H z)))
---
+
 
 
 ∧-context-adm : ∀{Γ1 Γ2 A B L} 
@@ -268,33 +284,72 @@ spine-access-element {L1 = ._ ∷ x ∷ L1} (∧⁻L₂ {A} {B} Sp)
   → Exp (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L
 
 
+postulate 
+  pos-helper : ∀{Γ1 Γ2 A B x L' L- U}
+    → (Sp' : Exp (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  (Left (inj₁ (x ∷ L' ++ A ∧⁻ B ∷ L- , [])) U))
+    → ∃ λ E → ∃ λ T
+      → pos-residuals'' (x ∷ L') Sp' ≡ E ∷ T
 
-postulate
-  ∧-context-loading-adm : ∀{Γ1 Γ2 A B L- U} 
+
+∧-context-loading-adm : ∀{Γ1 Γ2 A B L- U} 
                         → Spine-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L- U 
                         → suspnormal U 
                         → Spine-l (Γ1 ++ Pers A ∷ Pers B ∷ Γ2)  L- U
-{-
- TODO 
- TODO 
- TODO
- TODO 
 -- Even though this lemma is wrong:
 --spine-∧-adm : ∀{Γ A B L1 L2 L+ U} → Spine Γ (L1 ++ (A ∧⁻ B) ∷ L2) L+ U → suspnormal U → Spine Γ (L1 ++ A ∷ B ∷ L2) L+ U
 -- this one is true.
 -- The trick is to go up in the proof to the place where one of the two  ∧⁻ rules
--- is used so we can single focused on the useful component
+-- is used so we can single focus on the useful component
 ∧-context-loading-adm {Γ1} (focL-step pf In Sp) pf' with fromctx Γ1 In 
+--
+-- % We loaded Pers (A ∧⁻ B)
+--
 ∧-context-loading-adm {A = A} {B = B} (focL-step pf In Sp) pf' | inj₁ refl 
-  with loading-done-unprecise Sp 
-  -- The loading phase is done.
-  -- However the conjunction is in the middle of list
-  -- We thus have to take care of the first elements preceding the conjunction
-... | L' , (Sub , Sp') = {!!} 
+   with loading-done-unprecise Sp
+--
+--    *  This was actually the last step
+-- 
+∧-context-loading-adm (focL-step pf In Sp) () | inj₁ refl | [] , Sub , id⁻
+∧-context-loading-adm {Γ1} {Γ2} {A} {B} (focL-step pf In Sp) pf' | inj₁ refl | [] , Sub , ∧⁻L₁ Sp₁ = 
+  focL-step {A = A} 
+    pf 
+    (in-append-right {L1 = Γ1} (here refl)) 
+    (focL-end pf (∧-context-adm {Γ1} {Γ2} {A} {B} Sp₁ pf'))
+∧-context-loading-adm {Γ1} {Γ2} {A} {B} (focL-step pf In Sp) pf' | inj₁ refl | [] , Sub , ∧⁻L₂ Sp₁ = 
+  focL-step {A = B} 
+    pf 
+    (in-append-right {L1 = Γ1} (there (here refl))) 
+    (focL-end pf (∧-context-adm {Γ1} {Γ2} {A} {B} Sp₁ pf'))
+--
+--    *  It was not the last step
+-- 
+∧-context-loading-adm {Γ1} {Γ2} {A} {B} {L-} {U} (focL-step pf In Sp) pf' | inj₁ refl | x ∷ L' , Sub , Sp' 
+        -- The loading phase is done.
+        -- However the conjunction is in the middle of list
+        -- We thus have to take care of the first elements preceding the conjunction
+  with spine-access-element {L1 = x ∷ L'} Sp' 
+... | inj₁ (() , _ , _) 
+... | inj₂ (Sp'' , H) with pos-helper {Γ1} {Γ2} {A} {B} {x} {L'} {L-} Sp'
+          -- We need to rule out the id- case so we rewrite
+          -- an can finally pattern match on Sp''
+... | E , T , Eq rewrite Eq with Sp''
+... | ∧⁻L₁ Sp1 = focL-step {A = A} 
+                           pf 
+                           (in-append-right {L1 = Γ1} (here refl) ) 
+                           (unload-partial-l 
+                               (x ∷ L') 
+                               pf 
+                               (focL-end pf (∧-context-adm {Γ1} {Γ2} {A} {B} (H {A} Sp1) pf')) 
+                               {!!}) 
+... | ∧⁻L₂ Sp2 = {!!} 
+--
+-- % We loaded something else than Pers (A ∧ B)
+--  
 ∧-context-loading-adm (focL-step pf In Sp) pf' | inj₂ y = {!!} 
 ∧-context-loading-adm (focL-end pf Sp) pf' = {!!} 
 
--}
+
+
 
 
 ∧-context-adm {Γ1} (id⁺ v) pf with fromctx Γ1 v 
@@ -333,9 +388,7 @@ postulate
 
 
 
-unload-all-l : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine-l Γ L U → Data.List.map Pers L ⊆ Γ → Spine-l Γ [] U 
-unload-all-l [] pf Sp In = Sp
-unload-all-l (x ∷ L) pf Sp In = unload-all-l L pf (focL-step pf (In (here refl)) Sp) (λ {x₁} z → In (there z))
+
 
 
 
