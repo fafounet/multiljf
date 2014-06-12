@@ -14,7 +14,7 @@ open import Foc
 open import FocWeak
 open import ListExtra
 open import NatExtra
-open import FocProps
+--open import FocProps
 
 
 ∧+-inv : ∀{Γ U Ω A B} → Term Γ (A ∧⁺ B ∷ Ω) U → Term Γ (A ∷ B ∷ Ω) U
@@ -166,8 +166,9 @@ postulate
 
 
 
-
+{-
 -- TODO: Prove/ HARD!! 
+-- (If it's true)
 spine-∨-adm : ∀{Γ L- L+ A B U} 
     → Spine Γ L- (A ∷ L+) U 
     → Spine Γ L- (B ∷ L+) U 
@@ -204,10 +205,9 @@ spine-∨-adm {L- = C ∧⁻ D ∷ L- } (∧⁻L₁ Sp) (∧⁻L₁ Sp₁) = ∧
 spine-∨-adm {L- = C ∧⁻ D ∷ L- } (∧⁻L₁ Sp) (∧⁻L₂ Sp₁) = {!!}
 spine-∨-adm {L- = C ∧⁻ D ∷ L- } (∧⁻L₂ Sp) (∧⁻L₁ Sp₁) = {!!}
 spine-∨-adm {L- = C ∧⁻ D ∷ L- } (∧⁻L₂ Sp) (∧⁻L₂ Sp₁) = ∧⁻L₂ (spine-∨-adm Sp Sp₁ ) 
-
+-}
 
 {-
-
 spine-∧⁻L₂-adm :  ∀{Γ L' L- L+ A B U}  → Spine Γ (L' ++ (B ∷ L-)) L+ U → Spine Γ (L' ++ (A ∧⁻ B) ∷ L-) L+ U
 spine-∧⁻L₂-adm {L' = []} Sp = ∧⁻L₂ Sp
 spine-∧⁻L₂-adm {L' = a Q .⁻ ∷ []} ()
@@ -225,8 +225,6 @@ spine-∧⁻L₂-adm {L' = A₁ ∧⁻ x₁ ∷ x₂ ∷ L'} (∧⁻L₂ Sp) = �
 
 spine-∧⁻-adm : ∀{Γ L- L+ A B U} → Spine Γ (A ∷ B ∷ L-) L+ U → Spine Γ (A ∧⁻ B ∷ L-) L+ U
 spine-∧⁻-adm {A = A} {B = B} Sp = {!∧⁻L₁ (spine-∧⁻L₂-adm {L' = [ A ]} Sp) !} 
-
-
 -}
 
 

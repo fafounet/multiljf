@@ -298,7 +298,7 @@ gsubst-more-gen {LL = .(inj₁ (x₁ ⊃ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ⊃
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ⊃ x₂ ] , [])) ∷ .[]} pf (x₁ ⊃ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ | refl = id⁻
 
 gsubst-more-gen {LL = .(inj₁ (x₁ ⊃ B ∷ [] , [])) ∷ LL} pf (x₁ ⊃ B ∷ LA) (id⁻ ∷ Exps) Eq (⊃L V Sp) 
-  with spine-possib-phases B Sp 
+  with spine-possib-phases Sp 
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ⊃ B ] , [])) ∷ LL} pf (x₁ ⊃ B ∷ .[]) (id⁻ ∷ Exps) Eq (⊃L V Sp) 
   | inj₁ (refl , refl) rewrite suc-fold-[] LL Eq = ⊃L V Sp
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ⊃ B ] , [])) ∷ LL} pf (x₁ ⊃ B ∷ LA) (id⁻ ∷ Exps) Eq (⊃L V Sp) 
@@ -314,7 +314,7 @@ gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ 
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ .[]} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq id⁻ | refl = id⁻
 
 gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
-  with spine-possib-phases x₁ Sp 
+  with spine-possib-phases  Sp 
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
   | inj₁ (refl , refl) rewrite suc-fold-[] LL Eq = ∧⁻L₁ Sp
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} {L+ = L+} {U = U} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₁ Sp) 
@@ -322,7 +322,7 @@ gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} {L+ = L+} {U
   ∧⁻L₁ (apply-R-splitting {LL = LL} pf R ((gsubst-more-gen pf LA Exps (suc-foldr-eq LL LA Eq) Sp'))) 
  
 gsubst-more-gen {LL = .(inj₁ (x₁ ∧⁻ x₂ ∷ [] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) 
-  with spine-possib-phases x₂ Sp 
+  with spine-possib-phases  Sp 
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} pf (x₁ ∧⁻ x₂ ∷ .[]) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) 
   | inj₁ (refl , refl) rewrite suc-fold-[] LL Eq = ∧⁻L₂ Sp
 gsubst-more-gen {Γ} {.(inj₁ ([ x₁ ∧⁻ x₂ ] , [])) ∷ LL} {L+ = L+} {U = U} pf (x₁ ∧⁻ x₂ ∷ LA) (id⁻ ∷ Exps) Eq (∧⁻L₂ Sp) 

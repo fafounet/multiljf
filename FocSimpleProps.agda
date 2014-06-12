@@ -126,10 +126,6 @@ spinel-and-notand-absurd (focL-end pf Sp) In A =
 
 
 
-spine-⊤⁻ : ∀{Γ L- L+ U} → Spine Γ (⊤⁻ ∷ L-) L+ U → ⊥ 
-spine-⊤⁻ id⁻ = {!!} 
-
-
 
 -- [weak.agda] weak+-spine-counterex : ∀{Γ Q X} → Spine Γ (a Q ⁻ ∷ []) (X ∷ []) (Susp (a Q ⁻)) → ⊥
 

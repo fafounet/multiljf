@@ -15,6 +15,7 @@ open import Function
 
 open import Foc
 open import FocWeak
+open import FocCntr
 
 open import NatExtra
 open import ListExtra
@@ -44,16 +45,6 @@ unload-partial-l (x ∷ L) pf Sp In = unload-partial-l L pf (focL-step pf (In (h
                                       (λ {x₁} z → In (there z))
 
 
-{-
-∧-residual-loading : ∀{Γ A B L1 L2 U} → 
- Spine-l (Γ) (L1 ++ A ∧⁻ B ∷ L2) U → 
- Spine-l (Γ) (L1 ++ A ∷ B ∷ L2) U 
-∧-residual-loading {L1 = []} (focL-step pf In Sp) = {!!}
-∧-residual-loading {L1 = []} (focL-end pf id⁻) = {!!}
-∧-residual-loading {L1 = []} (focL-end pf (∧⁻L₁ Sp)) = {!!}
-∧-residual-loading {L1 = []} (focL-end pf (∧⁻L₂ Sp)) = {!!}
-∧-residual-loading {L1 = x ∷ L1} Sp = {!!}
--}
 
 load-inv-step-adm : ∀{Γ1 Γ2 X L U} 
   → stable U 
@@ -277,7 +268,7 @@ spine-access-element {L1 = ._ ∷ x ∷ L1} (∧⁻L₂ {A} {B} Sp)
 ... | inj₂ (Sp' , H) = inj₂ (Sp' , (λ {Y} z → ∧⁻L₂ (H z)))
 
 
-
+{-
 ∧-context-adm : ∀{Γ1 Γ2 A B L} 
   → Exp (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L
   → suspnormalF L -- needed for the case focL-init 
@@ -291,6 +282,9 @@ postulate
       → pos-residuals'' (x ∷ L') Sp' ≡ E ∷ T
 
 
+
+
+ TODO: finish 
 ∧-context-loading-adm : ∀{Γ1 Γ2 A B L- U} 
                         → Spine-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L- U 
                         → suspnormal U 
@@ -323,13 +317,12 @@ postulate
 --
 --    *  It was not the last step
 -- 
-∧-context-loading-adm {Γ1} {Γ2} {A} {B} {L-} {U} (focL-step pf In Sp) pf' | inj₁ refl | x ∷ L' , Sub , Sp' 
-        -- The loading phase is done.
-        -- However the conjunction is in the middle of list
+∧-context-loading-adm {Γ1} {Γ2} {A} {B} {L- } {U} (focL-step pf In Sp) pf' | inj₁ refl | x ∷ L' , Sub , Sp' 
+        -- The loading phase is done.        -- However the conjunction is in the middle of list
         -- We thus have to take care of the first elements preceding the conjunction
   with spine-access-element {L1 = x ∷ L'} Sp' 
 ... | inj₁ (() , _ , _) 
-... | inj₂ (Sp'' , H) with pos-helper {Γ1} {Γ2} {A} {B} {x} {L'} {L-} Sp'
+... | inj₂ (Sp'' , H) with pos-helper {Γ1} {Γ2} {A} {B} {x} {L'} {L- } Sp'
           -- We need to rule out the id- case so we rewrite
           -- an can finally pattern match on Sp''
 ... | E , T , Eq rewrite Eq with Sp''
@@ -382,11 +375,7 @@ postulate
 ∧-context-adm {Γ1} (∧⁻L₂ Sp) pf = ∧⁻L₂ (∧-context-adm {Γ1}  Sp pf)
 
 
-
-
-
-
-
+-}
 
 
 
@@ -418,10 +407,12 @@ unload-one-adm {Y = A ∧⁻ Y₁} pf (∧⁻L₂ Sp) Sub = {!!}
 -}
 
 
-{- TODO
-TODO
-TODO
-TODO
+postulate
+  in-sub-eq : ∀{A B L Γ} → Pers (A ∧⁻ B) ∷ L ⊆ Γ 
+    →  ∃ λ Γ1 → ∃ λ Γ2 → Γ ≡ Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2
+
+{-
+TODO TODO TODO
 unload-all-adm-bis : ∀{Γ X L- L+ U} 
   → (pf : stable U) 
   → Spine Γ L- (X ∷ L+) U 
@@ -431,9 +422,9 @@ unload-all-adm-bis {L+ = []} pf (↑L-cons {y} pf₁ N) Sub =
   cntr-+-[]-spine pf (y) (unload-all-adm-bis pf₁ N (λ {x} z → Sub (there z)) ) (Sub (here refl)) 
 unload-all-adm-bis {L+ = []} pf (↑L-nil pf₁ N) Sub = ↑L-nil pf₁ N
 unload-all-adm-bis {L+ = []} pf (⊃L V Sp) Sub = {!!}
-unload-all-adm-bis {L+ = []} pf (∧⁻L₁ Sp) Sub = 
-  -- An immediate recursive call fails
-  {!!}
+unload-all-adm-bis {L+ = []} pf (∧⁻L₁ Sp) Sub 
+  with in-sub-eq Sub
+... | Γ1 , Γ2 , Eq rewrite Eq = {!∧-context-adm !} 
 unload-all-adm-bis {L+ = []} pf (∧⁻L₂ Sp) Sub = {!!}
 unload-all-adm-bis {L+ = x ∷ L+} pf Sp Sub = {!!}
 -}
@@ -516,49 +507,6 @@ spine-[]-⊤ {L+ = L+} X = ↑L-nil tt (term-⊤ (X ∷ L+))
 
 
 
-
-
-
-
-{-
-TODO
-TODO 
-TODO 
-TODO
-⊥⁺-admm : ∀{Γ LL LA L+ Ω U} → 
-  stable U → 
-  length LL ≡ length LA →
-  Spine Γ LA L+ U →
-  All (λ x → Exp Γ (Left (proj₁ x) (Susp (proj₂ x)))) (zipWith _,_ LL LA) → 
-    Exp Γ (Left (inj₁ (proj₁ (fuse-gen LL L+) , ⊥⁺ ∷ Ω ++ proj₂ (fuse-gen LL L+))) U)
-⊥⁺-admm pf Eq Sp Exps = {!!} 
-
--}
-
-{-
-⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
-  with loading-done Sp2
-⊥⁺-admm {Γ} {inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
-  | L' , Sub , Sp' , H = {!unload-all-term ? pf (⊥⁺-admm pf Eq Sp1 (Sp' ∷ Exps)) !}
-
--}
--- Requires a generalization to unload a Spine even when the positive list is not nil
-{-
-Exp Γ
-(Left
- (inj₁
-  ((L' ++ []) ++ proj₁ (fuse-gen LL .L+) ,
-   ⊥⁺ ∷
-   _Ω_1330 x Sp2 L' Sub Sp' H LL LA pf Eq Sp1 pf₁ Exps ++
-   proj₂ (fuse-gen LL .L+)))
- .U)
-
-Exp Γ
-      (Left
-       (inj₁
-        (proj₁ (fuse-gen LL .L+) , ⊥⁺ ∷ .Ω ++ proj₂ (fuse-gen LL .L+)))
-       .U)
--}
 
 
 
