@@ -283,8 +283,9 @@ postulate
 
 
 
-
- TODO: finish 
+TODO
+TODO 
+TODO: finish 
 ∧-context-loading-adm : ∀{Γ1 Γ2 A B L- U} 
                         → Spine-l (Γ1 ++ Pers (A ∧⁻ B) ∷ Γ2)  L- U 
                         → suspnormal U 
@@ -428,6 +429,22 @@ unload-all-adm-bis {L+ = []} pf (∧⁻L₁ Sp) Sub
 unload-all-adm-bis {L+ = []} pf (∧⁻L₂ Sp) Sub = {!!}
 unload-all-adm-bis {L+ = x ∷ L+} pf Sp Sub = {!!}
 -}
+
+
+unload-partial-adm-bis : ∀{Γ X L1 L2 L+ U} 
+  → (pf : stable U) 
+  → Spine Γ (L1 ++ L2)  (X ∷ L+) U 
+  → Data.List.map Pers L1 ⊆ Γ 
+  → Spine Γ L2 (X ∷ L+) U 
+unload-partial-adm-bis {L1 = []} pf Sp Sub = Sp
+unload-partial-adm-bis {L1 = ._ ∷ L1} pf (↑L-cons {Y} pf₁ N) Sub = 
+  -- Requires cntr-+-L-spine and thus suspnormal U as a condition
+  {!↑L-cons ? (unload-partial-adm-bis pf₁ N ?)!}
+unload-partial-adm-bis {L1 = ._ ∷ L1} pf (⊃L V Sp) Sub = {!!}
+unload-partial-adm-bis {L1 = ._ ∷ L1} pf (∧⁻L₁ Sp) Sub = {!!}
+unload-partial-adm-bis {L1 = ._ ∷ L1} pf (∧⁻L₂ Sp) Sub = {!!}
+
+
 
 
 {-

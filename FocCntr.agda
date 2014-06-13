@@ -62,6 +62,7 @@ cntr-pers-term {L+ = ⊤⁺ ∷ L+} pf (⊤⁺L N) In =
 cntr-pers-term {L+ = Z ∧⁺ Z₁ ∷ L+} pf (∧⁺L N) In = ∧⁺L (cntr-pers-term pf N In) 
 
 
+
 cntr-pers-term-bis : ∀{Γ A L+ U} → Term (Pers A ∷ Γ) (↓ A ∷ L+) U → Term Γ (↓ A ∷ L+) U
 cntr-pers-term-bis {Γ} {A} (↓L N) =  ↓L (cntr (Pers A ∷ Γ) (here refl) N)
 
@@ -76,7 +77,6 @@ cntr-pers-term-bis-gen {Γ' = Γ'} (∨L N₁ N₂) (there In) =
   ∨L (cntr-pers-term-bis-gen {Γ' = Γ'} N₁ (there In) ) (cntr-pers-term-bis-gen {Γ' = Γ'} N₂ (there In)) 
 cntr-pers-term-bis-gen {Γ' = Γ'} (⊤⁺L N) (there In) = ⊤⁺L (cntr-pers-term-bis-gen {Γ' = Γ'} N In)
 cntr-pers-term-bis-gen {Γ' = Γ'} (∧⁺L N) (there In) = ∧⁺L (cntr-pers-term-bis-gen {Γ' = Γ'} N (there (there In))) 
-
 
 
 
@@ -158,6 +158,20 @@ cntr-+-[]-spine : ∀{Γ Y L+ U}
   → Pers (↑ X) ∈ Γ
   → Spine Γ [] (Y ∷ L+) U
 cntr-+-[]-spine pf X (↑L-nil pf₁ N) In = ↑L-nil pf₁ (cntr-pers-term pf₁ N In)
+
+{-
+ TODO 
+cntr-+-L-spine : ∀{Γ X L- L1 L2 U}
+  → stable U 
+  → Spine Γ L- (L1 ++ X ∷ L2) U 
+  → Pers (↑ X) ∈ Γ
+  → Spine Γ L- (L1 ++ L2) U
+cntr-+-L-spine {L- = []} {[]} pf (↑L-nil pf₁ N) In = 
+  -- Requires cntr-pers-gen-term and thus suspnormal U as a condition
+  {!!}
+cntr-+-L-spine {L- = []} {x ∷ L1} pf Sp In = {!!}
+cntr-+-L-spine {L- = x ∷ L- } pf Sp In = {!!} 
+-}
 
 
 cntr-+-spine-gen : ∀{Γ X L- L+ U} → Spine Γ L- (X ∷ L+) U → X ∈ L+ → Spine Γ L- L+ U

@@ -86,14 +86,14 @@ open import NatExtra
 
 
 
-term-∧⁺-adm : ∀{Γ L1 L2 A B U} → Term Γ (L1 ++ A ∷ B ∷ L2) U → Term Γ (L1 ++ A ∧⁺ B ∷ L2) U
-term-∧⁺-adm {L1 = []} T = ∧⁺L T
-term-∧⁺-adm {L1 = ._ ∷ L1} (η⁺ N) = η⁺ (term-∧⁺-adm {L1 = L1} N)
-term-∧⁺-adm {L1 = ._ ∷ L1} (↓L N) = ↓L (term-∧⁺-adm {L1 = L1} N)
-term-∧⁺-adm {L1 = .⊥⁺ ∷ L1} ⊥L = ⊥L
-term-∧⁺-adm {L1 = ._ ∷ L1} (∨L {A1} {B1} N₁ N₂) =  ∨L (term-∧⁺-adm {L1 = A1 ∷ L1} N₁) (term-∧⁺-adm {L1 = B1 ∷ L1}   N₂)
-term-∧⁺-adm {L1 = .⊤⁺ ∷ L1} (⊤⁺L N) = ⊤⁺L (term-∧⁺-adm {L1 = L1} N)
-term-∧⁺-adm {L1 = ._ ∷ L1} (∧⁺L {A = A1} {B = B1} N) = ∧⁺L (term-∧⁺-adm {L1 = A1 ∷ B1 ∷ L1}  N)
+term-∧⁺-gen : ∀{Γ L1 L2 A B U} → Term Γ (L1 ++ A ∷ B ∷ L2) U → Term Γ (L1 ++ A ∧⁺ B ∷ L2) U
+term-∧⁺-gen {L1 = []} T = ∧⁺L T
+term-∧⁺-gen {L1 = ._ ∷ L1} (η⁺ N) = η⁺ (term-∧⁺-gen {L1 = L1} N)
+term-∧⁺-gen {L1 = ._ ∷ L1} (↓L N) = ↓L (term-∧⁺-gen {L1 = L1} N)
+term-∧⁺-gen {L1 = .⊥⁺ ∷ L1} ⊥L = ⊥L
+term-∧⁺-gen {L1 = ._ ∷ L1} (∨L {A1} {B1} N₁ N₂) =  ∨L (term-∧⁺-gen {L1 = A1 ∷ L1} N₁) (term-∧⁺-gen {L1 = B1 ∷ L1}   N₂)
+term-∧⁺-gen {L1 = .⊤⁺ ∷ L1} (⊤⁺L N) = ⊤⁺L (term-∧⁺-gen {L1 = L1} N)
+term-∧⁺-gen {L1 = ._ ∷ L1} (∧⁺L {A = A1} {B = B1} N) = ∧⁺L (term-∧⁺-gen {L1 = A1 ∷ B1 ∷ L1}  N)
 
 term-∧⁺-inv : ∀{Γ L1 L2 A B U} → Term Γ (L1 ++ A ∧⁺ B ∷ L2) U → Term Γ (L1 ++ A ∷ B ∷ L2) U
 term-∧⁺-inv {L1 = []} (∧⁺L N) = N
@@ -158,10 +158,35 @@ cntr-term-hsusp T (there In) = {!!} -- expand⁺
 
 
 
-postulate
-  spine-∧⁺-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ B ∷ L+) U → Spine Γ L- (A ∧⁺ B ∷ L+) U
+spine-∧⁺-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∷ B ∷ L+) U → Spine Γ L- (A ∧⁺ B ∷ L+) U
+spine-∧⁺-adm (↑L-cons pf N) = ↑L-cons pf (spine-∧⁺-adm N)
+spine-∧⁺-adm (↑L-nil pf N) = ↑L-nil pf (∧⁺L N)
+spine-∧⁺-adm (⊃L V Sp) = ⊃L V (spine-∧⁺-adm Sp)
+spine-∧⁺-adm (∧⁻L₁ Sp) = ∧⁻L₁ (spine-∧⁺-adm Sp)
+spine-∧⁺-adm (∧⁻L₂ Sp) = ∧⁻L₂ (spine-∧⁺-adm Sp) 
 
+postulate 
+  spine-∧⁺-helper1 : ∀{a} {A : Set a} {x y : A}  {L1 A B L2} → 
+    x ∷ (L1 ++ A ∷ B ∷ L2) ++ [ y ] ≡ (x ∷ L1) ++ A ∷ B ∷ (L2 ++ [ y ])
+postulate 
+  spine-∧⁺-helper2 : ∀{a} {A : Set a} {x y : A}  {Z L1 L2} → 
+    x ∷ (L1 ++ Z ∷ L2) ++ [ y ] ≡ (x ∷ L1) ++ Z ∷ (L2 ++ [ y ])
 
+spine-∧⁺-adm-gen : ∀{Γ L L1 L2 A B U} 
+  → Spine Γ L (L1 ++ A ∷ B ∷ L2) U
+  → Spine Γ L (L1 ++ A ∧⁺ B ∷ L2) U
+spine-∧⁺-adm-gen {L1 = []} Sp = spine-∧⁺-adm Sp
+spine-∧⁺-adm-gen {Γ} {._ ∷ L} {L1 = x ∷ L1} {L2} {A} {B} {U} (↑L-cons {y} pf N) 
+  -- Boring hack to rewrite ...
+  with ↑L-cons {Γ = Γ} {x = y} {L- = L}  {L+ = x ∷ (L1 ++ A ∧⁺ B ∷ L2)} {U = U} pf 
+... | R   rewrite 
+     spine-∧⁺-helper1 {x = x} {y} {L1} {A} {B} {L2} 
+   |  spine-∧⁺-helper2 {x = x} {y = y} {Z = A ∧⁺ B} {L1 = L1} {L2 = L2} 
+  =  R (spine-∧⁺-adm-gen {L1 = x ∷ L1} N)
+spine-∧⁺-adm-gen {L1 = X ∷ L1} (↑L-nil pf N) = ↑L-nil pf (term-∧⁺-gen {L1 = X ∷ L1} N)
+spine-∧⁺-adm-gen {L1 = x ∷ L1} (⊃L V Sp) = ⊃L V (spine-∧⁺-adm-gen {L1 = x ∷ L1} Sp) 
+spine-∧⁺-adm-gen {L1 = x ∷ L1} (∧⁻L₁ Sp) = ∧⁻L₁ (spine-∧⁺-adm-gen {L1 = x ∷ L1} Sp) 
+spine-∧⁺-adm-gen {L1 = x ∷ L1} (∧⁻L₂ Sp) = ∧⁻L₂ (spine-∧⁺-adm-gen {L1 = x ∷ L1} Sp) 
 
 
 

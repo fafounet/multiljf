@@ -202,25 +202,30 @@ gsubst-more-gen-single-neg-lit pf (x ∷ LA) Exps Eq Sp (there In) = ⊥-elim (s
 ⊥⁺-admm {LL = inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
   with loading-done Sp2
 ⊥⁺-admm {Γ} {inj₂ [] ∷ LL} {x ∷ LA} pf Eq Sp1 (focL-init pf₁ Sp2 ∷ Exps) 
-  | L' , Sub , Sp' , H = {!unload-all-term ? pf (⊥⁺-admm pf Eq Sp1 (Sp' ∷ Exps)) !}
+  | L' , Sub , Sp' , H = {! (⊥⁺-admm pf Eq Sp1 (Sp' ∷ Exps)) !}
 
 -- Requires a generalization to unload a Spine even when the positive list is not nil
+-- It thus needs unload-partial-adm-bis or equivalent
 
 {-
+We have:
 Exp Γ
-(Left
- (inj₁
-  ((L' ++ []) ++ proj₁ (fuse-gen LL .L+) ,
-   ⊥⁺ ∷
-   _Ω_1330 x Sp2 L' Sub Sp' H LL LA pf Eq Sp1 pf₁ Exps ++
-   proj₂ (fuse-gen LL .L+)))
+  (Left
+    (inj₁
+      ((L' ++ []) ++ proj₁ (fuse-gen LL .L+) ,
+        ⊥⁺ ∷ proj₂ (fuse-gen LL .L+)))
  .U)
 
+with L' ⊆ Γ 
+
+We want:
 Exp Γ
-      (Left
-       (inj₁
-        (proj₁ (fuse-gen LL .L+) , ⊥⁺ ∷ .Ω ++ proj₂ (fuse-gen LL .L+)))
-       .U)
+  (Left
+    (inj₁ 
+      (proj₁ (fuse-gen LL .L+) , 
+        ⊥⁺ ∷ proj₂ (fuse-gen LL .L+))) 
+.U)
+
 -}
 
 ⊥⁺-admm {LL = inj₂ (x ∷ y) ∷ LL} {[]} pf () Sp Exps
