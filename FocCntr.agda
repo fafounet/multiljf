@@ -11,6 +11,8 @@ open import FocUpConj
 
 module FocCntr where
 
+
+
 cntr-pers-gen-term : ∀{Γ L1 L2 X U}
   → stable U 
   → suspnormal U
@@ -35,3 +37,27 @@ cntr-pers-gen-term {L1 = []} pf S (∧⁺L {A = A} {B = B} N) In with in-split I
   -- Requires term-∧⁺-context (thus suspnormal U as a condition)
 --  cntr-pers-gen-term {L1 = {!!}} pf S (term-∧⁺-context {Γ' = {!M1!}} S N) {!!}
 cntr-pers-gen-term {L1 = x ∷ L1} pf S T In = {!!} 
+
+
+postulate 
+  helper1 : ∀{a} {A : Set a} {Y : A} {L1 L2 X x} → Y ∷ (L1 ++ X ∷ L2) ++ [ x ] ≡ (Y ∷ L1) ++ X ∷ (L2 ++ [ x ])
+
+postulate
+  helper2 : ∀{a} {A : Set a} {Y : A} {L1 L2 x} → Y ∷ L1 ++ L2 ++ [ x ] ≡ (Y ∷ L1 ++ L2) ++ [ x ]
+
+cntr-+-L-spine : ∀{Γ X L- Y L1 L2 U}
+  → stable U 
+  → suspnormal U
+  → Spine Γ L- ((Y ∷ L1) ++ X ∷ L2) U 
+  → Pers (↑ X) ∈ Γ
+  → Spine Γ L- ((Y ∷ L1) ++ L2) U
+-- Requires cntr-pers-gen-term and thus suspnormal U as a condition
+cntr-+-L-spine {X = X} {Y = Y} {L1} {L2} pf S (↑L-cons {x} pf₁ N) In 
+  rewrite helper1 {Y = Y} {L1} {L2} {X} {x} 
+  with cntr-+-L-spine {L1 = L1} pf S N In
+... | R1 rewrite helper2 {Y = Y} {L1} {L2} {x} = 
+  ↑L-cons pf₁ R1 
+cntr-+-L-spine {Y = Y} {L1} pf S (↑L-nil pf₁ N) In = ↑L-nil pf₁ (cntr-pers-gen-term {L1 = Y ∷ L1} pf S N In)
+cntr-+-L-spine {L1 = L1} pf S (⊃L V Sp) In = ⊃L V (cntr-+-L-spine {L1 = L1} pf S Sp In)
+cntr-+-L-spine {L1 = L1} pf S (∧⁻L₁ Sp) In = ∧⁻L₁ (cntr-+-L-spine {L1 = L1} pf S Sp In)
+cntr-+-L-spine {L1 = L1} pf S (∧⁻L₂ Sp) In = ∧⁻L₂ (cntr-+-L-spine {L1 = L1} pf S Sp In) 
