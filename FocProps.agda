@@ -15,7 +15,7 @@ open import Function
 
 open import Foc
 open import FocWeak
-open import FocCntr
+open import FocSimpleCntr
 
 open import NatExtra
 open import ListExtra
@@ -431,11 +431,19 @@ unload-all-adm-bis {L+ = x ∷ L+} pf Sp Sub = {!!}
 -}
 
 
-unload-partial-adm-bis : ∀{Γ X L1 L2 L+ U} 
-  → (pf : stable U) 
-  → Spine Γ (L1 ++ L2)  (X ∷ L+) U 
-  → Data.List.map Pers L1 ⊆ Γ 
-  → Spine Γ L2 (X ∷ L+) U 
+{-
+ TODO
+ TODO
+ TODO
+ TODO 
+-}
+postulate 
+  unload-partial-adm-bis : ∀{Γ X L1 L2 L+ U} 
+    → (pf : stable U) 
+    → Spine Γ (L1 ++ L2)  (X ∷ L+) U 
+    → Data.List.map Pers L1 ⊆ Γ 
+    → Spine Γ L2 (X ∷ L+) U 
+{-
 unload-partial-adm-bis {L1 = []} pf Sp Sub = Sp
 unload-partial-adm-bis {L1 = ._ ∷ L1} pf (↑L-cons {Y} pf₁ N) Sub = 
   -- Requires cntr-+-L-spine and thus suspnormal U as a condition
@@ -443,7 +451,7 @@ unload-partial-adm-bis {L1 = ._ ∷ L1} pf (↑L-cons {Y} pf₁ N) Sub =
 unload-partial-adm-bis {L1 = ._ ∷ L1} pf (⊃L V Sp) Sub = {!!}
 unload-partial-adm-bis {L1 = ._ ∷ L1} pf (∧⁻L₁ Sp) Sub = {!!}
 unload-partial-adm-bis {L1 = ._ ∷ L1} pf (∧⁻L₂ Sp) Sub = {!!}
-
+-}
 
 
 
@@ -464,9 +472,6 @@ spine-init : ∀{Γ Q LA U L+}
   → Spine Γ (a Q ⁻ ∷ LA) L+ U 
   → ((LA ≡ []) × (L+ ≡ []))
 spine-init id⁻ = refl , refl
-
-
-
 
 
 

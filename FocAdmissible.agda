@@ -12,9 +12,10 @@ module FocAdmissible where
 
 open import Foc
 open import FocWeak
+
 open import ListExtra
 open import NatExtra
---open import FocProps
+
 
 
 ∧+-inv : ∀{Γ U Ω A B} → Term Γ (A ∧⁺ B ∷ Ω) U → Term Γ (A ∷ B ∷ Ω) U
@@ -189,6 +190,26 @@ spine-∧⁺-adm-gen {L1 = x ∷ L1} (∧⁻L₁ Sp) = ∧⁻L₁ (spine-∧⁺-
 spine-∧⁺-adm-gen {L1 = x ∷ L1} (∧⁻L₂ Sp) = ∧⁻L₂ (spine-∧⁺-adm-gen {L1 = x ∷ L1} Sp) 
 
 
+spine-∧⁺-inv-adm : ∀{Γ L- L+ A B U} → Spine Γ L- (A ∧⁺ B ∷ L+) U → Spine Γ L- (A ∷ B ∷ L+) U
+spine-∧⁺-inv-adm (↑L-cons pf N) = ↑L-cons pf (spine-∧⁺-inv-adm N)
+spine-∧⁺-inv-adm (↑L-nil pf (∧⁺L N)) = ↑L-nil pf N
+spine-∧⁺-inv-adm (⊃L V Sp) = ⊃L V (spine-∧⁺-inv-adm Sp)
+spine-∧⁺-inv-adm (∧⁻L₁ Sp) = ∧⁻L₁ (spine-∧⁺-inv-adm Sp)
+spine-∧⁺-inv-adm (∧⁻L₂ Sp) = ∧⁻L₂ (spine-∧⁺-inv-adm Sp) 
+
+spine-∧⁺-inv-adm-gen : ∀{Γ L- L1 L2 A B U} → Spine Γ L- (L1 ++ A ∧⁺ B ∷ L2) U → Spine Γ L- (L1 ++ A ∷ B ∷ L2) U
+spine-∧⁺-inv-adm-gen {L1 = []} Sp = spine-∧⁺-inv-adm Sp
+spine-∧⁺-inv-adm-gen {Γ} {._ ∷ L} {L1 = x ∷ L1} {L2} {A} {B} {U} (↑L-cons {y} pf N) 
+  -- Boring hack to rewrite ...
+ with ↑L-cons {Γ = Γ} {x = y} {L- = L}  {L+ = x ∷ (L1 ++ A ∷ B ∷ L2)} {U = U} pf 
+... | R rewrite 
+        spine-∧⁺-helper1 {x = x} {y} {L1} {A} {B} {L2} 
+        |  spine-∧⁺-helper2 {x = x} {y = y} {Z = A ∧⁺ B} {L1 = L1} {L2 = L2} 
+   =  R (spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} N) 
+spine-∧⁺-inv-adm-gen {L1 = X ∷ L1} (↑L-nil pf N) = ↑L-nil pf (term-∧⁺-inv {L1 = X ∷ L1} N)
+spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} (⊃L V Sp) = ⊃L V  (spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} Sp)
+spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} (∧⁻L₁ Sp) = ∧⁻L₁ (spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} Sp) 
+spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} (∧⁻L₂ Sp) = ∧⁻L₂ (spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} Sp)  
 
 
 {-
