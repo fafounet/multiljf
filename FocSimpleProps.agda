@@ -18,13 +18,19 @@ module FocSimpleProps where
 
 
 term-⊥-context : ∀{Γ U} → stable U → Pers (↑ ⊥⁺) ∈ Γ  → Term Γ [] U
-term-⊥-context pf (here refl) = 
-  focL-init pf (focL-step pf (here refl) (focL-end pf (↑L-cons pf (↑L-nil pf ⊥L))) ) 
-term-⊥-context pf (there In) = 
-  focL-init pf (focL-step pf (there In) (focL-end pf (↑L-cons pf (↑L-nil pf ⊥L))))
+term-⊥-context pf In = focL-init pf
+                         (focL-step pf In (focL-end pf (↑L-cons pf (↑L-nil pf ⊥L))))
 
-
-
+-- The size of Γ + L is decreasing
+{-# NO_TERMINATION_CHECK #-}
+term-⊥-context-gen : ∀{Γ L U} → stable U → Pers (↑ ⊥⁺) ∈ Γ  → Term Γ L U
+term-⊥-context-gen {L = []} S In = focL-init S (focL-step S In (focL-end S (↑L-cons S (↑L-nil S ⊥L))))
+term-⊥-context-gen {L = a Q .⁺ ∷ L} S In = η⁺ (term-⊥-context-gen S (there In))
+term-⊥-context-gen {Γ} {L = ↓ x ∷ L} S In = ↓L (term-⊥-context-gen {Pers x ∷ Γ} {L = L} S (there In))
+term-⊥-context-gen {L = ⊥⁺ ∷ L} S In = ⊥L
+term-⊥-context-gen {L = x ∨ x₁ ∷ L} S In = ∨L (term-⊥-context-gen S In) (term-⊥-context-gen S In)
+term-⊥-context-gen {L = ⊤⁺ ∷ L} S In = ⊤⁺L (term-⊥-context-gen S In)
+term-⊥-context-gen {L = x ∧⁺ x₁ ∷ L} S In = ∧⁺L (term-⊥-context-gen {L = x ∷ x₁ ∷ L} S In)
 
 
 

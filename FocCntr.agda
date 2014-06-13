@@ -22,7 +22,7 @@ cntr-pers-gen-term : ∀{Γ L1 L2 X U}
 
 cntr-pers-gen-term {L1 = []} pf S (η⁺ N) In = {!!}
 cntr-pers-gen-term {L1 = []} pf S (↓L N) In = {!!}
-cntr-pers-gen-term {L1 = []} pf S ⊥L In = {!f!}
+cntr-pers-gen-term {L1 = []} pf S ⊥L In = {!!}
 cntr-pers-gen-term {L1 = []} pf S (∨L N₁ N₂) In = {!!}
 cntr-pers-gen-term {L1 = []} pf S (⊤⁺L N) In = N
 cntr-pers-gen-term {L1 = []} pf S (∧⁺L {A = A} {B = B} N) In with in-split In 
