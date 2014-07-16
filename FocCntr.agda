@@ -7,6 +7,7 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 open import ListExtra
 
 open import Foc
+open import FocSimpleProps
 open import FocUpConj
 
 module FocCntr where
@@ -22,8 +23,8 @@ cntr-pers-gen-term : ∀{Γ L1 L2 X U}
 
 cntr-pers-gen-term {L1 = []} pf S (η⁺ N) In = {!!}
 cntr-pers-gen-term {L1 = []} pf S (↓L N) In = {!!}
-cntr-pers-gen-term {L1 = []} pf S ⊥L In = {!!}
-cntr-pers-gen-term {L1 = []} pf S (∨L N₁ N₂) In = {!!}
+cntr-pers-gen-term {L1 = []} pf S ⊥L In = term-⊥-context-gen pf In
+cntr-pers-gen-term {L1 = []} pf S (∨L N₁ N₂) In = {!∨L ? ? !}
 cntr-pers-gen-term {L1 = []} pf S (⊤⁺L N) In = N
 cntr-pers-gen-term {L1 = []} pf S (∧⁺L {A = A} {B = B} N) In with in-split In 
 ... | M1 , M2 , Eq rewrite Eq = 
