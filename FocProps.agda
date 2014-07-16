@@ -452,9 +452,9 @@ spine-cons-neg-lit-absurd : ∀{Γ X L- L+ Q U} → Spine Γ (X ∷ L-) L+ U →
 spine-cons-neg-lit-absurd {X = a Q .⁻} id⁻ ()
 spine-cons-neg-lit-absurd {X = ↑ X} id⁻ ()
 spine-cons-neg-lit-absurd {X = ↑ x} {[]} (↑L-cons pf N) ()
-spine-cons-neg-lit-absurd {X = ↑ x} {._ ∷ L-} {L+} (↑L-cons pf N) (here refl) 
+spine-cons-neg-lit-absurd {X = ↑ x} {._ ∷ L- } {L+} (↑L-cons pf N) (here refl) 
   = spine-append-neg-lit-absurd {L+ = L+} N
-spine-cons-neg-lit-absurd {X = ↑ x} {x₁ ∷ L-} (↑L-cons pf N) (there In) = spine-cons-neg-lit-absurd N In
+spine-cons-neg-lit-absurd {X = ↑ x} {x₁ ∷ L- } (↑L-cons pf N) (there In) = spine-cons-neg-lit-absurd N In
 spine-cons-neg-lit-absurd {X = X ⊃ X₁} id⁻ ()
 spine-cons-neg-lit-absurd {X = A ⊃ B} (⊃L V Sp) In =  spine-cons-neg-lit-absurd Sp In
 spine-cons-neg-lit-absurd {X = ⊤⁻} id⁻ ()
