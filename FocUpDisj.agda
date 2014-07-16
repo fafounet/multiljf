@@ -61,14 +61,17 @@ term-∨-context {Γ'}  pf (⊃R N) = ⊃R (term-∨-context {Γ'}  tt N)
 term-∨-context {Γ'}  pf ⊤⁻R = ⊤⁻R
 term-∨-context {Γ'}  pf (∧⁻R N₁ N₂) = ∧⁻R (term-∨-context {Γ'}  tt N₁) (term-∨-context {Γ'}  tt N₂)
 
+
+
 spinel-∨-context {Γ'} S (focL-step pf In Sp) with fromctx Γ' In
 spinel-∨-context S (focL-step pf In Sp) | inj₁ refl = {!!}
 spinel-∨-context {Γ'} {A = A} S (focL-step pf In Sp) | inj₂ y = focL-step pf (in-append-double-weak {Y = Pers (↑ A)} {L1 = Γ'} y) (spinel-∨-context {Γ'} S Sp)  
 spinel-∨-context {Γ'} S (focL-end pf Sp) = focL-end pf (spine-∨-context {Γ'} S Sp)
 
+
 spine-∨-context S id⁻ = id⁻
 spine-∨-context {Γ'} S (↑L-cons pf N) = ↑L-cons pf (spine-∨-context {Γ'} S N)
-spine-∨-context {Γ'} S (↑L-nil pf N) = ↑L-nil pf {!!}
+spine-∨-context {Γ'} S (↑L-nil pf N) = ↑L-nil pf (term-∨-context {Γ'} S N)
 spine-∨-context {Γ'} S (⊃L V Sp) = ⊃L (value-∨-context {Γ'} V) (spine-∨-context {Γ'}  S Sp) 
 spine-∨-context {Γ'} S (∧⁻L₁ Sp) = ∧⁻L₁ (spine-∨-context {Γ'} S Sp)
 spine-∨-context {Γ'} S (∧⁻L₂ Sp) = ∧⁻L₂ (spine-∨-context {Γ'} S Sp) 

@@ -29,7 +29,12 @@ load-std (focL-step pf In Sp) = focL-init pf (focL-step pf In Sp)
 load-std (focL-end pf Sp) = focL-init pf (focL-end pf Sp)
 
 
-unload-all-l : ∀{Γ U} → (L : List (Type ⁻)) → (pf : stable U) → Spine-l Γ L U → Data.List.map Pers L ⊆ Γ → Spine-l Γ [] U 
+unload-all-l : ∀{Γ U} 
+  → (L : List (Type ⁻)) 
+  → (pf : stable U) 
+  → Spine-l Γ L U 
+  → Data.List.map Pers L ⊆ Γ 
+  → Spine-l Γ [] U 
 unload-all-l [] pf Sp In = Sp
 unload-all-l (x ∷ L) pf Sp In = unload-all-l L pf (focL-step pf (In (here refl)) Sp) (λ {x₁} z → In (there z))
 
@@ -51,6 +56,8 @@ load-inv-step-adm : ∀{Γ1 Γ2 X L U}
   → Spine-l (Γ1 ++ Pers X ∷ Γ2) (X ∷ L) U 
   → Spine-l (Γ1 ++ Pers X ∷ Γ2) (L) U
 load-inv-step-adm {Γ1} {X = X} pf Sp = focL-step pf (in-append-cons {X = Pers X} {L1 = Γ1})  Sp
+
+
 
 loading-done : ∀{Γ L U}
   → (s : Spine-l Γ L U)

@@ -54,6 +54,9 @@ spine-↑∧⁺-+ {L = []} {x ∷ L1} pf S InA InB Sp = {!!}
 spine-↑∧⁺-+ {L = x ∷ L} pf S InA InB Sp = {!!}
 -}
 
+
+-- It is possible to remove a loaded shifted positive conjunction if its
+-- two (shifted) components are already in the context
 spine-↑∧⁺ : ∀{Γ A B L1 L2 L+ U}  
                 (pf : stable U) 
                 (S : suspnormal U)
@@ -84,6 +87,8 @@ spine-↑∧⁺ {L1 = ._ ∷ x₁ ∷ L1} pf S InA InB (∧⁻L₂ {A₁} {B₁}
   ∧⁻L₂ (spine-↑∧⁺ {L1 = B₁ ∷ x₁ ∷ L1} pf S InA InB Sp)  
 
 
+-- It is possible to remove a loaded shifted positive conjunction if its
+-- two (shifted) components are already in the context
 focL-↑∧⁺-step : ∀{Γ A B L1 L2 U}  
                 (pf : stable U) 
                 (S : suspnormal U)
@@ -97,62 +102,75 @@ focL-↑∧⁺-step {L1 = L1} pf S InA InB (focL-end pf₁ Sp) = focL-end  pf₁
 
 
 
+mutual
+  value-∧⁺-context : ∀{Γ' Γ A B U} 
+    → Value (Γ' ++ Pers (↑ (A ∧⁺ B)) ∷ Γ) U 
+    → Value (Γ' ++ Pers (↑ A) ∷ Pers (↑ B) ∷ Γ) U 
+    
+  term-∧⁺-context : ∀{Γ' Γ A B L U} 
+    → suspnormal U 
+    → Term  (Γ' ++ Pers (↑ (A ∧⁺ B)) ∷ Γ) L U 
+    → Term (Γ' ++ Pers (↑ A) ∷ Pers (↑ B) ∷ Γ) L U 
 
-value-∧⁺-context : ∀{Γ' Γ A B U} 
-  → Value (Γ' ++ Pers (↑ (A ∧⁺ B)) ∷ Γ) U 
-  → Value (Γ' ++ Pers (↑ A) ∷ Pers (↑ B) ∷ Γ) U 
-
-
-postulate
   spine-l-∧⁺-context : ∀{Γ' Γ L- A B U} 
-    → suspnormal U --Used by focL-↑∧⁺-step 
-    → Spine-l  (Γ' ++ Pers (↑ (A ∧⁺ B)) ∷ Γ) L- U 
-    → Spine-l (Γ' ++ Pers (↑ A) ∷ Pers (↑ B) ∷ Γ) L- U 
-{-
-spine-l-∧⁺-context {Γ'} S (focL-step pf In Sp) with fromctx Γ' In 
-spine-l-∧⁺-context {Γ'} {Γ} {A = A} {B = B} S (focL-step pf In Sp) | inj₁ refl = 
-  focL-↑∧⁺-step 
-    {Γ = Γ' ++ Pers (↑ A) ∷ Pers (↑ B) ∷ Γ} 
-    {L1 = []}
-    pf 
-    S
-    (in-append-right {L1 = Γ'} (here refl)) 
-    (in-append-right {L1 = Γ'} (there (here refl)) ) 
-    (spine-l-∧⁺-context {Γ'} S Sp) 
-spine-l-∧⁺-context S (focL-step pf In Sp) | inj₂ y = {!!}
-spine-l-∧⁺-context S (focL-end pf Sp) = {!!}
--}
+      → suspnormal U --Used by focL-↑∧⁺-step 
+      → Spine-l  (Γ' ++ Pers (↑ (A ∧⁺ B)) ∷ Γ) L- U 
+      → Spine-l (Γ' ++ Pers (↑ A) ∷ Pers (↑ B) ∷ Γ) L- U 
+  
+  spine-∧⁺-context : ∀{Γ' Γ L- L+ A B U} 
+      → suspnormal U
+      → Spine  (Γ' ++ Pers (↑ (A ∧⁺ B)) ∷ Γ) L- L+ U 
+      → Spine (Γ' ++ Pers (↑ A) ∷ Pers (↑ B) ∷ Γ) L- L+ U 
+  
+  
+  spine-∧⁺-context S id⁻ = id⁻
+  spine-∧⁺-context {Γ'} S (↑L-cons pf N) = ↑L-cons pf (spine-∧⁺-context {Γ'} S N)
+  spine-∧⁺-context {Γ'} S (↑L-nil pf N) = ↑L-nil pf (term-∧⁺-context {Γ'} S N)
+  spine-∧⁺-context {Γ'} S (⊃L V Sp) = ⊃L (value-∧⁺-context {Γ'} V) (spine-∧⁺-context {Γ'} S Sp) 
+  spine-∧⁺-context {Γ'} S (∧⁻L₁ Sp) = ∧⁻L₁ (spine-∧⁺-context {Γ'} S Sp)
+  spine-∧⁺-context {Γ'} S (∧⁻L₂ Sp) = ∧⁻L₂ (spine-∧⁺-context {Γ'} S Sp) 
+  
+  spine-l-∧⁺-context {Γ'} S (focL-step pf In Sp) with fromctx Γ' In 
+  -- * Pers (↑ (A ∧⁺ B)) was loaded 
+  spine-l-∧⁺-context {Γ'} {Γ} {A = A} {B = B} S (focL-step pf In Sp) | inj₁ refl = 
+    focL-↑∧⁺-step 
+      {Γ = Γ' ++ Pers (↑ A) ∷ Pers (↑ B) ∷ Γ} 
+      {L1 = []}
+      pf 
+      S
+      (in-append-right {L1 = Γ'} (here refl)) 
+      (in-append-right {L1 = Γ'} (there (here refl)) ) 
+      (spine-l-∧⁺-context {Γ'} S Sp) 
+  -- * Something in Γ Γ' was loaded
+  spine-l-∧⁺-context {Γ'} S (focL-step pf In Sp) | inj₂ y = focL-step pf (in-append-double-weak {L1 = Γ'} y) (spine-l-∧⁺-context {Γ'} S Sp)
+  spine-l-∧⁺-context {Γ'} S (focL-end pf Sp) = focL-end pf (spine-∧⁺-context {Γ'} S Sp)
+
+
+  value-∧⁺-context {Γ'} (id⁺ v) with fromctx Γ' v 
+  value-∧⁺-context (id⁺ v) | inj₁ ()
+  value-∧⁺-context {Γ'} (id⁺ v) | inj₂ y = id⁺ (in-append-double-weak {L1 = Γ'} y) 
+  value-∧⁺-context {Γ'} (↓R N) = ↓R (term-∧⁺-context {Γ'} tt N)
+  value-∧⁺-context {Γ'} (∨R₁ V) = ∨R₁ (value-∧⁺-context {Γ'} V)
+  value-∧⁺-context {Γ'} (∨R₂ V) = ∨R₂ (value-∧⁺-context {Γ'}  V)
+  value-∧⁺-context ⊤⁺R = ⊤⁺R
+  value-∧⁺-context {Γ'} (∧⁺R V₁ V₂) = ∧⁺R (value-∧⁺-context {Γ'}  V₁) (value-∧⁺-context {Γ'}  V₂) 
+
+  term-∧⁺-context {Γ'} S (focR V) = focR (value-∧⁺-context {Γ'} V)
+  term-∧⁺-context {Γ'} S (focL-init pf Sp) = focL-init pf (spine-l-∧⁺-context {Γ'} S Sp)
+  term-∧⁺-context {Γ'} S (η⁺ {Q} N) = η⁺ (term-∧⁺-context {HSusp (a Q ⁺) ∷ Γ'} S N)
+  term-∧⁺-context {Γ'} S (↓L {A₁} N) = ↓L (term-∧⁺-context {Pers A₁ ∷ Γ'} S N)
+  term-∧⁺-context {Γ'} S ⊥L = ⊥L
+  term-∧⁺-context {Γ'} S (∨L N₁ N₂) = ∨L (term-∧⁺-context {Γ'} S N₁) (term-∧⁺-context {Γ'} S N₂)
+  term-∧⁺-context {Γ'} S (⊤⁺L N) = ⊤⁺L (term-∧⁺-context {Γ'} S N)
+  term-∧⁺-context {Γ'} S (∧⁺L N) = ∧⁺L (term-∧⁺-context {Γ'} S N)
+  term-∧⁺-context {Γ'} S (η⁻ N) = η⁻ (term-∧⁺-context {Γ'} tt N)
+  term-∧⁺-context {Γ'} S (↑R N) = ↑R (term-∧⁺-context {Γ'} tt N)
+  term-∧⁺-context {Γ'} S (⊃R N) = ⊃R (term-∧⁺-context {Γ'} tt N)
+  term-∧⁺-context {Γ'} S ⊤⁻R = ⊤⁻R
+  term-∧⁺-context {Γ'} S (∧⁻R N₁ N₂) = ∧⁻R (term-∧⁺-context {Γ'} tt N₁) (term-∧⁺-context {Γ'} tt N₂) 
 
 
 
-
-term-∧⁺-context : ∀{Γ' Γ A B L U} 
-  → suspnormal U 
-  → Term  (Γ' ++ Pers (↑ (A ∧⁺ B)) ∷ Γ) L U 
-  → Term (Γ' ++ Pers (↑ A) ∷ Pers (↑ B) ∷ Γ) L U 
-
-value-∧⁺-context {Γ'} (id⁺ v) with fromctx Γ' v 
-value-∧⁺-context (id⁺ v) | inj₁ ()
-value-∧⁺-context {Γ'} (id⁺ v) | inj₂ y = id⁺ (in-append-double-weak {L1 = Γ'} y) 
-value-∧⁺-context {Γ'} (↓R N) = ↓R (term-∧⁺-context {Γ'} tt N)
-value-∧⁺-context {Γ'} (∨R₁ V) = ∨R₁ (value-∧⁺-context {Γ'} V)
-value-∧⁺-context {Γ'} (∨R₂ V) = ∨R₂ (value-∧⁺-context {Γ'}  V)
-value-∧⁺-context ⊤⁺R = ⊤⁺R
-value-∧⁺-context {Γ'} (∧⁺R V₁ V₂) = ∧⁺R (value-∧⁺-context {Γ'}  V₁) (value-∧⁺-context {Γ'}  V₂) 
-
-term-∧⁺-context {Γ'} S (focR V) = focR (value-∧⁺-context {Γ'} V)
-term-∧⁺-context {Γ'} S (focL-init pf Sp) = focL-init pf (spine-l-∧⁺-context {Γ'} S Sp)
-term-∧⁺-context {Γ'} S (η⁺ {Q} N) = η⁺ (term-∧⁺-context {HSusp (a Q ⁺) ∷ Γ'} S N)
-term-∧⁺-context {Γ'} S (↓L {A₁} N) = ↓L (term-∧⁺-context {Pers A₁ ∷ Γ'} S N)
-term-∧⁺-context {Γ'} S ⊥L = ⊥L
-term-∧⁺-context {Γ'} S (∨L N₁ N₂) = ∨L (term-∧⁺-context {Γ'} S N₁) (term-∧⁺-context {Γ'} S N₂)
-term-∧⁺-context {Γ'} S (⊤⁺L N) = ⊤⁺L (term-∧⁺-context {Γ'} S N)
-term-∧⁺-context {Γ'} S (∧⁺L N) = ∧⁺L (term-∧⁺-context {Γ'} S N)
-term-∧⁺-context {Γ'} S (η⁻ N) = η⁻ (term-∧⁺-context {Γ'} tt N)
-term-∧⁺-context {Γ'} S (↑R N) = ↑R (term-∧⁺-context {Γ'} tt N)
-term-∧⁺-context {Γ'} S (⊃R N) = ⊃R (term-∧⁺-context {Γ'} tt N)
-term-∧⁺-context {Γ'} S ⊤⁻R = ⊤⁻R
-term-∧⁺-context {Γ'} S (∧⁻R N₁ N₂) = ∧⁻R (term-∧⁺-context {Γ'} tt N₁) (term-∧⁺-context {Γ'} tt N₂) 
 
 
 
@@ -172,6 +190,10 @@ value-↑pers : ∀{A B Γ1 Γ2 U}
   → Value (Γ1 ++ Pers (↑ (A  ∧⁺ B)) ∷ Γ2) U
 value-↑pers V = {!!} 
 -}
+
+
+
+
 
 postulate
   term-↑pers : ∀{A B Γ1 Γ2 L U} 
