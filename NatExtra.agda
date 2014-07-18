@@ -71,3 +71,5 @@ max-right {suc x} {suc y} {suc z} Eq = suc->′-suc (max-right {x = x} (suc-inj 
 
 suc-max-right  : ∀{x y z} → suc z ≡ suc (x ⊔ y) →  suc z >′ y
 suc-max-right {x} {y} {z} Eq = max-right {x = x} (suc-inj Eq)
+
+postulate comm-3 : ∀{x y z} → x + y + z ≡ z + x + y

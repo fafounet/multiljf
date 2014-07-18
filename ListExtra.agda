@@ -48,6 +48,15 @@ postulate
                 → length L ≡ length L'
 
 postulate
+  length-append-suc : 
+    ∀{b} {B : Set b} {L : List B} {X} → ∃ λ N → length (L ++ X ∷ []) ≡ suc N
+
+postulate
+  length-fold-append-suc : 
+    ∀{b} {B : Set b} {L : List B} {X} → ∃ λ N → foldr (λ _ → suc) 0 (L ++ X ∷ []) ≡ suc N
+
+
+postulate
   assoc :  ∀{b} {B : Set b} (L1 L2 L3 : List B) → L1 ++ L2 ++ L3 ≡ (L1 ++ L2) ++ L3
 
 postulate
