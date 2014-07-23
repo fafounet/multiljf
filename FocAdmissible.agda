@@ -167,10 +167,10 @@ spine-∧⁺-adm (∧⁻L₁ Sp) = ∧⁻L₁ (spine-∧⁺-adm Sp)
 spine-∧⁺-adm (∧⁻L₂ Sp) = ∧⁻L₂ (spine-∧⁺-adm Sp) 
 
 postulate 
-  spine-∧⁺-helper1 : ∀{a} {A : Set a} {x y : A}  {L1 A B L2} → 
+  spine-∧⁺-adm-helper1 : ∀{a} {A : Set a} {x y : A}  {L1 A B L2} → 
     x ∷ (L1 ++ A ∷ B ∷ L2) ++ [ y ] ≡ (x ∷ L1) ++ A ∷ B ∷ (L2 ++ [ y ])
 postulate 
-  spine-∧⁺-helper2 : ∀{a} {A : Set a} {x y : A}  {Z L1 L2} → 
+  spine-∧⁺-adm-helper2 : ∀{a} {A : Set a} {x y : A}  {Z L1 L2} → 
     x ∷ (L1 ++ Z ∷ L2) ++ [ y ] ≡ (x ∷ L1) ++ Z ∷ (L2 ++ [ y ])
 
 spine-∧⁺-adm-gen : ∀{Γ L L1 L2 A B U} 
@@ -181,8 +181,8 @@ spine-∧⁺-adm-gen {Γ} {._ ∷ L} {L1 = x ∷ L1} {L2} {A} {B} {U} (↑L-cons
   -- Boring hack to rewrite ...
   with ↑L-cons {Γ = Γ} {x = y} {L- = L}  {L+ = x ∷ (L1 ++ A ∧⁺ B ∷ L2)} {U = U} pf 
 ... | R   rewrite 
-     spine-∧⁺-helper1 {x = x} {y} {L1} {A} {B} {L2} 
-   |  spine-∧⁺-helper2 {x = x} {y = y} {Z = A ∧⁺ B} {L1 = L1} {L2 = L2} 
+     spine-∧⁺-adm-helper1 {x = x} {y} {L1} {A} {B} {L2} 
+   |  spine-∧⁺-adm-helper2 {x = x} {y = y} {Z = A ∧⁺ B} {L1 = L1} {L2 = L2} 
   =  R (spine-∧⁺-adm-gen {L1 = x ∷ L1} N)
 spine-∧⁺-adm-gen {L1 = X ∷ L1} (↑L-nil pf N) = ↑L-nil pf (term-∧⁺-gen {L1 = X ∷ L1} N)
 spine-∧⁺-adm-gen {L1 = x ∷ L1} (⊃L V Sp) = ⊃L V (spine-∧⁺-adm-gen {L1 = x ∷ L1} Sp) 
@@ -203,8 +203,8 @@ spine-∧⁺-inv-adm-gen {Γ} {._ ∷ L} {L1 = x ∷ L1} {L2} {A} {B} {U} (↑L-
   -- Boring hack to rewrite ...
  with ↑L-cons {Γ = Γ} {x = y} {L- = L}  {L+ = x ∷ (L1 ++ A ∷ B ∷ L2)} {U = U} pf 
 ... | R rewrite 
-        spine-∧⁺-helper1 {x = x} {y} {L1} {A} {B} {L2} 
-        |  spine-∧⁺-helper2 {x = x} {y = y} {Z = A ∧⁺ B} {L1 = L1} {L2 = L2} 
+        spine-∧⁺-adm-helper1 {x = x} {y} {L1} {A} {B} {L2} 
+        |  spine-∧⁺-adm-helper2 {x = x} {y = y} {Z = A ∧⁺ B} {L1 = L1} {L2 = L2} 
    =  R (spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} N) 
 spine-∧⁺-inv-adm-gen {L1 = X ∷ L1} (↑L-nil pf N) = ↑L-nil pf (term-∧⁺-inv {L1 = X ∷ L1} N)
 spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} (⊃L V Sp) = ⊃L V  (spine-∧⁺-inv-adm-gen {L1 = x ∷ L1} Sp)

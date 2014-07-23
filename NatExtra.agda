@@ -5,9 +5,9 @@ module NatExtra where
 
 
 
-assoc-nat : ∀{X Y Z} → X + (Y + Z) ≡ X + Y + Z 
-assoc-nat {zero} = λ {Y} {Z} → refl
-assoc-nat {suc X} {Y} {Z} rewrite assoc-nat {X} {Y} {Z} = refl  
+assoc-nat : (X Y Z : ℕ) → X + (Y + Z) ≡ X + Y + Z 
+assoc-nat zero = λ Y Z → refl
+assoc-nat (suc X) Y Z rewrite assoc-nat X Y Z = refl  
 
 suc-inj : ∀{x x' : ℕ} → suc x ≡ suc x' → x ≡ x'
 suc-inj refl = refl

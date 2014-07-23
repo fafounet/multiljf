@@ -1,4 +1,7 @@
 open import Data.Nat
+import Data.Nat.Properties
+open Data.Nat.Properties.SemiringSolver
+--    using (prove; solve; _:=_; con; var; _:+_; _:*_; :-_; _:-_)
 open import Data.List
 open import Data.List.Any
 open import Data.Product
@@ -8,12 +11,15 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 open Membership-≡
 
 open import ListExtra
+open import Misc
 
 open import Foc
 open import FocAdmissible
 
 
 module FocUpConj where
+
+
 
 
 {-
@@ -55,6 +61,24 @@ spine-↑∧⁺-+ {L = []} {x ∷ L1} Len pf S InA InB Sp = {!!}
 spine-↑∧⁺-+ {L = x ∷ L} Len pf S InA InB Sp = {!!}
 
 
+postulate
+  spine-∧⁺-helper1 : 
+    ∀{a b} {A : Set a} {B : Set b} {x N'} (L1 : List A) (L2 : List B) 
+      → length L1 + length (L2 ++ x ∷ []) ≡ suc N'
+
+
+spine-∧⁺-helper2 :
+  ∀{a b c}{A : Set a}{B : Set b}{C : Set c}
+    → (L+ : List A) 
+    → (L2 : List B) 
+    → (x : B) 
+    → length L+ + length {c} {C} [] + length (x ∷ L2) ≡ suc (length L+ + length L2)
+spine-∧⁺-helper2 L+ L2 x = local-helper (length L+) (length L2) 
+  where local-helper : (x y : ℕ) → x + 0 + suc y ≡ suc (x + y)
+        local-helper = solve 2 (λ x y → x :+ con 0 :+ (con 1 :+ y) := con 1 :+ x :+ y) refl
+
+ 
+
 -- It is possible to remove a loaded shifted positive conjunction if its
 -- two (shifted) components are already in the context
 spine-↑∧⁺ : ∀{Γ A B L1 L2 L+ U N}  
@@ -69,16 +93,18 @@ spine-↑∧⁺ {L1 = []} () pf S InA InB id⁻
 spine-↑∧⁺ {L1 = []} {[]} {[]} () pf S InA InB (↑L-cons pf₁ N₁)
 spine-↑∧⁺ {L1 = []} {[]} {x ∷ L+} Len pf S InA InB (↑L-cons pf₁ N₁) = {!!}
 spine-↑∧⁺ {L1 = []} {x ∷ L2} {L+} Len pf S InA InB (↑L-cons pf₁ N₁)
-  with spine-↑∧⁺-+ {L1 = L+} {L2 = []} {N = {!!}} {!!} pf S InA InB N₁
+  with spine-↑∧⁺-+ {L1 = L+} {L2 = []} {N = length L+ + length L2} (spine-∧⁺-helper2 L+ L2 x) pf S InA InB N₁
 ... | Z rewrite concat-nil L+ = Z
-
 -- Stupid pattern match for Agda
-spine-↑∧⁺ {L1 = ._ ∷ []} {L+ = L+} {N = N} Len pf S InA InB (↑L-cons {x = x} pf₁ N₁) 
+spine-↑∧⁺ {L1 = ._ ∷ []} {L2 = L2} {L+ = L+} {N = N} Len pf S InA InB (↑L-cons {x = x} pf₁ N₁) 
    with length-append-suc {L = L+} {X = x}
-... | N' , Eq rewrite Eq =  ↑L-cons pf₁ (spine-↑∧⁺  {L1 = []} {N = {!!}} {!!} pf S InA InB N₁)
-spine-↑∧⁺ {L1 = ._ ∷ []} Len pf S InA InB (⊃L {A₁} {B₁} V Sp) = ⊃L V (spine-↑∧⁺ {L1 = B₁ ∷ []} refl pf S InA InB Sp) 
-spine-↑∧⁺ {L1 = ._ ∷ []} Len pf S InA InB (∧⁻L₁ {A₁} {B₁} Sp) = ∧⁻L₁ (spine-↑∧⁺ {L1 = A₁ ∷ []}  refl pf S InA InB Sp ) 
-spine-↑∧⁺ {L1 = ._ ∷ []} Len pf S InA InB (∧⁻L₂ {A₁} {B₁} Sp) = ∧⁻L₂ (spine-↑∧⁺ {L1 = B₁ ∷ []}  refl pf S InA InB Sp)
+... | N' , Eq = ↑L-cons pf₁ (spine-↑∧⁺  {L1 = []} {N = N} (spine-∧⁺-helper1 L2 L+) pf S InA InB N₁)
+spine-↑∧⁺ {L1 = ._ ∷ []} Len pf S InA InB (⊃L {A₁} {B₁} V Sp) = 
+  ⊃L V (spine-↑∧⁺ {L1 = B₁ ∷ []} refl pf S InA InB Sp) 
+spine-↑∧⁺ {L1 = ._ ∷ []} Len pf S InA InB (∧⁻L₁ {A₁} {B₁} Sp) = 
+  ∧⁻L₁ (spine-↑∧⁺ {L1 = A₁ ∷ []}  refl pf S InA InB Sp ) 
+spine-↑∧⁺ {L1 = ._ ∷ []} Len pf S InA InB (∧⁻L₂ {A₁} {B₁} Sp) = 
+  ∧⁻L₂ (spine-↑∧⁺ {L1 = B₁ ∷ []}  refl pf S InA InB Sp)
 spine-↑∧⁺ {L1 = ._ ∷ x₁ ∷ L1} Len pf S InA InB (↑L-cons pf₁ N₁) = 
   ↑L-cons pf₁ (spine-↑∧⁺  {L1 = x₁ ∷ L1} refl pf S InA InB N₁) 
 spine-↑∧⁺ {L1 = ._ ∷ x₁ ∷ L1} Len pf S InA InB (⊃L {A₁} {B₁} V Sp) = 
