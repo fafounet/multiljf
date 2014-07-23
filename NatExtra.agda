@@ -4,6 +4,9 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 module NatExtra where
 
 
+lem3 : (x : ℕ) → (2 * (x + 4) ≡ 8 + 2 * x)
+lem3 = solve 1 (λ x’ → con 2 :* (x’ :+ con 4) := con 8 :+ con 2 :* x’) refl
+
 
 assoc-nat : (X Y Z : ℕ) → X + (Y + Z) ≡ X + Y + Z 
 assoc-nat zero = λ Y Z → refl
