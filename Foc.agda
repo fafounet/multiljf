@@ -11,7 +11,7 @@ open import Data.List.Any.Properties
 open import Data.List.All
 open import Data.List.Properties
 open import Function.Inverse hiding (sym)
-open Membership-≡
+open import Data.List.Any.Membership.Propositional
 
 open import Subset
 open import NatExtra
@@ -74,7 +74,7 @@ size-list-cons : ∀{pol X L} → size-list-formulas {pol} (X ∷ L) ≡ size-fo
 size-list-cons = refl
 
 size-list-append : ∀{pol L1 L2} → size-list-formulas {pol} (L1 ++ L2) ≡  size-list-formulas L1 +  size-list-formulas L2
-size-list-append {pol} {[]} = λ {L2} → refl
+size-list-append {pol} {[]} =  refl
 size-list-append {pol} {x ∷ L1} {L2} 
   rewrite size-list-append 
             {L1 = L1} 
@@ -281,7 +281,7 @@ hsusp-inj refl = refl
 
 {- Suspension normality: all suspended propositions are atomic -}
 suspnormalΓ : Ctx → Set
-suspnormalΓ Γ = ∀{A} → HSusp A Membership-≡.∈ Γ → ∃ λ Q → A ≡ (a Q ⁺)
+suspnormalΓ Γ = ∀{A} → HSusp A ∈ Γ → ∃ λ Q → A ≡ (a Q ⁺)
 
 postulate suspnormalsplitleft : ∀{Γ' Γ} → suspnormalΓ (Γ' ++ Γ) → suspnormalΓ Γ'
 postulate suspnormalsplitright : ∀{Γ' Γ} → suspnormalΓ (Γ' ++ Γ) → suspnormalΓ Γ
@@ -587,11 +587,11 @@ fuse-gen (inj₁ (L- , L+) ∷ L) LL+ = L- ++ proj₁ (fuse-gen L LL+) , L+ ++ p
 fuse-gen (inj₂ L+ ∷ L) LL+ = proj₁ (fuse-gen L LL+) , L+ ++ proj₂ (fuse-gen L LL+)
 
 
-fuse-gen-expand : ∀{LL L+} → fuse-gen LL L+ ≡ proj₁ (fuse-gen LL L+) , proj₂ (fuse-gen LL L+)
+fuse-gen-expand : ∀{LL L+} → fuse-gen LL L+ ≡ (proj₁ (fuse-gen LL L+) , proj₂ (fuse-gen LL L+))
 fuse-gen-expand = refl
 
 fuse-gen-proj₁ : ∀{LL L+ L'+} →  proj₁ (fuse-gen LL (L+ ++ L'+)) ≡ proj₁ (fuse-gen LL L+)
-fuse-gen-proj₁ {[]} = λ {L+} {L'+} → refl
+fuse-gen-proj₁ {[]} =  refl
 fuse-gen-proj₁ {inj₁ x ∷ LL} {L+} {L'+} with fuse-gen-proj₁ {LL = LL} {L+ = L+} {L'+ = L'+}
 ... | Eq rewrite Eq = refl
 fuse-gen-proj₁ {inj₂ y ∷ LL} = fuse-gen-proj₁ {LL = LL}

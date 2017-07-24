@@ -6,7 +6,7 @@ module NatExtra where
 
 
 assoc-nat : ∀{X Y Z} → X + (Y + Z) ≡ X + Y + Z 
-assoc-nat {zero} = λ {Y} {Z} → refl
+assoc-nat {zero} =  refl
 assoc-nat {suc X} {Y} {Z} rewrite assoc-nat {X} {Y} {Z} = refl  
 
 suc-inj : ∀{x x' : ℕ} → suc x ≡ suc x' → x ≡ x'
@@ -28,7 +28,7 @@ suc->′-suc (>′-refl refl) = >′-refl refl
 suc->′-suc (>′-step Ineq) =  >′-step (suc->′-suc Ineq)
 
 suc-+-refl->′ : ∀{N m} → suc (N + m)  >′ m
-suc-+-refl->′ {zero} = λ {m} → >′-refl refl
+suc-+-refl->′ {zero} =  >′-refl refl
 suc-+-refl->′ {suc N} {m} = >′-step (suc-+-refl->′ {N = N})
 
 
@@ -41,7 +41,7 @@ suc-+-refl->′ {suc N} {m} = >′-step (suc-+-refl->′ {N = N})
 +-n->′ {suc n} {m} {k} Ieq = >′-step (+-n->′ {n = n} Ieq) 
 
 +-suc->′ : ∀{m n} → suc m + n >′ n
-+-suc->′ {zero} = λ {n} → >′-refl refl
++-suc->′ {zero} =  >′-refl refl
 +-suc->′ {suc m} {n} = >′-step (+-suc->′ {m = m})
 
 suc-gt-zero : (b : ℕ) → suc b >′ zero

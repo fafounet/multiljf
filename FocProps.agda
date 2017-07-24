@@ -9,7 +9,7 @@ open import Data.Empty
 open import Data.List
 open import Data.List.All
 open import Data.List.Any
-open Membership-≡
+open import Data.List.Any.Membership.Propositional
 
 open import Foc
 open import FocWeak
@@ -357,10 +357,10 @@ spine'-⊥ {L- = x ∧⁻ x₁ ∷ L- } pf (px ∷ All) = {!spine'-⊥ pf All!}
 
 
 spine-[]-[] : ∀{Γ U} → Spine Γ [] [] U → ⊥
-spine-[]-[]  = λ {Γ} {U} → λ ()
+spine-[]-[]  = λ ()
 
 term-[]-⊤ : ∀{Γ} → Term Γ [] (True ⊤⁺)
-term-[]-⊤ = λ {Γ} → focR ⊤⁺R
+term-[]-⊤ =  focR ⊤⁺R
 
 term-⊤ : ∀{Γ} → (L+ : (List (Type ⁺))) → Term Γ L+ (True ⊤⁺) 
 term-⊤ [] = focR ⊤⁺R

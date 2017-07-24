@@ -4,7 +4,7 @@ open import Data.List.Any.Properties
 open import Data.List.All
 open import Data.Sum
 open import Data.Empty
-open Membership-≡
+open import Data.List.Any.Membership.Propositional
 open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 
 open import ListExtra
@@ -54,7 +54,7 @@ wken : ∀{Γ A Form} → Exp Γ Form → Exp (A ∷ Γ) Form
 wken = wk (λ {x} → there)
 
 wken-list :  ∀{Γ' Γ Form} → Exp Γ Form → Exp (Γ' ++ Γ) Form
-wken-list {Γ'} Ex = wk (λ x₁ →  ++ʳ Γ' x₁) Ex
+wken-list {Γ'} Ex = wk (λ x₁ →  ++⁺ʳ Γ' x₁) Ex
 
 any-middle :  ∀{x y Γ} (Γ' : Ctx) → Any (_≡_ x) (Γ' ++ Γ) → Any (_≡_ x) (Γ' ++ y ∷ Γ)
 any-middle [] (here px) = there (here px)
@@ -67,7 +67,7 @@ any-middle-list :
   → Any (_≡_ x) (Γ' ++ Γ) 
   → Any (_≡_ x) (Γ' ++ L ++ Γ)
 any-middle-list Γ' [] A = A
-any-middle-list [] L A =  ++ʳ L A
+any-middle-list [] L A =  ++⁺ʳ L A
 any-middle-list (x₁ ∷ Γ') (x₂ ∷ L) (here refl) = here refl
 any-middle-list (x₁ ∷ Γ') (x₂ ∷ L) (there A) = there (any-middle-list  Γ' (x₂ ∷ L) A) 
 
@@ -180,7 +180,7 @@ weak+-spine-counterex : ∀{Γ Q X}
   → Spine Γ (a Q ⁻ ∷ []) ([]) (Susp (a Q ⁻)) 
   → Spine Γ (a Q ⁻ ∷ []) (X ∷ []) (Susp (a Q ⁻)) 
   → ⊥
-weak+-spine-counterex = λ {Γ} {Q} {X} _ → λ ()
+weak+-spine-counterex = λ _ ()
 
 
 weak+-[]-spine : ∀{Γ L+ U} → (X : Type ⁺) → Spine Γ [] L+ U →  Spine Γ [] (X ∷ L+) U
