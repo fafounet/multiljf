@@ -2,7 +2,7 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 open import Data.List
 open import Data.List.Any
 open import Data.Empty
-open Membership-≡
+open import Data.List.Any.Membership.Propositional
 open import Data.Sum
 open import Data.Product
 

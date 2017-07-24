@@ -5,7 +5,7 @@ open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 open import Data.List.Any
 open import Data.List.All
 open import Data.Product
-open Membership-≡
+open import Data.List.Any.Membership.Propositional
 
 open import ListExtra
 open import Foc

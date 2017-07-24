@@ -1,6 +1,6 @@
 open import Data.List
 open import Data.List.Any
-open Membership-≡
+open import Data.List.Any.Membership.Propositional
 open import Data.Product
 open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]])
 
